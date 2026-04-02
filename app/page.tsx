@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 type Product = {
+  id: number;
   name: string;
   price: number;
   tag: string;
@@ -11,16 +12,17 @@ type Product = {
 
 export default function Home() {
   const products: Product[] = [
-    { name: "Starter Pack", price: 9.99, tag: "Popular", stock: "In Stock" },
-    { name: "Pro Pack", price: 19.99, tag: "Hot", stock: "Limited" },
-    { name: "VIP Pack", price: 49.99, tag: "Premium", stock: "Out of Stock" },
-    { name: "Ultra Bundle", price: 79.99, tag: "New", stock: "In Stock" },
-    { name: "Mega Pass", price: 24.99, tag: "Sale", stock: "In Stock" },
-    { name: "Legend Pack", price: 99.99, tag: "Top", stock: "Limited" },
+    { id: 1, name: "Starter Pack", price: 9.99, tag: "Popular", stock: "In Stock" },
+    { id: 2, name: "Pro Pack", price: 19.99, tag: "Hot", stock: "Limited" },
+    { id: 3, name: "VIP Pack", price: 49.99, tag: "Premium", stock: "Out of Stock" },
+    { id: 4, name: "Ultra Bundle", price: 79.99, tag: "New", stock: "In Stock" },
+    { id: 5, name: "Mega Pass", price: 24.99, tag: "Sale", stock: "In Stock" },
+    { id: 6, name: "Legend Pack", price: 99.99, tag: "Top", stock: "Limited" },
   ];
 
-  const [cartCount, setCartCount] = useState(0);
+  const [cartItems, setCartItems] = useState<Product[]>([]);
   const [message, setMessage] = useState("Welcome to REAL.");
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
   function handleBuy(product: Product) {
     if (product.stock === "Out of Stock") {
@@ -28,12 +30,26 @@ export default function Home() {
       return;
     }
 
-    setCartCount((prev) => prev + 1);
+    setCartItems((prev) => [...prev, product]);
     setMessage(`${product.name} added to cart.`);
+    setIsCartOpen(true);
   }
 
+  function removeFromCart(indexToRemove: number) {
+    setCartItems((prev) => prev.filter((_, index) => index !== indexToRemove));
+    setMessage("Item removed from cart.");
+  }
+
+  function clearCart() {
+    setCartItems([]);
+    setMessage("Cart cleared.");
+  }
+
+  const cartCount = cartItems.length;
+  const totalPrice = cartItems.reduce((sum, item) => sum + item.price, 0);
+
   return (
-    <div className="min-h-screen bg-[#070b14] text-white">
+    <div className="min-h-screen bg-[#070b14] text-white relative">
       <div className="flex min-h-screen">
         <aside className="hidden lg:flex w-72 flex-col border-r border-white/10 bg-[#0b1020] p-6">
           <div>
@@ -46,6 +62,15 @@ export default function Home() {
           <div className="mt-auto rounded-3xl bg-gradient-to-br from-cyan-400/20 to-violet-400/20 p-5 border border-white/10">
             <p className="text-sm text-slate-300">Cart Items</p>
             <h3 className="mt-2 text-4xl font-extrabold">{cartCount}</h3>
+            <p className="mt-2 text-sm text-slate-300">
+              Total: ${totalPrice.toFixed(2)}
+            </p>
+            <button
+              onClick={() => setIsCartOpen(true)}
+              className="mt-4 w-full rounded-2xl bg-cyan-400 py-3 font-bold text-slate-950"
+            >
+              Open Cart
+            </button>
           </div>
         </aside>
 
@@ -62,7 +87,10 @@ export default function Home() {
                   Login
                 </button>
 
-                <button className="rounded-2xl bg-violet-400 px-4 py-2 text-sm font-bold text-slate-950">
+                <button
+                  onClick={() => setIsCartOpen(true)}
+                  className="rounded-2xl bg-violet-400 px-4 py-2 text-sm font-bold text-slate-950"
+                >
                   Cart ({cartCount})
                 </button>
               </div>
@@ -78,14 +106,14 @@ export default function Home() {
               <div className="mb-6">
                 <h3 className="text-3xl font-extrabold">Featured Products</h3>
                 <p className="mt-1 text-sm text-slate-400">
-                  Click Buy to test the buttons
+                  Click Buy to add items to the cart
                 </p>
               </div>
 
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2 2xl:grid-cols-3">
                 {products.map((product) => (
                   <div
-                    key={product.name}
+                    key={product.id}
                     className="overflow-hidden rounded-[2rem] border border-white/10 bg-[#101729] shadow-xl"
                   >
                     <div className="relative h-64 bg-gradient-to-br from-cyan-400/20 via-transparent to-violet-400/20">
@@ -137,6 +165,86 @@ export default function Home() {
           </div>
         </main>
       </div>
+
+      {isCartOpen && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/60 z-40"
+            onClick={() => setIsCartOpen(false)}
+          />
+
+          <div className="fixed top-0 right-0 h-full w-full max-w-md bg-[#0d1324] border-l border-white/10 z-50 shadow-2xl flex flex-col">
+            <div className="flex items-center justify-between p-6 border-b border-white/10">
+              <div>
+                <h3 className="text-2xl font-extrabold">Your Cart</h3>
+                <p className="text-sm text-slate-400">{cartCount} item(s)</p>
+              </div>
+              <button
+                onClick={() => setIsCartOpen(false)}
+                className="rounded-xl bg-white/10 px-4 py-2 text-sm font-semibold"
+              >
+                Close
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6">
+              {cartItems.length === 0 ? (
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-5 text-slate-300">
+                  Your cart is empty.
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {cartItems.map((item, index) => (
+                    <div
+                      key={`${item.id}-${index}`}
+                      className="rounded-2xl border border-white/10 bg-white/5 p-4"
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <h4 className="text-lg font-bold">{item.name}</h4>
+                          <p className="mt-1 text-sm text-slate-400">{item.tag}</p>
+                          <p className="mt-2 text-cyan-300 font-bold">
+                            ${item.price.toFixed(2)}
+                          </p>
+                        </div>
+
+                        <button
+                          onClick={() => removeFromCart(index)}
+                          className="rounded-xl bg-red-500/20 px-3 py-2 text-sm font-semibold text-red-300"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="border-t border-white/10 p-6">
+              <div className="flex items-center justify-between text-lg font-bold">
+                <span>Total</span>
+                <span className="text-cyan-300">${totalPrice.toFixed(2)}</span>
+              </div>
+
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                <button
+                  onClick={clearCart}
+                  className="rounded-2xl bg-white/10 py-3 font-semibold"
+                >
+                  Clear
+                </button>
+                <button
+                  className="rounded-2xl bg-cyan-400 py-3 font-bold text-slate-950"
+                  onClick={() => setMessage("Next step: build checkout.")}
+                >
+                  Checkout
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

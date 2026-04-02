@@ -1,5 +1,5 @@
 "use client";
-
+import { PayPalButtons, PayPalScriptProvider } from "@paypal/react-paypal-js";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
@@ -28,6 +28,45 @@ export default function CheckoutPage() {
   const totalPrice = useMemo(() => {
     return cartItems.reduce((sum, item) => sum + item.price, 0);
   }, [cartItems]);
+  async function handlePayPalSuccess(
+  paypalOrderId: string,
+  payerEmail: string | null
+) {
+  if (cartItems.length === 0) return;
+  if (!robloxUsername.trim() || !contactInfo.trim()) {
+    alert("Please fill in your Roblox username and contact info first.");
+    return;
+  }
+
+  const orderResponse = await fetch("/api/orders", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      robloxUsername,
+      contactInfo,
+      notes,
+      items: cartItems,
+      totalPrice,
+      paypalOrderId,
+      paymentStatus: "Paid",
+      payerEmail,
+    }),
+  });
+
+  const orderResult = await orderResponse.json();
+
+  if (!orderResponse.ok) {
+    alert(orderResult.error || "Order save failed.");
+    return;
+  }
+
+  localStorage.setItem("real-last-order", JSON.stringify(orderResult.order));
+  localStorage.removeItem("real-cart");
+  setCartItems([]);
+  setSubmitted(true);
+}
 
   async function handlePlaceOrder(e: React.FormEvent) {
   e.preventDefault();
@@ -50,7 +89,16 @@ export default function CheckoutPage() {
       }),
     });
 
-    const result = await response.json();
+    const text = await response.text();
+let result;
+
+try {
+  result = JSON.parse(text);
+} catch {
+  console.error("Non-JSON response:", text);
+  alert("Server returned an invalid response. Check /api/orders.");
+  return;
+}
 
     if (!response.ok) {
       alert(result.error || "Failed to place order.");
@@ -66,9 +114,8 @@ export default function CheckoutPage() {
     alert("Something went wrong.");
     console.error(err);
   }
-  }
-}
 
+}
   if (submitted) {
     return (
       <div className="min-h-screen bg-[#070b14] text-white px-6 py-12">
@@ -168,7 +215,74 @@ export default function CheckoutPage() {
                 }`}
               >
                 Place Order
-              </button>
+              </button><div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-4">
+  <p className="mb-4 text-sm font-semibold text-slate-300">
+    Pay with PayPal
+  </p>
+
+  <PayPalScriptProvider
+    options={{
+      clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "",
+      currency: "USD",
+      intent: "capture",
+    }}
+  >
+    <PayPalButtons
+      style={{ layout: "vertical" }}
+      disabled={
+        cartItems.length === 0 ||
+        !robloxUsername.trim() ||
+        !contactInfo.trim()
+      }
+      createOrder={async () => {
+        const response = await fetch("/api/paypal/create-order", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            totalPrice,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || "Failed to create PayPal order.");
+        }
+
+        return data.id;
+      }}
+      onApprove={async (data) => {
+        const response = await fetch("/api/paypal/capture-order", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            orderID: data.orderID,
+          }),
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          alert(result.error || "Failed to capture payment.");
+          return;
+        }
+
+        await handlePayPalSuccess(
+    result.orderID || data.orderID || "",
+    result.payerEmail || null
+  );
+      }}
+      onError={(err) => {
+        console.error("PayPal error:", err);
+        alert("PayPal checkout failed.");
+      }}
+    />
+  </PayPalScriptProvider>
+</div>
             </div>
           </form>
         </div>

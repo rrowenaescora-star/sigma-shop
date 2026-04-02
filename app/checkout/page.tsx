@@ -29,27 +29,45 @@ export default function CheckoutPage() {
     return cartItems.reduce((sum, item) => sum + item.price, 0);
   }, [cartItems]);
 
-  function handlePlaceOrder(e: React.FormEvent) {
-    e.preventDefault();
+  function handlePlaceOrder(e: React.FormEvent) {async function handlePlaceOrder(e: React.FormEvent) {
+  e.preventDefault();
 
-    if (cartItems.length === 0) return;
-    if (!robloxUsername.trim() || !contactInfo.trim()) return;
+  if (cartItems.length === 0) return;
+  if (!robloxUsername.trim() || !contactInfo.trim()) return;
 
-    const order = {
-      robloxUsername,
-      contactInfo,
-      notes,
-      items: cartItems,
-      totalPrice,
-      createdAt: new Date().toISOString(),
-      status: "Pending",
-    };
+  try {
+    const response = await fetch("/api/orders", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        robloxUsername,
+        contactInfo,
+        notes,
+        items: cartItems,
+        totalPrice,
+      }),
+    });
 
-    localStorage.setItem("real-last-order", JSON.stringify(order));
+    const result = await response.json();
+
+    if (!response.ok) {
+      alert(result.error || "Failed to place order.");
+      return;
+    }
+
+    localStorage.setItem("real-last-order", JSON.stringify(result.order));
     localStorage.removeItem("real-cart");
     setCartItems([]);
     setSubmitted(true);
+
+  } catch (err) {
+    alert("Something went wrong.");
+    console.error(err);
   }
+  }
+}
 
   if (submitted) {
     return (

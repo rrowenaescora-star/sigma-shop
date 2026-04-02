@@ -66,7 +66,7 @@ export default function CheckoutPage() {
     alert("Something went wrong.");
     console.error(err);
   }
-
+  }
 }
 
   if (submitted) {

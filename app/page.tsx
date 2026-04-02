@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 
 type Product = {
   id: number;
@@ -24,19 +25,32 @@ export default function Home() {
   const [message, setMessage] = useState("Welcome to REAL.");
   const [isCartOpen, setIsCartOpen] = useState(false);
 
+  useEffect(() => {
+    const savedCart = localStorage.getItem("real-cart");
+    if (savedCart) {
+      setCartItems(JSON.parse(savedCart));
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("real-cart", JSON.stringify(cartItems));
+  }, [cartItems]);
+
   function handleBuy(product: Product) {
     if (product.stock === "Out of Stock") {
       setMessage(`${product.name} is currently unavailable.`);
       return;
     }
 
-    setCartItems((prev) => [...prev, product]);
+    const updatedCart = [...cartItems, product];
+    setCartItems(updatedCart);
     setMessage(`${product.name} added to cart.`);
     setIsCartOpen(true);
   }
 
   function removeFromCart(indexToRemove: number) {
-    setCartItems((prev) => prev.filter((_, index) => index !== indexToRemove));
+    const updatedCart = cartItems.filter((_, index) => index !== indexToRemove);
+    setCartItems(updatedCart);
     setMessage("Item removed from cart.");
   }
 
@@ -125,8 +139,8 @@ export default function Home() {
                           product.stock === "Out of Stock"
                             ? "bg-red-500/15 text-red-300"
                             : product.stock === "Limited"
-                            ? "bg-yellow-500/15 text-yellow-300"
-                            : "bg-emerald-500/15 text-emerald-300"
+                              ? "bg-yellow-500/15 text-yellow-300"
+                              : "bg-emerald-500/15 text-emerald-300"
                         }`}
                       >
                         {product.stock}
@@ -234,12 +248,17 @@ export default function Home() {
                 >
                   Clear
                 </button>
-                <button
-                  className="rounded-2xl bg-cyan-400 py-3 font-bold text-slate-950"
-                  onClick={() => setMessage("Next step: build checkout.")}
+
+                <Link
+                  href="/checkout"
+                  className={`rounded-2xl py-3 text-center font-bold ${
+                    cartItems.length === 0
+                      ? "pointer-events-none bg-slate-700 text-slate-300"
+                      : "bg-cyan-400 text-slate-950"
+                  }`}
                 >
                   Checkout
-                </button>
+                </Link>
               </div>
             </div>
           </div>

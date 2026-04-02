@@ -29,7 +29,7 @@ export default function CheckoutPage() {
     return cartItems.reduce((sum, item) => sum + item.price, 0);
   }, [cartItems]);
 
-  function handlePlaceOrder(e: React.FormEvent) {async function handlePlaceOrder(e: React.FormEvent) {
+  async function handlePlaceOrder(e: React.FormEvent) {
   e.preventDefault();
 
   if (cartItems.length === 0) return;

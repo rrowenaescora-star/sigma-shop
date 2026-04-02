@@ -13,7 +13,7 @@ type Product = {
 
 export default function Home() {
   const products: Product[] = [
-    { id: 1, name: "Starter Pack", price: 9.99, tag: "Popular", stock: "In Stock" },
+    { id: 1, name: "Starter Pack", price: .90, tag: "Popular", stock: "In Stock" },
     { id: 2, name: "Pro Pack", price: 19.99, tag: "Hot", stock: "Limited" },
     { id: 3, name: "VIP Pack", price: 49.99, tag: "Premium", stock: "Out of Stock" },
     { id: 4, name: "Ultra Bundle", price: 79.99, tag: "New", stock: "In Stock" },

@@ -114,7 +114,7 @@ try {
     alert("Something went wrong.");
     console.error(err);
   }
-  }
+  
 }
   if (submitted) {
     return (

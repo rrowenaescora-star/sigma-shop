@@ -57,45 +57,49 @@ export async function POST(request: Request) {
       console.error("Supabase insert error:", error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
-    // 🔥 ADD THIS HERE (stock reduction)
-for (const item of items) {
-  const { data: product, error: fetchError } = await supabase
-    .from("products")
-    .select("id, stock_quantity")
-    .eq("id", item.id)
-    .single();
 
-  if (fetchError || !product) {
-    console.error("Product fetch error:", fetchError);
-    continue;
-  }
+    for (const item of items) {
+      const { data: product, error: fetchError } = await supabase
+        .from("products")
+        .select("id, stock_quantity")
+        .eq("id", item.id)
+        .single();
 
-  const newStock = Math.max((product.stock_quantity || 0) - 1, 0);
+      if (fetchError || !product) {
+        console.error("Product fetch error:", fetchError);
+        continue;
+      }
 
-  let stockLabel = "In Stock";
-  if (newStock === 0) stockLabel = "Out of Stock";
-  else if (newStock <= 3) stockLabel = "Limited";
+      const newStock = Math.max(Number(product.stock_quantity || 0) - 1, 0);
 
-  await supabase
-    .from("products")
-    .update({
-      stock_quantity: newStock,
-      stock: stockLabel,
-    })
-    .eq("id", item.id);
-}
+      let stockLabel = "In Stock";
+      if (newStock === 0) stockLabel = "Out of Stock";
+      else if (newStock <= 3) stockLabel = "Limited";
+
+      const { error: updateStockError } = await supabase
+        .from("products")
+        .update({
+          stock_quantity: newStock,
+          stock: stockLabel,
+        })
+        .eq("id", item.id);
+
+      if (updateStockError) {
+        console.error("Stock update error:", updateStockError);
+      }
+    }
 
     await sendDiscordOrderNotification({
-  orderId: data.id,
-  robloxUsername: data.roblox_username,
-  contactInfo: data.contact_info,
-  totalPrice: Number(data.total_price),
-  paymentStatus: data.payment_status,
-  deliveryStatus: data.delivery_status,
-  paypalOrderId: data.paypal_order_id,
-});
+      orderId: data.id,
+      robloxUsername: data.roblox_username,
+      contactInfo: data.contact_info,
+      totalPrice: Number(data.total_price),
+      paymentStatus: data.payment_status,
+      deliveryStatus: data.delivery_status,
+      paypalOrderId: data.paypal_order_id,
+    });
 
-return NextResponse.json({ success: true, order: data });
+    return NextResponse.json({ success: true, order: data });
   } catch (error) {
     console.error("API route error:", error);
     return NextResponse.json(

@@ -62,10 +62,12 @@ export default function CheckoutPage() {
     return;
   }
 
-  localStorage.setItem("real-last-order", JSON.stringify(orderResult.order));
-  localStorage.removeItem("real-cart");
-  setCartItems([]);
-  setSubmitted(true);
+ localStorage.setItem("real-last-order", JSON.stringify(orderResult.order));
+localStorage.removeItem("real-cart");
+setCartItems([]);
+
+// ✅ redirect to tracking page
+window.location.href = `/track-order?orderId=${orderResult.order.id}`;
 }
 
   async function handlePlaceOrder(e: React.FormEvent) {

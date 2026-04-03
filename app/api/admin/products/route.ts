@@ -134,3 +134,33 @@ export async function PATCH(request: Request) {
     );
   }
 }
+export async function DELETE(request: Request) {
+  try {
+    const body = await request.json();
+    const { id } = body;
+
+    if (!id) {
+      return NextResponse.json(
+        { error: "Missing product ID." },
+        { status: 400 }
+      );
+    }
+
+    const { error } = await supabase
+      .from("products")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Admin products DELETE error:", error);
+    return NextResponse.json(
+      { error: "Failed to delete product." },
+      { status: 500 }
+    );
+  }
+}

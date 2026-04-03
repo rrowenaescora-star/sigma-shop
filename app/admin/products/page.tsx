@@ -122,39 +122,40 @@ export default function AdminProductsPage() {
   }
 
   async function handleUpdateProduct() {
-    if (!editingId) return;
+  if (!editingId) return;
 
-    const response = await fetch("/api/admin/products", {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        id: editingId,
-        name: form.name,
-        slug: form.slug,
-        price: Number(form.price),
-        tag: form.tag,
-        stock: form.stock,
-        category: form.category,
-        description: form.description,
-        imageUrl: form.imageUrl,
-        isActive: form.isActive,
-      }),
-    });
+  const response = await fetch("/api/admin/products", {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      id: editingId,
+      name: form.name,
+      slug: form.slug,
+      price: Number(form.price),
+      tag: form.tag,
+      stock: form.stock,
+      category: form.category,
+      description: form.description,
+      imageUrl: form.imageUrl,
+      isActive: form.isActive,
+    }),
+  });
 
-    const result = await response.json();
+  const result = await response.json();
+  console.log("UPDATE response:", result);
 
-    if (!response.ok) {
-      alert(result.error || "Failed to update product.");
-      return;
-    }
-
-    setEditingId(null);
-    setForm(emptyForm);
-    loadProducts();
+  if (!response.ok) {
+    alert(result.error || "Failed to update product.");
+    return;
   }
 
+  alert("Product updated successfully.");
+  setEditingId(null);
+  setForm(emptyForm);
+  loadProducts();
+}
   function cancelEdit() {
     setEditingId(null);
     setForm(emptyForm);

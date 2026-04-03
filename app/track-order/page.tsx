@@ -27,12 +27,24 @@ type Order = {
   created_at?: string;
 };
 
+
+useEffect(() => {
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get("orderId");
+
+  if (id) {
+    setOrderId(id);
+    setTimeout(() => {
+      handleTrackOrder();
+    }, 300);
+  }
+}, []);
+
 export default function TrackOrderPage() {
   const [orderId, setOrderId] = useState("");
   const [order, setOrder] = useState<Order | null>(null);
   const [message, setMessage] = useState("Enter your order ID to track it.");
   const [loading, setLoading] = useState(false);
-
 
   
 

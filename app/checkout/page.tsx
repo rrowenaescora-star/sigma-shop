@@ -39,7 +39,7 @@ export default function CheckoutPage() {
 
   async function handlePayPalSuccess(
     paypalOrderId: string,
-    payerEmail: string | null
+    payerEmail: string | null,
     paidAmount: number
   ) {
     if (cartItems.length === 0) return;

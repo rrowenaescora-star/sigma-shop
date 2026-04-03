@@ -15,13 +15,14 @@ export async function POST(request: Request) {
       paypalOrderId,
       paymentStatus,
       payerEmail,
+      paidAmount,
     } = body;
 
     if (!robloxUsername || !contactInfo || !items?.length) {
       return NextResponse.json({ error: "Invalid input." }, { status: 400 });
     }
 
-    // 🔥 1. PREVENT DUPLICATE PAYPAL ORDERS
+    // Prevent duplicate PayPal order reuse
     if (paypalOrderId) {
       const { data: existing } = await supabase
         .from("orders")
@@ -37,7 +38,7 @@ export async function POST(request: Request) {
       }
     }
 
-    // 🔥 2. VALIDATE PRODUCTS + STOCK + REBUILD TOTAL
+    // Validate products, stock, and rebuild true total from DB
     let computedTotal = 0;
 
     for (const item of items) {
@@ -67,7 +68,7 @@ export async function POST(request: Request) {
       computedTotal += Number(product.price) * qty;
     }
 
-    // 🔥 3. VERIFY TOTAL (ANTI-TAMPERING)
+    // Verify frontend total wasn't tampered with
     if (Math.abs(computedTotal - Number(totalPrice)) > 0.01) {
       return NextResponse.json(
         { error: "Price mismatch detected." },
@@ -75,7 +76,28 @@ export async function POST(request: Request) {
       );
     }
 
-    // 🔥 4. CREATE ORDER
+    // FINAL FRAUD LOCK:
+    // If this is a paid PayPal order, require paidAmount and verify it matches
+    const isPaidOrder =
+      paymentStatus === "Paid" || paymentStatus === "COMPLETED";
+
+    if (paypalOrderId || isPaidOrder) {
+      if (paidAmount === undefined || paidAmount === null) {
+        return NextResponse.json(
+          { error: "Missing verified PayPal payment amount." },
+          { status: 400 }
+        );
+      }
+
+      if (Math.abs(computedTotal - Number(paidAmount)) > 0.01) {
+        return NextResponse.json(
+          { error: "Verified PayPal payment amount does not match order total." },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Create order
     const { data, error } = await supabase
       .from("orders")
       .insert([
@@ -87,10 +109,9 @@ export async function POST(request: Request) {
           total_price: computedTotal,
           status: "Pending",
           paypal_order_id: paypalOrderId ?? null,
-          payment_status: paymentStatus ?? "Unpaid",
+          payment_status: isPaidOrder ? "Paid" : paymentStatus ?? "Unpaid",
           payer_email: payerEmail ?? null,
-          paid_at:
-            paymentStatus === "Paid" ? new Date().toISOString() : null,
+          paid_at: isPaidOrder ? new Date().toISOString() : null,
         },
       ])
       .select()
@@ -100,7 +121,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    // 🔥 5. REDUCE STOCK SAFELY
+    // Reduce stock
     for (const item of items) {
       const { data: product } = await supabase
         .from("products")
@@ -130,7 +151,6 @@ export async function POST(request: Request) {
         .eq("id", item.id);
     }
 
-    // 🔥 6. DISCORD
     await sendDiscordOrderNotification({
       orderId: data.id,
       robloxUsername: data.roblox_username,
@@ -142,12 +162,8 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ success: true, order: data });
-
   } catch (error) {
     console.error(error);
-    return NextResponse.json(
-      { error: "Server error." },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Server error." }, { status: 500 });
   }
 }

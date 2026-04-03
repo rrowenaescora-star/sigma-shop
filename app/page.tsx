@@ -22,6 +22,7 @@ export default function Home() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     const savedCart = localStorage.getItem("real-cart");
@@ -96,12 +97,23 @@ export default function Home() {
   }, [products]);
 
   const filteredProducts = useMemo(() => {
-    if (selectedCategory === "All") return products;
+    return products.filter((product) => {
+      const matchesCategory =
+        selectedCategory === "All" ||
+        (product.category || "").trim() === selectedCategory;
 
-    return products.filter(
-      (product) => (product.category || "").trim() === selectedCategory
-    );
-  }, [products, selectedCategory]);
+      const query = searchQuery.trim().toLowerCase();
+
+      const matchesSearch =
+        query === "" ||
+        product.name.toLowerCase().includes(query) ||
+        (product.description || "").toLowerCase().includes(query) ||
+        (product.category || "").toLowerCase().includes(query) ||
+        (product.tag || "").toLowerCase().includes(query);
+
+      return matchesCategory && matchesSearch;
+    });
+  }, [products, selectedCategory, searchQuery]);
 
   return (
     <div className="min-h-screen bg-[#070b14] text-white relative">
@@ -131,6 +143,17 @@ export default function Home() {
                 </button>
               ))}
             </div>
+          </div>
+
+          <div className="mt-8">
+            <p className="text-sm font-semibold text-slate-300">Search</p>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search products..."
+              className="mt-4 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none"
+            />
           </div>
 
           <div className="mt-auto rounded-3xl bg-gradient-to-br from-cyan-400/20 to-violet-400/20 p-5 border border-white/10">
@@ -180,35 +203,47 @@ export default function Home() {
             </section>
 
             <section className="mt-10">
-              <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                <div>
-                  <h3 className="text-3xl font-extrabold">Featured Products</h3>
-                  <p className="mt-1 text-sm text-slate-400">
-                    Products are now loaded from Supabase
-                  </p>
+              <div className="mb-6 flex flex-col gap-4">
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                  <div>
+                    <h3 className="text-3xl font-extrabold">Featured Products</h3>
+                    <p className="mt-1 text-sm text-slate-400">
+                      Products are loaded from Supabase
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    {categories.map((category) => (
+                      <button
+                        key={category}
+                        onClick={() => setSelectedCategory(category)}
+                        className={`rounded-2xl px-4 py-2 text-sm font-bold transition ${
+                          selectedCategory === category
+                            ? "bg-cyan-400 text-slate-950"
+                            : "bg-white/10 text-white hover:bg-white/20"
+                        }`}
+                      >
+                        {category}
+                      </button>
+                    ))}
+
+                    <button
+                      onClick={loadProducts}
+                      className="rounded-2xl bg-violet-400 px-4 py-2 font-bold text-slate-950"
+                    >
+                      Refresh Products
+                    </button>
+                  </div>
                 </div>
 
-                <div className="flex flex-wrap gap-2">
-                  {categories.map((category) => (
-                    <button
-                      key={category}
-                      onClick={() => setSelectedCategory(category)}
-                      className={`rounded-2xl px-4 py-2 text-sm font-bold transition ${
-                        selectedCategory === category
-                          ? "bg-cyan-400 text-slate-950"
-                          : "bg-white/10 text-white hover:bg-white/20"
-                      }`}
-                    >
-                      {category}
-                    </button>
-                  ))}
-
-                  <button
-                    onClick={loadProducts}
-                    className="rounded-2xl bg-violet-400 px-4 py-2 font-bold text-slate-950"
-                  >
-                    Refresh Products
-                  </button>
+                <div>
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search by name, description, category, or tag..."
+                    className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none"
+                  />
                 </div>
               </div>
 
@@ -218,7 +253,7 @@ export default function Home() {
                 </div>
               ) : filteredProducts.length === 0 ? (
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-slate-300">
-                  No products found in this category.
+                  No products found for this filter/search.
                 </div>
               ) : (
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2 2xl:grid-cols-3">

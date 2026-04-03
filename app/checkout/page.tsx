@@ -183,8 +183,7 @@ export default function CheckoutPage() {
               <Link
                 href="/"
                 className="rounded-2xl bg-white/10 px-6 py-3 font-semibold"
-              >
-                Back
+              >Back
               </Link>
 
             

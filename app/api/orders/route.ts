@@ -70,7 +70,12 @@ export async function POST(request: Request) {
         continue;
       }
 
-      const newStock = Math.max(Number(product.stock_quantity || 0) - 1, 0);
+      const quantityToReduce = Number(item.quantity || 1);
+
+      const newStock = Math.max(
+        Number(product.stock_quantity || 0) - quantityToReduce,
+        0
+      );
 
       let stockLabel = "In Stock";
       if (newStock === 0) stockLabel = "Out of Stock";

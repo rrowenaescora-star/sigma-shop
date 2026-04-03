@@ -40,6 +40,7 @@ export default function CheckoutPage() {
   async function handlePayPalSuccess(
     paypalOrderId: string,
     payerEmail: string | null
+    paidAmount: number
   ) {
     if (cartItems.length === 0) return;
     if (!robloxUsername.trim() || !contactInfo.trim()) {
@@ -302,6 +303,7 @@ export default function CheckoutPage() {
                       await handlePayPalSuccess(
                         result.orderID || data.orderID || "",
                         result.payerEmail || null
+                        result.paidAmount
                       );
                     }}
                     onError={(err) => {

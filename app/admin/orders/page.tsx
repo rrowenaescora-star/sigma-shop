@@ -43,7 +43,25 @@ export default function AdminOrdersPage() {
       setLoading(false);
     }
   }, []);
+  	async function updateDelivery(
+  orderId: number,
+  deliveryStatus: string,
+  deliveryNotes = "",
+  handledBy = "REAL Admin"
+) {
+  await fetch("/api/admin/orders", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      id: orderId,
+      deliveryStatus,
+      deliveryNotes,
+      handledBy,
+    }),
+  });
 
+  loadOrders();
+}
   async function loadOrders() {
     try {
       setLoading(true);

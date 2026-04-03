@@ -47,6 +47,9 @@ export default function CheckoutPage() {
   const [notes, setNotes] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [couponCode, setCouponCode] = useState("");
+  const [discount, setDiscount] = useState(0);
+  const [couponError, setCouponError] = useState("");
 
   useEffect(() => {
     const savedCart = localStorage.getItem("real-cart");
@@ -55,15 +58,39 @@ export default function CheckoutPage() {
     }
   }, []);
 
-  const totalPrice = useMemo(() => {
-    return cartItems.reduce(
-      (sum, item) => sum + Number(item.price) * item.quantity,
-      0
-    );
-  }, [cartItems]);
+ const finalPrice = useMemo(() => {
+  return Math.max(totalPrice - discount, 0);
+}, [totalPrice, discount]);
+  
+  body: JSON.stringify({
+  totalPrice: finalPrice,
+}),
 
   const isCheckoutDisabled =
     cartItems.length === 0 || !robloxUsername.trim() || !contactInfo.trim();
+  async function applyCoupon() {
+  setCouponError("");
+
+  const res = await fetch("/api/coupons", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      code: couponCode,
+      cartTotal: totalPrice,
+    }),
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    setCouponError(data.error);
+    return;
+  }
+
+  setDiscount(data.discount);
+}
 
   async function handlePayPalSuccess(
     paypalOrderId: string,
@@ -94,6 +121,9 @@ export default function CheckoutPage() {
           paymentStatus: "Paid",
           payerEmail,
           paidAmount,
+          totalPrice: finalPrice,
+          couponCode,
+          discount,
         }),
       });
 
@@ -187,7 +217,31 @@ export default function CheckoutPage() {
                 placeholder="Enter your Roblox username"
                 required
               />
-            </div>
+            </div>      
+            <div>
+  <label className="text-sm text-slate-300">Coupon</label>
+
+  <div className="flex gap-2 mt-2">
+    <input
+      value={couponCode}
+      onChange={(e) => setCouponCode(e.target.value)}
+      className="flex-1 rounded-xl bg-white/5 px-4 py-2"
+      placeholder="Enter code"
+    />
+
+    <button
+      onClick={applyCoupon}
+      className="bg-cyan-400 text-black px-4 rounded-xl"
+    >
+      Apply
+    </button>
+  </div>
+
+  {couponError && (
+    <p className="text-red-400 text-sm mt-2">{couponError}</p>
+  )}
+</div>
+            
 
             <div>
               <label className="mb-2 block text-sm font-semibold text-slate-300">

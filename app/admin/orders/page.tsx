@@ -296,25 +296,53 @@ export default function AdminOrdersPage() {
                   </div>
 
                   <div className="flex flex-col gap-3 lg:items-end">
-                    <div className="flex gap-2 items-center">
-                      <span className="rounded-full bg-violet-400 px-4 py-2 text-sm font-bold text-slate-950">
-                        {order.status}
-                      </span>
+  <div className="flex gap-2 items-center flex-wrap">
+    <span className="rounded-full bg-violet-400 px-4 py-2 text-sm font-bold text-slate-950">
+      {order.status}
+    </span>
 
-                      {order.status !== "Completed" && (
-                        <button
-                          onClick={() => markDone(order.id)}
-                          className="rounded-lg bg-green-400 px-3 py-1 font-bold text-black"
-                        >
-                          Mark Done
-                        </button>
-                      )}
-                    </div>
+    <span className="rounded-full bg-cyan-400 px-4 py-2 text-sm font-bold text-slate-950">
+      {order.delivery_status || "Pending"}
+    </span>
 
-                    <span className="text-2xl font-extrabold text-cyan-300">
-                      ${Number(order.total_price).toFixed(2)}
-                    </span>
-                  </div>
+    {order.delivery_status !== "Processing" && (
+      <button
+        onClick={() =>
+          updateDelivery(order.id, "Processing", "Order is being handled")
+        }
+        className="rounded-lg bg-yellow-400 px-3 py-1 font-bold text-black"
+      >
+        Mark Processing
+      </button>
+    )}
+
+    {order.delivery_status !== "Delivered" && (
+      <button
+        onClick={() =>
+          updateDelivery(order.id, "Delivered", "Item delivered successfully")
+        }
+        className="rounded-lg bg-green-400 px-3 py-1 font-bold text-black"
+      >
+        Mark Delivered
+      </button>
+    )}
+
+    {order.delivery_status !== "Cancelled" && (
+      <button
+        onClick={() =>
+          updateDelivery(order.id, "Cancelled", "Order cancelled")
+        }
+        className="rounded-lg bg-red-400 px-3 py-1 font-bold text-black"
+      >
+        Cancel
+      </button>
+    )}
+  </div>
+
+  <span className="text-2xl font-extrabold text-cyan-300">
+    ${Number(order.total_price).toFixed(2)}
+  </span>
+</div>
                 </div>
 
                 <div className="mt-6">

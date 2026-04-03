@@ -142,6 +142,28 @@ export default function AdminProductsPage() {
       isActive: form.isActive,
     }),
   });
+    async function handleDeleteProduct(id: number) {
+  const confirmed = window.confirm("Are you sure you want to delete this product?");
+  if (!confirmed) return;
+
+  const response = await fetch("/api/admin/products", {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ id }),
+  });
+
+  const result = await response.json();
+
+  if (!response.ok) {
+    alert(result.error || "Failed to delete product.");
+    return;
+  }
+
+  alert("Product deleted successfully.");
+  loadProducts();
+}
 
   const result = await response.json();
   console.log("UPDATE response:", result);

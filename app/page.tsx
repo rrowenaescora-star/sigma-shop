@@ -6,35 +6,55 @@ import { useEffect, useState } from "react";
 type Product = {
   id: number;
   name: string;
+  slug: string | null;
   price: number;
-  tag: string;
+  tag: string | null;
   stock: "In Stock" | "Limited" | "Out of Stock";
+  category: string | null;
+  description: string | null;
+  image_url: string | null;
 };
 
 export default function Home() {
-  const products: Product[] = [
-    { id: 1, name: "Starter Pack", price: .05, tag: "Popular", stock: "In Stock" },
-    { id: 2, name: "Pro Pack", price: 19.99, tag: "Hot", stock: "Limited" },
-    { id: 3, name: "VIP Pack", price: 49.99, tag: "Premium", stock: "Out of Stock" },
-    { id: 4, name: "Ultra Bundle", price: 79.99, tag: "New", stock: "In Stock" },
-    { id: 5, name: "Mega Pass", price: 24.99, tag: "Sale", stock: "In Stock" },
-    { id: 6, name: "Legend Pack", price: 99.99, tag: "Top", stock: "Limited" },
-  ];
-
+  const [products, setProducts] = useState<Product[]>([]);
   const [cartItems, setCartItems] = useState<Product[]>([]);
   const [message, setMessage] = useState("Welcome to REAL.");
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [loadingProducts, setLoadingProducts] = useState(true);
 
   useEffect(() => {
     const savedCart = localStorage.getItem("real-cart");
     if (savedCart) {
       setCartItems(JSON.parse(savedCart));
     }
+
+    loadProducts();
   }, []);
 
   useEffect(() => {
     localStorage.setItem("real-cart", JSON.stringify(cartItems));
   }, [cartItems]);
+
+  async function loadProducts() {
+    try {
+      setLoadingProducts(true);
+
+      const response = await fetch("/api/products");
+      const result = await response.json();
+
+      if (!response.ok) {
+        setMessage(result.error || "Failed to load products.");
+        return;
+      }
+
+      setProducts(result.products || []);
+    } catch (error) {
+      console.error(error);
+      setMessage("Something went wrong while loading products.");
+    } finally {
+      setLoadingProducts(false);
+    }
+  }
 
   function handleBuy(product: Product) {
     if (product.stock === "Out of Stock") {
@@ -60,7 +80,7 @@ export default function Home() {
   }
 
   const cartCount = cartItems.length;
-  const totalPrice = cartItems.reduce((sum, item) => sum + item.price, 0);
+  const totalPrice = cartItems.reduce((sum, item) => sum + Number(item.price), 0);
 
   return (
     <div className="min-h-screen bg-[#070b14] text-white relative">
@@ -97,9 +117,12 @@ export default function Home() {
               </div>
 
               <div className="flex items-center gap-3">
-                <button className="rounded-2xl bg-white/10 px-4 py-2 text-sm font-medium">
-                  Login
-                </button>
+                <Link
+                  href="/track-order"
+                  className="rounded-2xl bg-white/10 px-4 py-2 text-sm font-medium"
+                >
+                  Track Order
+                </Link>
 
                 <button
                   onClick={() => setIsCartOpen(true)}
@@ -117,64 +140,86 @@ export default function Home() {
             </section>
 
             <section className="mt-10">
-              <div className="mb-6">
-                <h3 className="text-3xl font-extrabold">Featured Products</h3>
-                <p className="mt-1 text-sm text-slate-400">
-                  Click Buy to add items to the cart
-                </p>
+              <div className="mb-6 flex items-center justify-between">
+                <div>
+                  <h3 className="text-3xl font-extrabold">Featured Products</h3>
+                  <p className="mt-1 text-sm text-slate-400">
+                    Products are now loaded from Supabase
+                  </p>
+                </div>
+
+                <button
+                  onClick={loadProducts}
+                  className="rounded-2xl bg-cyan-400 px-4 py-2 font-bold text-slate-950"
+                >
+                  Refresh Products
+                </button>
               </div>
 
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 2xl:grid-cols-3">
-                {products.map((product) => (
-                  <div
-                    key={product.id}
-                    className="overflow-hidden rounded-[2rem] border border-white/10 bg-[#101729] shadow-xl"
-                  >
-                    <div className="relative h-64 bg-gradient-to-br from-cyan-400/20 via-transparent to-violet-400/20">
-                      <span className="absolute left-4 top-4 rounded-full bg-[#0a1120] px-3 py-1 text-xs font-bold text-cyan-300">
-                        {product.tag}
-                      </span>
-                      <span
-                        className={`absolute right-4 top-4 rounded-full px-3 py-1 text-xs font-semibold ${
-                          product.stock === "Out of Stock"
-                            ? "bg-red-500/15 text-red-300"
-                            : product.stock === "Limited"
-                              ? "bg-yellow-500/15 text-yellow-300"
-                              : "bg-emerald-500/15 text-emerald-300"
-                        }`}
-                      >
-                        {product.stock}
-                      </span>
+              {loadingProducts ? (
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-slate-300">
+                  Loading products...
+                </div>
+              ) : products.length === 0 ? (
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-slate-300">
+                  No products found.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2 2xl:grid-cols-3">
+                  {products.map((product) => (
+                    <div
+                      key={product.id}
+                      className="overflow-hidden rounded-[2rem] border border-white/10 bg-[#101729] shadow-xl"
+                    >
+                      <div className="relative h-64 bg-gradient-to-br from-cyan-400/20 via-transparent to-violet-400/20">
+                        <span className="absolute left-4 top-4 rounded-full bg-[#0a1120] px-3 py-1 text-xs font-bold text-cyan-300">
+                          {product.tag || "Item"}
+                        </span>
+                        <span
+                          className={`absolute right-4 top-4 rounded-full px-3 py-1 text-xs font-semibold ${
+                            product.stock === "Out of Stock"
+                              ? "bg-red-500/15 text-red-300"
+                              : product.stock === "Limited"
+                                ? "bg-yellow-500/15 text-yellow-300"
+                                : "bg-emerald-500/15 text-emerald-300"
+                          }`}
+                        >
+                          {product.stock}
+                        </span>
 
-                      <div className="flex h-full items-center justify-center">
-                        <div className="h-28 w-28 rounded-[2rem] bg-gradient-to-br from-cyan-300 to-violet-400 shadow-[0_0_60px_rgba(103,232,249,0.25)]" />
+                        <div className="flex h-full items-center justify-center">
+                          <div className="h-28 w-28 rounded-[2rem] bg-gradient-to-br from-cyan-300 to-violet-400 shadow-[0_0_60px_rgba(103,232,249,0.25)]" />
+                        </div>
                       </div>
-                    </div>
 
-                    <div className="p-6">
-                      <h4 className="text-2xl font-bold">{product.name}</h4>
-
-                      <div className="mt-5 flex items-center justify-between">
-                        <p className="text-3xl font-extrabold text-cyan-300">
-                          ${product.price.toFixed(2)}
+                      <div className="p-6">
+                        <h4 className="text-2xl font-bold">{product.name}</h4>
+                        <p className="mt-2 text-sm leading-6 text-slate-400">
+                          {product.description || "No description available."}
                         </p>
 
-                        <button
-                          onClick={() => handleBuy(product)}
-                          className={`rounded-2xl px-5 py-3 font-bold ${
-                            product.stock === "Out of Stock"
-                              ? "bg-slate-700 text-slate-300"
-                              : "bg-violet-400 text-slate-950 hover:brightness-110"
-                          }`}
-                          disabled={product.stock === "Out of Stock"}
-                        >
-                          {product.stock === "Out of Stock" ? "Unavailable" : "Buy"}
-                        </button>
+                        <div className="mt-5 flex items-center justify-between">
+                          <p className="text-3xl font-extrabold text-cyan-300">
+                            ${Number(product.price).toFixed(2)}
+                          </p>
+
+                          <button
+                            onClick={() => handleBuy(product)}
+                            className={`rounded-2xl px-5 py-3 font-bold ${
+                              product.stock === "Out of Stock"
+                                ? "bg-slate-700 text-slate-300"
+                                : "bg-violet-400 text-slate-950 hover:brightness-110"
+                            }`}
+                            disabled={product.stock === "Out of Stock"}
+                          >
+                            {product.stock === "Out of Stock" ? "Unavailable" : "Buy"}
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </section>
           </div>
         </main>
@@ -216,9 +261,11 @@ export default function Home() {
                       <div className="flex items-start justify-between gap-4">
                         <div>
                           <h4 className="text-lg font-bold">{item.name}</h4>
-                          <p className="mt-1 text-sm text-slate-400">{item.tag}</p>
+                          <p className="mt-1 text-sm text-slate-400">
+                            {item.tag || "Item"}
+                          </p>
                           <p className="mt-2 text-cyan-300 font-bold">
-                            ${item.price.toFixed(2)}
+                            ${Number(item.price).toFixed(2)}
                           </p>
                         </div>
 

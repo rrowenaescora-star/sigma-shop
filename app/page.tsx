@@ -175,6 +175,7 @@ export default function Home() {
                         <span className="absolute left-4 top-4 rounded-full bg-[#0a1120] px-3 py-1 text-xs font-bold text-cyan-300">
                           {product.tag || "Item"}
                         </span>
+
                         <span
                           className={`absolute right-4 top-4 rounded-full px-3 py-1 text-xs font-semibold ${
                             product.stock === "Out of Stock"
@@ -185,20 +186,19 @@ export default function Home() {
                           }`}
                         >
                           {product.stock}
-                        </span>     <div className="flex h-full items-center justify-center p-6">
-      {product.image_url ? (
-      <img
-        src={product.image_url}
-        alt={product.name}
-        className="max-h-full max-w-full rounded-2xl object-contain"
-      />
-    ) : (
-      <div className="h-28 w-28 rounded-[2rem] bg-gradient-to-br from-cyan-300 to-violet-400 shadow-[0_0_60px_rgba(103,232,249,0.25)]" />
-    )}
-  </div>
-                                  
+                        </span>
 
-                        
+                        <div className="flex h-full items-center justify-center p-6">
+                          {product.image_url ? (
+                            <img
+                              src={product.image_url}
+                              alt={product.name}
+                              className="max-h-full max-w-full rounded-2xl object-contain"
+                            />
+                          ) : (
+                            <div className="h-28 w-28 rounded-[2rem] bg-gradient-to-br from-cyan-300 to-violet-400 shadow-[0_0_60px_rgba(103,232,249,0.25)]" />
+                          )}
+                        </div>
                       </div>
 
                       <div className="p-6">

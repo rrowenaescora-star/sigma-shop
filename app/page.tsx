@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type Product = {
   id: number;
@@ -21,6 +21,7 @@ export default function Home() {
   const [message, setMessage] = useState("Welcome to REAL.");
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [loadingProducts, setLoadingProducts] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState("All");
 
   useEffect(() => {
     const savedCart = localStorage.getItem("real-cart");
@@ -82,6 +83,26 @@ export default function Home() {
   const cartCount = cartItems.length;
   const totalPrice = cartItems.reduce((sum, item) => sum + Number(item.price), 0);
 
+  const categories = useMemo(() => {
+    const uniqueCategories = Array.from(
+      new Set(
+        products
+          .map((product) => product.category?.trim())
+          .filter((category): category is string => Boolean(category))
+      )
+    );
+
+    return ["All", ...uniqueCategories];
+  }, [products]);
+
+  const filteredProducts = useMemo(() => {
+    if (selectedCategory === "All") return products;
+
+    return products.filter(
+      (product) => (product.category || "").trim() === selectedCategory
+    );
+  }, [products, selectedCategory]);
+
   return (
     <div className="min-h-screen bg-[#070b14] text-white relative">
       <div className="flex min-h-screen">
@@ -91,6 +112,25 @@ export default function Home() {
               Store
             </p>
             <h1 className="mt-2 text-3xl font-extrabold">REAL</h1>
+          </div>
+
+          <div className="mt-8">
+            <p className="text-sm font-semibold text-slate-300">Categories</p>
+            <div className="mt-4 flex flex-col gap-2">
+              {categories.map((category) => (
+                <button
+                  key={category}
+                  onClick={() => setSelectedCategory(category)}
+                  className={`rounded-2xl px-4 py-3 text-left text-sm font-semibold transition ${
+                    selectedCategory === category
+                      ? "bg-cyan-400 text-slate-950"
+                      : "bg-white/5 text-white hover:bg-white/10"
+                  }`}
+                >
+                  {category}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="mt-auto rounded-3xl bg-gradient-to-br from-cyan-400/20 to-violet-400/20 p-5 border border-white/10">
@@ -140,7 +180,7 @@ export default function Home() {
             </section>
 
             <section className="mt-10">
-              <div className="mb-6 flex items-center justify-between">
+              <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>
                   <h3 className="text-3xl font-extrabold">Featured Products</h3>
                   <p className="mt-1 text-sm text-slate-400">
@@ -148,25 +188,41 @@ export default function Home() {
                   </p>
                 </div>
 
-                <button
-                  onClick={loadProducts}
-                  className="rounded-2xl bg-cyan-400 px-4 py-2 font-bold text-slate-950"
-                >
-                  Refresh Products
-                </button>
+                <div className="flex flex-wrap gap-2">
+                  {categories.map((category) => (
+                    <button
+                      key={category}
+                      onClick={() => setSelectedCategory(category)}
+                      className={`rounded-2xl px-4 py-2 text-sm font-bold transition ${
+                        selectedCategory === category
+                          ? "bg-cyan-400 text-slate-950"
+                          : "bg-white/10 text-white hover:bg-white/20"
+                      }`}
+                    >
+                      {category}
+                    </button>
+                  ))}
+
+                  <button
+                    onClick={loadProducts}
+                    className="rounded-2xl bg-violet-400 px-4 py-2 font-bold text-slate-950"
+                  >
+                    Refresh Products
+                  </button>
+                </div>
               </div>
 
               {loadingProducts ? (
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-slate-300">
                   Loading products...
                 </div>
-              ) : products.length === 0 ? (
+              ) : filteredProducts.length === 0 ? (
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-slate-300">
-                  No products found.
+                  No products found in this category.
                 </div>
               ) : (
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2 2xl:grid-cols-3">
-                  {products.map((product) => (
+                  {filteredProducts.map((product) => (
                     <div
                       key={product.id}
                       className="overflow-hidden rounded-[2rem] border border-white/10 bg-[#101729] shadow-xl"
@@ -202,7 +258,15 @@ export default function Home() {
                       </div>
 
                       <div className="p-6">
-                        <h4 className="text-2xl font-bold">{product.name}</h4>
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <h4 className="text-2xl font-bold">{product.name}</h4>
+                            <p className="mt-1 text-xs text-slate-400">
+                              {product.category || "Uncategorized"}
+                            </p>
+                          </div>
+                        </div>
+
                         <p className="mt-2 text-sm leading-6 text-slate-400">
                           {product.description || "No description available."}
                         </p>

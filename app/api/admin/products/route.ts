@@ -61,7 +61,9 @@ export async function POST(request: Request) {
         },
       ])
       .select()
-      ..maybeSingle();
+      .maybeSingle();
+    console.log("CREATE product data:", data);
+console.log("CREATE product error:", error);
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
@@ -114,6 +116,8 @@ export async function PATCH(request: Request) {
       .eq("id", id)
       .select()
       .maybeSingle();
+    console.log("UPDATE product data:", data);
+console.log("UPDATE product error:", error);
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });

@@ -62,9 +62,7 @@ export default function CheckoutPage() {
   return Math.max(totalPrice - discount, 0);
 }, [totalPrice, discount]);
   
-  body: JSON.stringify({
-  totalPrice: finalPrice,
-}),
+
 
   const isCheckoutDisabled =
     cartItems.length === 0 || !robloxUsername.trim() || !contactInfo.trim();
@@ -76,10 +74,9 @@ export default function CheckoutPage() {
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      code: couponCode,
-      cartTotal: totalPrice,
-    }),
+     body: JSON.stringify({
+  totalPrice: finalPrice,
+}),
   });
 
   const data = await res.json();

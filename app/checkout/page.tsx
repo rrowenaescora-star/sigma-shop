@@ -242,6 +242,40 @@ export default function CheckoutPage() {
 
             <div>
               <label className="mb-2 block text-sm font-semibold text-slate-300">
+                Coupon
+              </label>
+
+              <div className="flex gap-2 mt-2">
+                <input
+                  value={couponCode}
+                  onChange={(e) => setCouponCode(e.target.value)}
+                  className="flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-2 outline-none"
+                  placeholder="Enter code"
+                />
+
+                <button
+                  type="button"
+                  onClick={applyCoupon}
+                  className="bg-cyan-400 text-black px-4 rounded-xl font-semibold"
+                >
+                  Apply
+                </button>
+              </div>
+
+              {couponError && (
+                <p className="text-red-400 text-sm mt-2">{couponError}</p>
+              )}
+
+              {!couponError && discount > 0 && (
+                <p className="text-green-400 text-sm mt-2">
+                  Coupon applied: -${discount.toFixed(2)}
+                  {appliedCoupon ? ` (${appliedCoupon})` : ""}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-semibold text-slate-300">
                 Email
               </label>
               <input
@@ -391,41 +425,6 @@ export default function CheckoutPage() {
 
             <div className="flex items-center justify-between text-lg font-bold">
               <span>Total</span>
-              
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-slate-300">
-                Coupon
-              </label>
-
-              <div className="flex gap-2 mt-2">
-                <input
-                  value={couponCode}
-                  onChange={(e) => setCouponCode(e.target.value)}
-                  className="flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-2 outline-none"
-                  placeholder="Enter code"
-                />
-
-                <button
-                  type="button"
-                  onClick={applyCoupon}
-                  className="bg-cyan-400 text-black px-4 rounded-xl font-semibold"
-                >
-                  Apply
-                </button>
-              </div>
-
-              {couponError && (
-                <p className="text-red-400 text-sm mt-2">{couponError}</p>
-              )}
-
-              {!couponError && discount > 0 && (
-                <p className="text-green-400 text-sm mt-2">
-                  Coupon applied: -${discount.toFixed(2)}
-                  {appliedCoupon ? ` (${appliedCoupon})` : ""}
-                </p>
-              )}
-            </div>
-              
               <span className="text-cyan-300">${finalPrice.toFixed(2)}</span>
             </div>
           </div>

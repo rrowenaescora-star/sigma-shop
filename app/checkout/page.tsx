@@ -9,10 +9,15 @@ type Product = {
   price: number;
   tag: string;
   stock: "In Stock" | "Limited" | "Out of Stock";
+  stock_quantity?: number | null;
+};
+
+type CartItem = Product & {
+  quantity: number;
 };
 
 export default function CheckoutPage() {
-  const [cartItems, setCartItems] = useState<Product[]>([]);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [robloxUsername, setRobloxUsername] = useState("");
   const [contactInfo, setContactInfo] = useState("");
   const [notes, setNotes] = useState("");
@@ -26,58 +31,23 @@ export default function CheckoutPage() {
   }, []);
 
   const totalPrice = useMemo(() => {
-    return cartItems.reduce((sum, item) => sum + item.price, 0);
+    return cartItems.reduce(
+      (sum, item) => sum + Number(item.price) * item.quantity,
+      0
+    );
   }, [cartItems]);
+
   async function handlePayPalSuccess(
-  paypalOrderId: string,
-  payerEmail: string | null
-) {
-  if (cartItems.length === 0) return;
-  if (!robloxUsername.trim() || !contactInfo.trim()) {
-    alert("Please fill in your Roblox username and contact info first.");
-    return;
-  }
+    paypalOrderId: string,
+    payerEmail: string | null
+  ) {
+    if (cartItems.length === 0) return;
+    if (!robloxUsername.trim() || !contactInfo.trim()) {
+      alert("Please fill in your Roblox username and contact info first.");
+      return;
+    }
 
-  const orderResponse = await fetch("/api/orders", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      robloxUsername,
-      contactInfo,
-      notes,
-      items: cartItems,
-      totalPrice,
-      paypalOrderId,
-      paymentStatus: "Paid",
-      payerEmail,
-    }),
-  });
-
-  const orderResult = await orderResponse.json();
-
-  if (!orderResponse.ok) {
-    alert(orderResult.error || "Order save failed.");
-    return;
-  }
-
- localStorage.setItem("real-last-order", JSON.stringify(orderResult.order));
-localStorage.removeItem("real-cart");
-setCartItems([]);
-
-// ✅ redirect to tracking page
-window.location.href = `/track-order?orderId=${orderResult.order.id}`;
-}
-
-  async function handlePlaceOrder(e: React.FormEvent) {
-  e.preventDefault();
-
-  if (cartItems.length === 0) return;
-  if (!robloxUsername.trim() || !contactInfo.trim()) return;
-
-  try {
-    const response = await fetch("/api/orders", {
+    const orderResponse = await fetch("/api/orders", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -88,81 +58,116 @@ window.location.href = `/track-order?orderId=${orderResult.order.id}`;
         notes,
         items: cartItems,
         totalPrice,
+        paypalOrderId,
+        paymentStatus: "Paid",
+        payerEmail,
       }),
     });
 
-    const text = await response.text();
-let result;
+    const orderResult = await orderResponse.json();
 
-try {
-  result = JSON.parse(text);
-} catch {
-  console.error("Non-JSON response:", text);
-  alert("Server returned an invalid response. Check /api/orders.");
-  return;
-}
-
-    if (!response.ok) {
-      alert(result.error || "Failed to place order.");
+    if (!orderResponse.ok) {
+      alert(orderResult.error || "Order save failed.");
       return;
     }
 
-    localStorage.setItem("real-last-order", JSON.stringify(result.order));
+    localStorage.setItem("real-last-order", JSON.stringify(orderResult.order));
     localStorage.removeItem("real-cart");
     setCartItems([]);
-    setSubmitted(true);
 
-  } catch (err) {
-    alert("Something went wrong.");
-    console.error(err);
+    window.location.href = `/track-order?orderId=${orderResult.order.id}`;
   }
-  
-}
+
+  async function handlePlaceOrder(e: React.FormEvent) {
+    e.preventDefault();
+
+    if (cartItems.length === 0) return;
+    if (!robloxUsername.trim() || !contactInfo.trim()) return;
+
+    try {
+      const response = await fetch("/api/orders", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          robloxUsername,
+          contactInfo,
+          notes,
+          items: cartItems,
+          totalPrice,
+        }),
+      });
+
+      const text = await response.text();
+      let result;
+
+      try {
+        result = JSON.parse(text);
+      } catch {
+        console.error("Non-JSON response:", text);
+        alert("Server returned an invalid response. Check /api/orders.");
+        return;
+      }
+
+      if (!response.ok) {
+        alert(result.error || "Failed to place order.");
+        return;
+      }
+
+      localStorage.setItem("real-last-order", JSON.stringify(result.order));
+      localStorage.removeItem("real-cart");
+      setCartItems([]);
+      setSubmitted(true);
+    } catch (err) {
+      alert("Something went wrong.");
+      console.error(err);
+    }
+  }
+
   if (submitted) {
-  const lastOrderRaw =
-    typeof window !== "undefined"
-      ? localStorage.getItem("real-last-order")
-      : null;
+    const lastOrderRaw =
+      typeof window !== "undefined"
+        ? localStorage.getItem("real-last-order")
+        : null;
 
-  const lastOrder = lastOrderRaw ? JSON.parse(lastOrderRaw) : null;
+    const lastOrder = lastOrderRaw ? JSON.parse(lastOrderRaw) : null;
 
-  return (
-    <div className="min-h-screen bg-[#070b14] flex items-center justify-center px-6">
-      <div className="max-w-xl w-full rounded-[2rem] border border-white/10 bg-[#101729] p-8 text-center shadow-xl">
-        <h1 className="text-4xl font-extrabold text-green-400">
-          Order Successful 🎉
-        </h1>
+    return (
+      <div className="min-h-screen bg-[#070b14] flex items-center justify-center px-6">
+        <div className="max-w-xl w-full rounded-[2rem] border border-white/10 bg-[#101729] p-8 text-center shadow-xl">
+          <h1 className="text-4xl font-extrabold text-green-400">
+            Order Successful 🎉
+          </h1>
 
-        <p className="mt-4 text-slate-300">
-          Your order has been placed successfully.
-        </p>
+          <p className="mt-4 text-slate-300">
+            Your order has been placed successfully.
+          </p>
 
-        {lastOrder && (
-          <>
-            <p className="mt-6 text-lg text-slate-300">
-              Your Order ID:
-            </p>
+          {lastOrder && (
+            <>
+              <p className="mt-6 text-lg text-slate-300">Your Order ID:</p>
 
-            <p className="text-3xl font-extrabold text-cyan-300">
-              #{lastOrder.id}
-            </p>
+              <p className="text-3xl font-extrabold text-cyan-300">
+                #{lastOrder.id}
+              </p>
 
-            <p className="mt-4 text-sm text-slate-400">
-              Save this ID to track your order anytime.
-            </p>
+              <p className="mt-4 text-sm text-slate-400">
+                Save this ID to track your order anytime.
+              </p>
 
-            <a
-              href={`/track-order?orderId=${lastOrder.id}`}
-              className="mt-6 inline-block rounded-2xl bg-cyan-400 px-6 py-3 font-bold text-slate-950"
-            >
-              Track Your Order
-            </a>
-          </>
-        )}
+              <a
+                href={`/track-order?orderId=${lastOrder.id}`}
+                className="mt-6 inline-block rounded-2xl bg-cyan-400 px-6 py-3 font-bold text-slate-950"
+              >
+                Track Your Order
+              </a>
+            </>
+          )}
+        </div>
       </div>
-    </div>
-  );
-}
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#070b14] text-white px-6 py-12">
@@ -173,7 +178,8 @@ try {
           </p>
           <h1 className="mt-4 text-4xl font-extrabold">Complete your order</h1>
           <p className="mt-4 text-slate-300">
-            Enter your Roblox username and contact info so the order can be handled.
+            Enter your Roblox username and contact info so the order can be
+            handled.
           </p>
 
           <form onSubmit={handlePlaceOrder} className="mt-8 space-y-5">
@@ -235,74 +241,76 @@ try {
                 }`}
               >
                 Place Order
-              </button><div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-4">
-  <p className="mb-4 text-sm font-semibold text-slate-300">
-    Pay with PayPal
-  </p>
+              </button>
 
-  <PayPalScriptProvider
-    options={{
-      clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "",
-      currency: "USD",
-      intent: "capture",
-    }}
-  >
-    <PayPalButtons
-      style={{ layout: "vertical" }}
-      disabled={
-        cartItems.length === 0 ||
-        !robloxUsername.trim() ||
-        !contactInfo.trim()
-      }
-      createOrder={async () => {
-        const response = await fetch("/api/paypal/create-order", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            totalPrice,
-          }),
-        });
+              <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-4">
+                <p className="mb-4 text-sm font-semibold text-slate-300">
+                  Pay with PayPal
+                </p>
 
-        const data = await response.json();
+                <PayPalScriptProvider
+                  options={{
+                    clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "",
+                    currency: "USD",
+                    intent: "capture",
+                  }}
+                >
+                  <PayPalButtons
+                    style={{ layout: "vertical" }}
+                    disabled={
+                      cartItems.length === 0 ||
+                      !robloxUsername.trim() ||
+                      !contactInfo.trim()
+                    }
+                    createOrder={async () => {
+                      const response = await fetch("/api/paypal/create-order", {
+                        method: "POST",
+                        headers: {
+                          "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                          totalPrice,
+                        }),
+                      });
 
-        if (!response.ok) {
-          throw new Error(data.error || "Failed to create PayPal order.");
-        }
+                      const data = await response.json();
 
-        return data.id;
-      }}
-      onApprove={async (data) => {
-        const response = await fetch("/api/paypal/capture-order", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            orderID: data.orderID,
-          }),
-        });
+                      if (!response.ok) {
+                        throw new Error(data.error || "Failed to create PayPal order.");
+                      }
 
-        const result = await response.json();
+                      return data.id;
+                    }}
+                    onApprove={async (data) => {
+                      const response = await fetch("/api/paypal/capture-order", {
+                        method: "POST",
+                        headers: {
+                          "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                          orderID: data.orderID,
+                        }),
+                      });
 
-        if (!response.ok) {
-          alert(result.error || "Failed to capture payment.");
-          return;
-        }
+                      const result = await response.json();
 
-        await handlePayPalSuccess(
-    result.orderID || data.orderID || "",
-    result.payerEmail || null
-  );
-      }}
-      onError={(err) => {
-        console.error("PayPal error:", err);
-        alert("PayPal checkout failed.");
-      }}
-    />
-  </PayPalScriptProvider>
-</div>
+                      if (!response.ok) {
+                        alert(result.error || "Failed to capture payment.");
+                        return;
+                      }
+
+                      await handlePayPalSuccess(
+                        result.orderID || data.orderID || "",
+                        result.payerEmail || null
+                      );
+                    }}
+                    onError={(err) => {
+                      console.error("PayPal error:", err);
+                      alert("PayPal checkout failed.");
+                    }}
+                  />
+                </PayPalScriptProvider>
+              </div>
             </div>
           </form>
         </div>
@@ -316,18 +324,21 @@ try {
                 Your cart is empty.
               </div>
             ) : (
-              cartItems.map((item, index) => (
+              cartItems.map((item) => (
                 <div
-                  key={`${item.id}-${index}`}
+                  key={item.id}
                   className="rounded-2xl border border-white/10 bg-white/5 p-4"
                 >
                   <div className="flex items-center justify-between gap-4">
                     <div>
                       <h3 className="font-bold">{item.name}</h3>
                       <p className="text-sm text-slate-400">{item.tag}</p>
+                      <p className="text-sm text-slate-400">
+                        Qty: {item.quantity}
+                      </p>
                     </div>
                     <p className="font-bold text-cyan-300">
-                      ${item.price.toFixed(2)}
+                      ${(Number(item.price) * item.quantity).toFixed(2)}
                     </p>
                   </div>
                 </div>

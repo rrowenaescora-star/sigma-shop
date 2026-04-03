@@ -350,45 +350,26 @@ export default function AdminProductsPage() {
                   >
                     <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                       <div>
-                        
-                        <div className="flex gap-4">
-  <div className="h-24 w-24 shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-white/5 flex items-center justify-center">
-    {product.image_url ? (
-      <img
-        src={product.image_url}
-        alt={product.name}
-        className="h-full w-full object-cover"
-      />
-    ) : (
-      <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-cyan-300 to-violet-400" />
-    )}
-  </div>
-
-  <div>
-    <h3 className="text-xl font-bold">{product.name}</h3>
-    <p className="mt-1 text-sm text-slate-400">
-      Slug: {product.slug || "N/A"}
-    </p>
-    <p className="mt-1 text-sm text-slate-400">
-      Category: {product.category || "N/A"}
-    </p>
-    <p className="mt-1 text-sm text-slate-400">
-      Tag: {product.tag || "N/A"}
-    </p>
-    <p className="mt-1 text-sm text-slate-400">
-      Stock: {product.stock}
-    </p>
-    <p className="mt-1 text-sm text-slate-400">
-      Status: {product.is_active ? "Active" : "Archived"}
-    </p>
-    <p className="mt-2 text-slate-300">
-      {product.description || "No description."}
-    </p>
-    <p className="mt-2 text-xs text-cyan-300 break-all">
-      {product.image_url || "No image URL"}
-    </p>
-  </div>
-</div>
+                        <h3 className="text-xl font-bold">{product.name}</h3>
+                        <p className="mt-1 text-sm text-slate-400">
+                          Slug: {product.slug || "N/A"}
+                        </p>
+                        <p className="mt-1 text-sm text-slate-400">
+                          Category: {product.category || "N/A"}
+                        </p>
+                        <p className="mt-1 text-sm text-slate-400">
+                          Tag: {product.tag || "N/A"}
+                        </p>
+                        <p className="mt-1 text-sm text-slate-400">
+                          Stock: {product.stock}
+                        </p>
+                        <p className="mt-1 text-sm text-slate-400">
+                          Active: {product.is_active ? "Yes" : "No"}
+                        </p>
+                        <p className="mt-2 text-slate-300">
+                          {product.description || "No description."}
+                        </p>
+                      </div>
 
                       <div className="flex flex-col gap-3 md:items-end">
                         <span className="text-2xl font-extrabold text-cyan-300">

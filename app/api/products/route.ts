@@ -5,7 +5,9 @@ export async function GET() {
   try {
     const { data, error } = await supabase
       .from("products")
-      .select("*")
+      .select(
+        "id, name, slug, price, tag, stock, stock_quantity, category, description, image_url"
+      )
       .eq("is_active", true)
       .order("created_at", { ascending: false });
 
@@ -14,7 +16,7 @@ export async function GET() {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ products: data });
+    return NextResponse.json({ products: data || [] });
   } catch (error) {
     console.error("Products route error:", error);
     return NextResponse.json(

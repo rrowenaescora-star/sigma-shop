@@ -361,19 +361,23 @@ export default function AdminProductsPage() {
                           {product.description || "No description."}
                         </p>
                       </div>
+                      <div className="flex gap-2">
+  <button
+    onClick={() => startEdit(product)}
+    className="rounded-xl bg-violet-400 px-4 py-2 font-bold text-slate-950"
+  >
+    Edit
+  </button>
 
-                      <div className="flex flex-col gap-3 md:items-end">
-                        <span className="text-2xl font-extrabold text-cyan-300">
-                          ${Number(product.price).toFixed(2)}
-                        </span>
+  <button
+    onClick={() => handleDeleteProduct(product.id)}
+    className="rounded-xl bg-red-500 px-4 py-2 font-bold text-white"
+  >
+    Delete
+  </button>
+</div>
 
-                        <button
-                          onClick={() => startEdit(product)}
-                          className="rounded-xl bg-violet-400 px-4 py-2 font-bold text-slate-950"
-                        >
-                          Edit
-                        </button>
-                      </div>
+                      
                     </div>
                   </div>
                 ))

@@ -22,6 +22,10 @@ type Order = {
   payment_status?: string | null;
   payer_email?: string | null;
   paid_at?: string | null;
+  delivery_status?: string | null;
+  delivery_notes?: string | null;
+  delivered_at?: string | null;
+  handled_by?: string | null;
   created_at?: string;
 };
 export default function AdminOrdersPage() {

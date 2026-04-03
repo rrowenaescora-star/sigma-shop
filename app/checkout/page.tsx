@@ -117,32 +117,50 @@ try {
   
 }
   if (submitted) {
-    return (
-      <div className="min-h-screen bg-[#070b14] text-white px-6 py-12">
-        <div className="mx-auto max-w-3xl rounded-[2rem] border border-white/10 bg-[#101729] p-8 shadow-xl">
-          <p className="text-sm uppercase tracking-[0.25em] text-cyan-300">
-            Order Submitted
-          </p>
-          <h1 className="mt-4 text-4xl font-extrabold">Thank you for your order</h1>
-          <p className="mt-4 text-slate-300">
-            Your order has been recorded. Contact and username details were saved on
-            this browser for now.
-          </p>
+  const lastOrderRaw =
+    typeof window !== "undefined"
+      ? localStorage.getItem("real-last-order")
+      : null;
 
-          <div className="mt-6 rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-4 text-cyan-100">
-            Roblox Username: <span className="font-bold">{robloxUsername}</span>
-          </div>
+  const lastOrder = lastOrderRaw ? JSON.parse(lastOrderRaw) : null;
 
-          <Link
-            href="/"
-            className="mt-8 inline-block rounded-2xl bg-cyan-400 px-6 py-3 font-bold text-slate-950"
-          >
-            Back to Store
-          </Link>
-        </div>
+  return (
+    <div className="min-h-screen bg-[#070b14] flex items-center justify-center px-6">
+      <div className="max-w-xl w-full rounded-[2rem] border border-white/10 bg-[#101729] p-8 text-center shadow-xl">
+        <h1 className="text-4xl font-extrabold text-green-400">
+          Order Successful 🎉
+        </h1>
+
+        <p className="mt-4 text-slate-300">
+          Your order has been placed successfully.
+        </p>
+
+        {lastOrder && (
+          <>
+            <p className="mt-6 text-lg text-slate-300">
+              Your Order ID:
+            </p>
+
+            <p className="text-3xl font-extrabold text-cyan-300">
+              #{lastOrder.id}
+            </p>
+
+            <p className="mt-4 text-sm text-slate-400">
+              Save this ID to track your order anytime.
+            </p>
+
+            <a
+              href={`/track-order?orderId=${lastOrder.id}`}
+              className="mt-6 inline-block rounded-2xl bg-cyan-400 px-6 py-3 font-bold text-slate-950"
+            >
+              Track Your Order
+            </a>
+          </>
+        )}
       </div>
-    );
-  }
+    </div>
+  );
+}
 
   return (
     <div className="min-h-screen bg-[#070b14] text-white px-6 py-12">

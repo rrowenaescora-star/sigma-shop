@@ -57,6 +57,33 @@ export async function POST(request: Request) {
       console.error("Supabase insert error:", error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
+    // 🔥 ADD THIS HERE (stock reduction)
+for (const item of items) {
+  const { data: product, error: fetchError } = await supabase
+    .from("products")
+    .select("id, stock_quantity")
+    .eq("id", item.id)
+    .single();
+
+  if (fetchError || !product) {
+    console.error("Product fetch error:", fetchError);
+    continue;
+  }
+
+  const newStock = Math.max((product.stock_quantity || 0) - 1, 0);
+
+  let stockLabel = "In Stock";
+  if (newStock === 0) stockLabel = "Out of Stock";
+  else if (newStock <= 3) stockLabel = "Limited";
+
+  await supabase
+    .from("products")
+    .update({
+      stock_quantity: newStock,
+      stock: stockLabel,
+    })
+    .eq("id", item.id);
+}
 
     await sendDiscordOrderNotification({
   orderId: data.id,

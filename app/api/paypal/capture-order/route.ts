@@ -12,34 +12,64 @@ export async function POST(request: Request) {
     const accessToken = await getPayPalAccessToken();
     const base = process.env.PAYPAL_API_BASE;
 
-    const response = await fetch(`${base}/v2/checkout/orders/${orderID}/capture`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
+    // 🔥 STEP 1: CAPTURE ORDER
+    const captureResponse = await fetch(
+      `${base}/v2/checkout/orders/${orderID}/capture`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
 
-    const data = await response.json();
+    const captureData = await captureResponse.json();
 
-    if (!response.ok) {
+    if (!captureResponse.ok) {
       return NextResponse.json(
-        { error: data.message || "Failed to capture PayPal order." },
+        { error: captureData.message || "Failed to capture PayPal order." },
         { status: 500 }
       );
     }
 
-    const payerEmail =
-      data?.payer?.email_address ||
-      null;
+    // 🔥 STEP 2: VERIFY PAYMENT STATUS
+    const status = captureData?.status;
 
+    if (status !== "COMPLETED") {
+      return NextResponse.json(
+        { error: "Payment not completed." },
+        { status: 400 }
+      );
+    }
+
+    // 🔥 STEP 3: EXTRACT REAL PAID AMOUNT
+    const purchaseUnit = captureData?.purchase_units?.[0];
+    const capture = purchaseUnit?.payments?.captures?.[0];
+
+    const paidAmount = Number(capture?.amount?.value || 0);
+    const currency = capture?.amount?.currency_code;
+
+    if (!paidAmount || paidAmount <= 0) {
+      return NextResponse.json(
+        { error: "Invalid payment amount." },
+        { status: 400 }
+      );
+    }
+
+    // 🔥 STEP 4: GET PAYER EMAIL
+    const payerEmail = captureData?.payer?.email_address || null;
+
+    // 🔥 RETURN VERIFIED DATA ONLY
     return NextResponse.json({
       success: true,
-      orderID: data?.id || orderID,
-      status: data?.status || "COMPLETED",
+      orderID: captureData?.id || orderID,
+      status,
       payerEmail,
-      data,
+      paidAmount,
+      currency,
     });
+
   } catch (error) {
     return NextResponse.json(
       {

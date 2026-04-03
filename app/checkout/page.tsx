@@ -303,7 +303,7 @@ export default function CheckoutPage() {
 
                       await handlePayPalSuccess(
                         result.orderID || data.orderID || "",
-                        result.payerEmail || null
+                        result.payerEmail || null,
                         result.paidAmount
                       );
                     }}

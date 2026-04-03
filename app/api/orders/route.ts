@@ -58,7 +58,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true, order: data });
+    await sendDiscordOrderNotification({
+  orderId: data.id,
+  robloxUsername: data.roblox_username,
+  contactInfo: data.contact_info,
+  totalPrice: Number(data.total_price),
+  paymentStatus: data.payment_status,
+  deliveryStatus: data.delivery_status,
+  paypalOrderId: data.paypal_order_id,
+});
+
+return NextResponse.json({ success: true, order: data });
   } catch (error) {
     console.error("API route error:", error);
     return NextResponse.json(

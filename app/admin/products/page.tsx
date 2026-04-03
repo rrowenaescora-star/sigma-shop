@@ -33,7 +33,6 @@ export default function AdminProductsPage() {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("Loading products...");
   const [editingId, setEditingId] = useState<number | null>(null);
-
   const [form, setForm] = useState(emptyForm);
 
   async function loadProducts() {
@@ -145,7 +144,6 @@ export default function AdminProductsPage() {
     });
 
     const result = await response.json();
-    console.log("UPDATE response:", result);
 
     if (!response.ok) {
       alert(result.error || "Failed to update product.");
@@ -158,28 +156,32 @@ export default function AdminProductsPage() {
     loadProducts();
   }
 
-  async function handleDeleteProduct(id: number) {
+  async function handleArchiveProduct(id: number, isActive: boolean) {
+    const action = isActive ? "archive" : "restore";
     const confirmed = window.confirm(
-      "Are you sure you want to delete this product?"
+      `Are you sure you want to ${action} this product?`
     );
     if (!confirmed) return;
 
     const response = await fetch("/api/admin/products", {
-      method: "DELETE",
+      method: "PATCH",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ id }),
+      body: JSON.stringify({
+        id,
+        isActive: !isActive,
+      }),
     });
 
     const result = await response.json();
 
     if (!response.ok) {
-      alert(result.error || "Failed to delete product.");
+      alert(result.error || `Failed to ${action} product.`);
       return;
     }
 
-    alert("Product deleted successfully.");
+    alert(`Product ${action}d successfully.`);
     if (editingId === id) {
       setEditingId(null);
       setForm(emptyForm);
@@ -203,7 +205,7 @@ export default function AdminProductsPage() {
             </p>
             <h1 className="mt-2 text-4xl font-extrabold">Products Dashboard</h1>
             <p className="mt-2 text-slate-400">
-              Add, edit, and manage your store products
+              Add, edit, archive, and manage your store products
             </p>
           </div>
 
@@ -349,26 +351,43 @@ export default function AdminProductsPage() {
                     className="rounded-2xl border border-white/10 bg-white/5 p-5"
                   >
                     <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                      <div>
-                        <h3 className="text-xl font-bold">{product.name}</h3>
-                        <p className="mt-1 text-sm text-slate-400">
-                          Slug: {product.slug || "N/A"}
-                        </p>
-                        <p className="mt-1 text-sm text-slate-400">
-                          Category: {product.category || "N/A"}
-                        </p>
-                        <p className="mt-1 text-sm text-slate-400">
-                          Tag: {product.tag || "N/A"}
-                        </p>
-                        <p className="mt-1 text-sm text-slate-400">
-                          Stock: {product.stock}
-                        </p>
-                        <p className="mt-1 text-sm text-slate-400">
-                          Active: {product.is_active ? "Yes" : "No"}
-                        </p>
-                        <p className="mt-2 text-slate-300">
-                          {product.description || "No description."}
-                        </p>
+                      <div className="flex gap-4">
+                        <div className="h-24 w-24 shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-white/5 flex items-center justify-center">
+                          {product.image_url ? (
+                            <img
+                              src={product.image_url}
+                              alt={product.name}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-cyan-300 to-violet-400" />
+                          )}
+                        </div>
+
+                        <div>
+                          <h3 className="text-xl font-bold">{product.name}</h3>
+                          <p className="mt-1 text-sm text-slate-400">
+                            Slug: {product.slug || "N/A"}
+                          </p>
+                          <p className="mt-1 text-sm text-slate-400">
+                            Category: {product.category || "N/A"}
+                          </p>
+                          <p className="mt-1 text-sm text-slate-400">
+                            Tag: {product.tag || "N/A"}
+                          </p>
+                          <p className="mt-1 text-sm text-slate-400">
+                            Stock: {product.stock}
+                          </p>
+                          <p className="mt-1 text-sm text-slate-400">
+                            Status: {product.is_active ? "Active" : "Archived"}
+                          </p>
+                          <p className="mt-2 text-slate-300">
+                            {product.description || "No description."}
+                          </p>
+                          <p className="mt-2 text-xs text-cyan-300 break-all">
+                            {product.image_url || "No image URL"}
+                          </p>
+                        </div>
                       </div>
 
                       <div className="flex flex-col gap-3 md:items-end">
@@ -385,10 +404,14 @@ export default function AdminProductsPage() {
                           </button>
 
                           <button
-                            onClick={() => handleDeleteProduct(product.id)}
-                            className="rounded-xl bg-red-500 px-4 py-2 font-bold text-white"
+                            onClick={() =>
+                              handleArchiveProduct(product.id, product.is_active)
+                            }
+                            className={`rounded-xl px-4 py-2 font-bold text-white ${
+                              product.is_active ? "bg-red-500" : "bg-green-500"
+                            }`}
                           >
-                            Delete
+                            {product.is_active ? "Archive" : "Restore"}
                           </button>
                         </div>
                       </div>

@@ -2,9 +2,6 @@
 
 import { useEffect, useState } from "react";
 
-const [search, setSearch] = useState("");
-const [statusFilter, setStatusFilter] = useState("");
-
 type OrderItem = {
   id: number;
   name: string;
@@ -31,12 +28,16 @@ type Order = {
   handled_by?: string | null;
   created_at?: string;
 };
+
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("Loading orders...");
   const [inputPassword, setInputPassword] = useState("");
   const [isUnlocked, setIsUnlocked] = useState(false);
+
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
 
   useEffect(() => {
     const saved = localStorage.getItem("real-admin-unlocked");
@@ -46,25 +47,27 @@ export default function AdminOrdersPage() {
       setLoading(false);
     }
   }, []);
-  	async function updateDelivery(
-  orderId: number,
-  deliveryStatus: string,
-  deliveryNotes = "",
-  handledBy = "REAL Admin"
-) {
-  await fetch("/api/admin/orders", {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      id: orderId,
-      deliveryStatus,
-      deliveryNotes,
-      handledBy,
-    }),
-  });
 
-  loadOrders();
-}
+  async function updateDelivery(
+    orderId: number,
+    deliveryStatus: string,
+    deliveryNotes = "",
+    handledBy = "REAL Admin"
+  ) {
+    await fetch("/api/admin/orders", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: orderId,
+        deliveryStatus,
+        deliveryNotes,
+        handledBy,
+      }),
+    });
+
+    loadOrders();
+  }
+
   async function loadOrders() {
     try {
       setLoading(true);
@@ -90,9 +93,15 @@ export default function AdminOrdersPage() {
   }
 
   useEffect(() => {
-    if (isUnlocked) {
+    if (!isUnlocked) return;
+
+    loadOrders();
+
+    const interval = setInterval(() => {
       loadOrders();
-    }
+    }, 10000);
+
+    return () => clearInterval(interval);
   }, [isUnlocked]);
 
   function handleUnlock() {
@@ -119,18 +128,21 @@ export default function AdminOrdersPage() {
     setMessage("Logged out.");
   }
 
-  async function markDone(orderId: number) {
-    await fetch("/api/admin/orders", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        id: orderId,
-        status: "Completed",
-      }),
-    });
+  const filteredOrders = orders.filter((order) => {
+    const searchLower = search.toLowerCase();
 
-    loadOrders();
-  }
+    const matchesSearch =
+      order.roblox_username?.toLowerCase().includes(searchLower) ||
+      order.contact_info?.toLowerCase().includes(searchLower) ||
+      String(order.id).includes(search) ||
+      order.payer_email?.toLowerCase().includes(searchLower) ||
+      order.paypal_order_id?.toLowerCase().includes(searchLower);
+
+    const matchesStatus =
+      !statusFilter || (order.delivery_status || "Pending") === statusFilter;
+
+    return matchesSearch && matchesStatus;
+  });
 
   if (!isUnlocked) {
     return (
@@ -178,7 +190,6 @@ export default function AdminOrdersPage() {
               View all saved checkout orders
             </p>
           </div>
-			
 
           <div className="flex gap-3">
             <button
@@ -201,17 +212,41 @@ export default function AdminOrdersPage() {
           {message}
         </div>
 
+        <div className="mt-6 flex flex-col gap-3 md:flex-row md:items-center">
+          <input
+            type="text"
+            placeholder="Search username, contact, order ID, PayPal ID, email..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none md:max-w-md"
+          />
+
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none"
+          >
+            <option value="">All Delivery Statuses</option>
+            <option value="Pending">Pending</option>
+            <option value="Processing">Processing</option>
+            <option value="Delivered">Delivered</option>
+            <option value="Cancelled">Cancelled</option>
+          </select>
+        </div>
+
         <div className="mt-8 grid gap-6">
           {loading ? (
             <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-slate-300">
               Loading...
             </div>
-          ) : orders.length === 0 ? (
+          ) : filteredOrders.length === 0 ? (
             <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-slate-300">
-              No orders found.
+              {orders.length === 0
+                ? "No orders found."
+                : "No orders match your search or filter."}
             </div>
           ) : (
-            orders.map((order) => (
+            filteredOrders.map((order) => (
               <div
                 key={order.id}
                 className="rounded-[2rem] border border-white/10 bg-[#101729] p-6 shadow-xl"
@@ -219,76 +254,93 @@ export default function AdminOrdersPage() {
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                   <div>
                     <h2 className="text-2xl font-bold">Order #{order.id}</h2>
+
                     <p className="mt-2 text-slate-300">
                       Roblox Username:{" "}
                       <span className="font-bold text-cyan-300">
                         {order.roblox_username}
                       </span>
                     </p>
-		    <p className="mt-1 text-slate-300">
-  Payment Status:{" "}
-  <span className="font-bold text-cyan-300">
-    {order.payment_status || "Unpaid"}
-  </span>
-</p>
- <p className="mt-1 text-slate-300">
-  Delivery Status:{" "}
-  <span className="font-bold text-cyan-300">
-    {order.delivery_status || "Pending"}
-  </span>
-</p>
 
-<p className="mt-1 text-slate-300">
-  Handled By:{" "}
-  <span className="font-bold">
-    {order.handled_by || "N/A"}
-  </span>
-</p>
-
-<p className="mt-1 text-slate-300">
-  Delivery Notes:{" "}
-  <span className="font-bold">
-    {order.delivery_notes || "No delivery notes"}
-  </span>
-</p>
-
-<p className="mt-1 text-slate-300">
-  Delivered At:{" "}
-  <span className="font-bold">
-    {order.delivered_at
-      ? new Date(order.delivered_at).toLocaleString()
-      : "Not delivered"}
-  </span>
-</p>
-<p className="mt-1 text-slate-300">
-  PayPal Order ID:{" "}
-  <span className="font-bold">
-    {order.paypal_order_id || "N/A"}
-  </span>
-</p>
-
-<p className="mt-1 text-slate-300">
-  Payer Email:{" "}
-  <span className="font-bold">
-    {order.payer_email || "N/A"}
-  </span>
-</p>
-
-<p className="mt-1 text-slate-300">
-  Paid At:{" "}
-  <span className="font-bold">
-    {order.paid_at ? new Date(order.paid_at).toLocaleString() : "Not paid"}
-  </span>
-</p>	
                     <p className="mt-1 text-slate-300">
-                      Contact: <span className="font-bold">{order.contact_info}</span>
+                      Payment Status:{" "}
+                      <span
+                        className={`font-bold ${
+                          order.payment_status === "PAID" ||
+                          order.payment_status === "Paid"
+                            ? "text-green-400"
+                            : "text-cyan-300"
+                        }`}
+                      >
+                        {order.payment_status || "Unpaid"}
+                      </span>
                     </p>
+
+                    <p className="mt-1 text-slate-300">
+                      Delivery Status:{" "}
+                      <span className="font-bold text-cyan-300">
+                        {order.delivery_status || "Pending"}
+                      </span>
+                    </p>
+
+                    <p className="mt-1 text-slate-300">
+                      Handled By:{" "}
+                      <span className="font-bold">
+                        {order.handled_by || "N/A"}
+                      </span>
+                    </p>
+
+                    <p className="mt-1 text-slate-300">
+                      Delivery Notes:{" "}
+                      <span className="font-bold">
+                        {order.delivery_notes || "No delivery notes"}
+                      </span>
+                    </p>
+
+                    <p className="mt-1 text-slate-300">
+                      Delivered At:{" "}
+                      <span className="font-bold">
+                        {order.delivered_at
+                          ? new Date(order.delivered_at).toLocaleString()
+                          : "Not delivered"}
+                      </span>
+                    </p>
+
+                    <p className="mt-1 text-slate-300">
+                      PayPal Order ID:{" "}
+                      <span className="font-bold">
+                        {order.paypal_order_id || "N/A"}
+                      </span>
+                    </p>
+
+                    <p className="mt-1 text-slate-300">
+                      Payer Email:{" "}
+                      <span className="font-bold">
+                        {order.payer_email || "N/A"}
+                      </span>
+                    </p>
+
+                    <p className="mt-1 text-slate-300">
+                      Paid At:{" "}
+                      <span className="font-bold">
+                        {order.paid_at
+                          ? new Date(order.paid_at).toLocaleString()
+                          : "Not paid"}
+                      </span>
+                    </p>
+
+                    <p className="mt-1 text-slate-300">
+                      Contact:{" "}
+                      <span className="font-bold">{order.contact_info}</span>
+                    </p>
+
                     <p className="mt-1 text-slate-300">
                       Notes:{" "}
                       <span className="font-bold">
                         {order.notes?.trim() ? order.notes : "No notes"}
                       </span>
                     </p>
+
                     <p className="mt-1 text-slate-300">
                       Created:{" "}
                       <span className="font-bold">
@@ -300,53 +352,65 @@ export default function AdminOrdersPage() {
                   </div>
 
                   <div className="flex flex-col gap-3 lg:items-end">
-  <div className="flex gap-2 items-center flex-wrap">
-    <span className="rounded-full bg-violet-400 px-4 py-2 text-sm font-bold text-slate-950">
-      {order.status}
-    </span>
+                    <div className="flex gap-2 items-center flex-wrap">
+                      <span className="rounded-full bg-violet-400 px-4 py-2 text-sm font-bold text-slate-950">
+                        {order.status}
+                      </span>
 
-    <span className="rounded-full bg-cyan-400 px-4 py-2 text-sm font-bold text-slate-950">
-      {order.delivery_status || "Pending"}
-    </span>
+                      <span className="rounded-full bg-cyan-400 px-4 py-2 text-sm font-bold text-slate-950">
+                        {order.delivery_status || "Pending"}
+                      </span>
 
-    {order.delivery_status !== "Processing" && (
-      <button
-        onClick={() =>
-          updateDelivery(order.id, "Processing", "Order is being handled")
-        }
-        className="rounded-lg bg-yellow-400 px-3 py-1 font-bold text-black"
-      >
-        Mark Processing
-      </button>
-    )}
+                      {order.delivery_status !== "Processing" && (
+                        <button
+                          onClick={() =>
+                            updateDelivery(
+                              order.id,
+                              "Processing",
+                              "Order is being handled"
+                            )
+                          }
+                          className="rounded-lg bg-yellow-400 px-3 py-1 font-bold text-black"
+                        >
+                          Mark Processing
+                        </button>
+                      )}
 
-    {order.delivery_status !== "Delivered" && (
-      <button
-        onClick={() =>
-          updateDelivery(order.id, "Delivered", "Item delivered successfully")
-        }
-        className="rounded-lg bg-green-400 px-3 py-1 font-bold text-black"
-      >
-        Mark Delivered
-      </button>
-    )}
+                      {order.delivery_status !== "Delivered" && (
+                        <button
+                          onClick={() =>
+                            updateDelivery(
+                              order.id,
+                              "Delivered",
+                              "Item delivered successfully"
+                            )
+                          }
+                          className="rounded-lg bg-green-400 px-3 py-1 font-bold text-black"
+                        >
+                          Mark Delivered
+                        </button>
+                      )}
 
-    {order.delivery_status !== "Cancelled" && (
-      <button
-        onClick={() =>
-          updateDelivery(order.id, "Cancelled", "Order cancelled")
-        }
-        className="rounded-lg bg-red-400 px-3 py-1 font-bold text-black"
-      >
-        Cancel
-      </button>
-    )}
-  </div>
+                      {order.delivery_status !== "Cancelled" && (
+                        <button
+                          onClick={() =>
+                            updateDelivery(
+                              order.id,
+                              "Cancelled",
+                              "Order cancelled"
+                            )
+                          }
+                          className="rounded-lg bg-red-400 px-3 py-1 font-bold text-black"
+                        >
+                          Cancel
+                        </button>
+                      )}
+                    </div>
 
-  <span className="text-2xl font-extrabold text-cyan-300">
-    ${Number(order.total_price).toFixed(2)}
-  </span>
-</div>
+                    <span className="text-2xl font-extrabold text-cyan-300">
+                      ${Number(order.total_price).toFixed(2)}
+                    </span>
+                  </div>
                 </div>
 
                 <div className="mt-6">
@@ -359,7 +423,9 @@ export default function AdminOrdersPage() {
                         className="rounded-2xl border border-white/10 bg-white/5 p-4"
                       >
                         <p className="text-lg font-bold">{item.name}</p>
-                        <p className="mt-1 text-sm text-slate-400">Tag: {item.tag}</p>
+                        <p className="mt-1 text-sm text-slate-400">
+                          Tag: {item.tag}
+                        </p>
                         <p className="mt-1 text-sm text-slate-400">
                           Stock: {item.stock}
                         </p>

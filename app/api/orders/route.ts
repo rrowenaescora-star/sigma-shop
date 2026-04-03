@@ -22,7 +22,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid input." }, { status: 400 });
     }
 
-    // Prevent duplicate PayPal order reuse
     if (paypalOrderId) {
       const { data: existing } = await supabase
         .from("orders")
@@ -38,7 +37,6 @@ export async function POST(request: Request) {
       }
     }
 
-    // Validate products, stock, and rebuild true total from DB
     let computedTotal = 0;
 
     for (const item of items) {
@@ -68,7 +66,6 @@ export async function POST(request: Request) {
       computedTotal += Number(product.price) * qty;
     }
 
-    // Verify frontend total wasn't tampered with
     if (Math.abs(computedTotal - Number(totalPrice)) > 0.01) {
       return NextResponse.json(
         { error: "Price mismatch detected." },
@@ -76,8 +73,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // FINAL FRAUD LOCK:
-    // If this is a paid PayPal order, require paidAmount and verify it matches
     const isPaidOrder =
       paymentStatus === "Paid" || paymentStatus === "COMPLETED";
 
@@ -97,7 +92,6 @@ export async function POST(request: Request) {
       }
     }
 
-    // Create order
     const { data, error } = await supabase
       .from("orders")
       .insert([
@@ -121,34 +115,35 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    // Reduce stock
-    for (const item of items) {
-      const { data: product } = await supabase
-        .from("products")
-        .select("stock_quantity")
-        .eq("id", item.id)
-        .single();
+    if (isPaidOrder) {
+      for (const item of items) {
+        const { data: product } = await supabase
+          .from("products")
+          .select("stock_quantity")
+          .eq("id", item.id)
+          .single();
 
-      if (!product) continue;
+        if (!product) continue;
 
-      const qty = Number(item.quantity || 1);
+        const qty = Number(item.quantity || 1);
 
-      const newStock = Math.max(
-        Number(product.stock_quantity || 0) - qty,
-        0
-      );
+        const newStock = Math.max(
+          Number(product.stock_quantity || 0) - qty,
+          0
+        );
 
-      let stockLabel = "In Stock";
-      if (newStock === 0) stockLabel = "Out of Stock";
-      else if (newStock <= 3) stockLabel = "Limited";
+        let stockLabel = "In Stock";
+        if (newStock === 0) stockLabel = "Out of Stock";
+        else if (newStock <= 3) stockLabel = "Limited";
 
-      await supabase
-        .from("products")
-        .update({
-          stock_quantity: newStock,
-          stock: stockLabel,
-        })
-        .eq("id", item.id);
+        await supabase
+          .from("products")
+          .update({
+            stock_quantity: newStock,
+            stock: stockLabel,
+          })
+          .eq("id", item.id);
+      }
     }
 
     await sendDiscordOrderNotification({

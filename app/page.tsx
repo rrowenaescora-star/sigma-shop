@@ -23,6 +23,7 @@ export default function Home() {
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
+  const [sortOption, setSortOption] = useState("default");
 
   useEffect(() => {
     const savedCart = localStorage.getItem("real-cart");
@@ -97,7 +98,7 @@ export default function Home() {
   }, [products]);
 
   const filteredProducts = useMemo(() => {
-    return products.filter((product) => {
+    const filtered = products.filter((product) => {
       const matchesCategory =
         selectedCategory === "All" ||
         (product.category || "").trim() === selectedCategory;
@@ -113,7 +114,21 @@ export default function Home() {
 
       return matchesCategory && matchesSearch;
     });
-  }, [products, selectedCategory, searchQuery]);
+
+    const sorted = [...filtered];
+
+    if (sortOption === "price-low-high") {
+      sorted.sort((a, b) => Number(a.price) - Number(b.price));
+    } else if (sortOption === "price-high-low") {
+      sorted.sort((a, b) => Number(b.price) - Number(a.price));
+    } else if (sortOption === "name-a-z") {
+      sorted.sort((a, b) => a.name.localeCompare(b.name));
+    } else if (sortOption === "name-z-a") {
+      sorted.sort((a, b) => b.name.localeCompare(a.name));
+    }
+
+    return sorted;
+  }, [products, selectedCategory, searchQuery, sortOption]);
 
   return (
     <div className="min-h-screen bg-[#070b14] text-white relative">
@@ -154,6 +169,21 @@ export default function Home() {
               placeholder="Search products..."
               className="mt-4 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none"
             />
+          </div>
+
+          <div className="mt-8">
+            <p className="text-sm font-semibold text-slate-300">Sort</p>
+            <select
+              value={sortOption}
+              onChange={(e) => setSortOption(e.target.value)}
+              className="mt-4 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none"
+            >
+              <option value="default">Default</option>
+              <option value="price-low-high">Price: Low to High</option>
+              <option value="price-high-low">Price: High to Low</option>
+              <option value="name-a-z">Name: A to Z</option>
+              <option value="name-z-a">Name: Z to A</option>
+            </select>
           </div>
 
           <div className="mt-auto rounded-3xl bg-gradient-to-br from-cyan-400/20 to-violet-400/20 p-5 border border-white/10">
@@ -236,7 +266,7 @@ export default function Home() {
                   </div>
                 </div>
 
-                <div>
+                <div className="grid gap-3 md:grid-cols-[1fr_260px]">
                   <input
                     type="text"
                     value={searchQuery}
@@ -244,6 +274,18 @@ export default function Home() {
                     placeholder="Search by name, description, category, or tag..."
                     className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none"
                   />
+
+                  <select
+                    value={sortOption}
+                    onChange={(e) => setSortOption(e.target.value)}
+                    className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none"
+                  >
+                    <option value="default">Sort: Default</option>
+                    <option value="price-low-high">Sort: Price Low to High</option>
+                    <option value="price-high-low">Sort: Price High to Low</option>
+                    <option value="name-a-z">Sort: Name A to Z</option>
+                    <option value="name-z-a">Sort: Name Z to A</option>
+                  </select>
                 </div>
               </div>
 

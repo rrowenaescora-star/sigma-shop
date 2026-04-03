@@ -1,5 +1,5 @@
 "use client";
-
+import { useEffect } from "react";
 import { useState } from "react";
 
 type OrderItem = {
@@ -32,6 +32,19 @@ export default function TrackOrderPage() {
   const [order, setOrder] = useState<Order | null>(null);
   const [message, setMessage] = useState("Enter your order ID to track it.");
   const [loading, setLoading] = useState(false);
+  useEffect(() => {
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get("orderId");
+
+  if (id) {
+    setOrderId(id);
+    setTimeout(() => {
+      handleTrackOrder();
+    }, 300);
+  }
+}, []);
+
+  
 
   async function handleTrackOrder() {
     if (!orderId.trim()) {

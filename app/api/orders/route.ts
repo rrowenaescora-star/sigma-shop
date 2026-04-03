@@ -34,6 +34,35 @@ export async function POST(request: Request) {
       );
     }
 
+    // 🔥 STEP 1: VALIDATE STOCK BEFORE ORDER CREATION
+    for (const item of items) {
+      const { data: product, error } = await supabase
+        .from("products")
+        .select("id, name, stock_quantity")
+        .eq("id", item.id)
+        .single();
+
+      if (error || !product) {
+        return NextResponse.json(
+          { error: `Product not found.` },
+          { status: 400 }
+        );
+      }
+
+      const availableStock = Number(product.stock_quantity || 0);
+      const requestedQty = Number(item.quantity || 1);
+
+      if (availableStock < requestedQty) {
+        return NextResponse.json(
+          {
+            error: `${product.name} only has ${availableStock} left in stock.`,
+          },
+          { status: 400 }
+        );
+      }
+    }
+
+    // 🔥 STEP 2: CREATE ORDER
     const { data, error } = await supabase
       .from("orders")
       .insert([
@@ -54,21 +83,18 @@ export async function POST(request: Request) {
       .single();
 
     if (error) {
-      console.error("Supabase insert error:", error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    // 🔥 STEP 3: REDUCE STOCK SAFELY
     for (const item of items) {
-      const { data: product, error: fetchError } = await supabase
+      const { data: product } = await supabase
         .from("products")
         .select("id, stock_quantity")
         .eq("id", item.id)
         .single();
 
-      if (fetchError || !product) {
-        console.error("Product fetch error:", fetchError);
-        continue;
-      }
+      if (!product) continue;
 
       const quantityToReduce = Number(item.quantity || 1);
 
@@ -81,19 +107,16 @@ export async function POST(request: Request) {
       if (newStock === 0) stockLabel = "Out of Stock";
       else if (newStock <= 3) stockLabel = "Limited";
 
-      const { error: updateStockError } = await supabase
+      await supabase
         .from("products")
         .update({
           stock_quantity: newStock,
           stock: stockLabel,
         })
         .eq("id", item.id);
-
-      if (updateStockError) {
-        console.error("Stock update error:", updateStockError);
-      }
     }
 
+    // 🔥 STEP 4: DISCORD NOTIFICATION
     await sendDiscordOrderNotification({
       orderId: data.id,
       robloxUsername: data.roblox_username,
@@ -105,6 +128,7 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ success: true, order: data });
+
   } catch (error) {
     console.error("API route error:", error);
     return NextResponse.json(

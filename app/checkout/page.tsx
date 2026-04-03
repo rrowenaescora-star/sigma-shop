@@ -193,14 +193,14 @@ try {
 
             <div>
               <label className="mb-2 block text-sm font-semibold text-slate-300">
-                Email or Discord
+                Email
               </label>
               <input
                 type="text"
                 value={contactInfo}
                 onChange={(e) => setContactInfo(e.target.value)}
                 className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none"
-                placeholder="Enter your email or Discord"
+                placeholder="Enter your email"
                 required
               />
             </div>

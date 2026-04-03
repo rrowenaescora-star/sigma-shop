@@ -80,52 +80,6 @@ export default function CheckoutPage() {
     window.location.href = `/track-order?orderId=${orderResult.order.id}`;
   }
 
-  async function handlePlaceOrder(e: React.FormEvent) {
-    e.preventDefault();
-
-    if (cartItems.length === 0) return;
-    if (!robloxUsername.trim() || !contactInfo.trim()) return;
-
-    try {
-      const response = await fetch("/api/orders", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          robloxUsername,
-          contactInfo,
-          notes,
-          items: cartItems,
-          totalPrice,
-        }),
-      });
-
-      const text = await response.text();
-      let result;
-
-      try {
-        result = JSON.parse(text);
-      } catch {
-        console.error("Non-JSON response:", text);
-        alert("Server returned an invalid response. Check /api/orders.");
-        return;
-      }
-
-      if (!response.ok) {
-        alert(result.error || "Failed to place order.");
-        return;
-      }
-
-      localStorage.setItem("real-last-order", JSON.stringify(result.order));
-      localStorage.removeItem("real-cart");
-      setCartItems([]);
-      setSubmitted(true);
-    } catch (err) {
-      alert("Something went wrong.");
-      console.error(err);
-    }
-  }
 
   if (submitted) {
     const lastOrderRaw =
@@ -184,7 +138,7 @@ export default function CheckoutPage() {
             handled.
           </p>
 
-          <form onSubmit={handlePlaceOrder} className="mt-8 space-y-5">
+          <div className="mt-8 space-y-5">
             <div>
               <label className="mb-2 block text-sm font-semibold text-slate-300">
                 Roblox Username
@@ -233,17 +187,7 @@ export default function CheckoutPage() {
                 Back
               </Link>
 
-              <button
-                type="submit"
-                disabled={cartItems.length === 0}
-                className={`rounded-2xl px-6 py-3 font-bold ${
-                  cartItems.length === 0
-                    ? "bg-slate-700 text-slate-300"
-                    : "bg-cyan-400 text-slate-950"
-                }`}
-              >
-                Place Order
-              </button>
+            
 
               <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-4">
                 <p className="mb-4 text-sm font-semibold text-slate-300">
@@ -315,7 +259,7 @@ export default function CheckoutPage() {
                 </PayPalScriptProvider>
               </div>
             </div>
-          </form>
+          </div>
         </div>
 
         <div className="rounded-[2rem] border border-white/10 bg-[#101729] p-8 shadow-xl">

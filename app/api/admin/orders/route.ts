@@ -54,7 +54,17 @@ export async function PATCH(request: Request) {
       console.error("Update error:", error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
-
+if (data.delivery_status === "Delivered") {
+  await sendDiscordDeliveredNotification({
+    orderId: data.id,
+    robloxUsername: data.roblox_username,
+    contactInfo: data.contact_info,
+    totalPrice: Number(data.total_price),
+    deliveryStatus: data.delivery_status,
+    deliveryNotes: data.delivery_notes,
+    handledBy: data.handled_by,
+  });
+}
     return NextResponse.json({ success: true, order: data });
   } catch (error) {
     return NextResponse.json(

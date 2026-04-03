@@ -116,8 +116,10 @@ export async function PATCH(request: Request) {
       .eq("id", id)
       .select()
       .maybeSingle();
-    console.log("UPDATE product data:", data);
-console.log("UPDATE product error:", error);
+
+  console.log("PATCH id:", id);
+  console.log("PATCH data:", data);
+  console.log("PATCH error:", error);
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });

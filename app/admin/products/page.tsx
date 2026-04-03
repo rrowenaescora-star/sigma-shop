@@ -101,6 +101,7 @@ export default function AdminProductsPage() {
       return;
     }
 
+    alert("Product created successfully.");
     setForm(emptyForm);
     loadProducts();
   }
@@ -122,62 +123,70 @@ export default function AdminProductsPage() {
   }
 
   async function handleUpdateProduct() {
-  if (!editingId) return;
+    if (!editingId) return;
 
-  const response = await fetch("/api/admin/products", {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      id: editingId,
-      name: form.name,
-      slug: form.slug,
-      price: Number(form.price),
-      tag: form.tag,
-      stock: form.stock,
-      category: form.category,
-      description: form.description,
-      imageUrl: form.imageUrl,
-      isActive: form.isActive,
-    }),
-  });
-    async function handleDeleteProduct(id: number) {
-  const confirmed = window.confirm("Are you sure you want to delete this product?");
-  if (!confirmed) return;
+    const response = await fetch("/api/admin/products", {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        id: editingId,
+        name: form.name,
+        slug: form.slug,
+        price: Number(form.price),
+        tag: form.tag,
+        stock: form.stock,
+        category: form.category,
+        description: form.description,
+        imageUrl: form.imageUrl,
+        isActive: form.isActive,
+      }),
+    });
 
-  const response = await fetch("/api/admin/products", {
-    method: "DELETE",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ id }),
-  });
+    const result = await response.json();
+    console.log("UPDATE response:", result);
 
-  const result = await response.json();
+    if (!response.ok) {
+      alert(result.error || "Failed to update product.");
+      return;
+    }
 
-  if (!response.ok) {
-    alert(result.error || "Failed to delete product.");
-    return;
+    alert("Product updated successfully.");
+    setEditingId(null);
+    setForm(emptyForm);
+    loadProducts();
   }
 
-  alert("Product deleted successfully.");
-  loadProducts();
-}
+  async function handleDeleteProduct(id: number) {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this product?"
+    );
+    if (!confirmed) return;
 
-  const result = await response.json();
-  console.log("UPDATE response:", result);
+    const response = await fetch("/api/admin/products", {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ id }),
+    });
 
-  if (!response.ok) {
-    alert(result.error || "Failed to update product.");
-    return;
+    const result = await response.json();
+
+    if (!response.ok) {
+      alert(result.error || "Failed to delete product.");
+      return;
+    }
+
+    alert("Product deleted successfully.");
+    if (editingId === id) {
+      setEditingId(null);
+      setForm(emptyForm);
+    }
+    loadProducts();
   }
 
-  alert("Product updated successfully.");
-  setEditingId(null);
-  setForm(emptyForm);
-  loadProducts();
-}
   function cancelEdit() {
     setEditingId(null);
     setForm(emptyForm);
@@ -361,24 +370,28 @@ export default function AdminProductsPage() {
                           {product.description || "No description."}
                         </p>
                       </div>
-                      <div className="flex gap-2">
-  <button
-    onClick={() => startEdit(product)}
-    className="rounded-xl bg-violet-400 px-4 py-2 font-bold text-slate-950"
-  >
-    Edit
-  </button>
 
-  <button
-    onClick={() => handleDeleteProduct(product.id)}
-    className="rounded-xl bg-red-500 px-4 py-2 font-bold text-white"
-  >
-    Delete
-  </button>
+                      <div className="flex flex-col gap-3 md:items-end">
+                        <span className="text-2xl font-extrabold text-cyan-300">
+                          ${Number(product.price).toFixed(2)}
+                        </span>
+
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => startEdit(product)}
+                            className="rounded-xl bg-violet-400 px-4 py-2 font-bold text-slate-950"
+                          >
+                            Edit
+                          </button>
+
+                          <button
+                            onClick={() => handleDeleteProduct(product.id)}
+                            className="rounded-xl bg-red-500 px-4 py-2 font-bold text-white"
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </div>
-                     
-                  
-                      
                     </div>
                   </div>
                 ))

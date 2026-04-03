@@ -62,6 +62,7 @@ export default function CheckoutPage() {
         paypalOrderId,
         paymentStatus: "Paid",
         payerEmail,
+        paidAmount,
       }),
     });
 

@@ -227,7 +227,35 @@ export default function AdminOrdersPage() {
     {order.payment_status || "Unpaid"}
   </span>
 </p>
+ <p className="mt-1 text-slate-300">
+  Delivery Status:{" "}
+  <span className="font-bold text-cyan-300">
+    {order.delivery_status || "Pending"}
+  </span>
+</p>
 
+<p className="mt-1 text-slate-300">
+  Handled By:{" "}
+  <span className="font-bold">
+    {order.handled_by || "N/A"}
+  </span>
+</p>
+
+<p className="mt-1 text-slate-300">
+  Delivery Notes:{" "}
+  <span className="font-bold">
+    {order.delivery_notes || "No delivery notes"}
+  </span>
+</p>
+
+<p className="mt-1 text-slate-300">
+  Delivered At:{" "}
+  <span className="font-bold">
+    {order.delivered_at
+      ? new Date(order.delivered_at).toLocaleString()
+      : "Not delivered"}
+  </span>
+</p>
 <p className="mt-1 text-slate-300">
   PayPal Order ID:{" "}
   <span className="font-bold">

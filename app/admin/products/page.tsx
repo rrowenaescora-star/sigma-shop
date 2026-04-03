@@ -350,10 +350,7 @@ export default function AdminProductsPage() {
                   >
                     <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                       <div>
-                        <h3 className="text-xl font-bold">{product.name}</h3>
-                        <p className="mt-1 text-sm text-slate-400">
-                          Slug: {product.slug || "N/A"}
-                        </p>
+                        
                         <div className="flex gap-4">
   <div className="h-24 w-24 shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-white/5 flex items-center justify-center">
     {product.image_url ? (

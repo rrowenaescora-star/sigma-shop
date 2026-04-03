@@ -25,14 +25,26 @@ export async function GET() {
     );
   }
 }
+
 export async function PATCH(request: Request) {
   try {
     const body = await request.json();
-    const { id, status } = body;
+    const { id, status, deliveryStatus, deliveryNotes, handledBy } = body;
+
+    const updateData: Record<string, unknown> = {};
+
+    if (status) updateData.status = status;
+    if (deliveryStatus) updateData.delivery_status = deliveryStatus;
+    if (deliveryNotes !== undefined) updateData.delivery_notes = deliveryNotes;
+    if (handledBy !== undefined) updateData.handled_by = handledBy;
+
+    if (deliveryStatus === "Delivered") {
+      updateData.delivered_at = new Date().toISOString();
+    }
 
     const { data, error } = await supabase
       .from("orders")
-      .update({ status })
+      .update(updateData)
       .eq("id", id)
       .select()
       .single();

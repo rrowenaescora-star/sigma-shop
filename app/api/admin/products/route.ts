@@ -61,7 +61,7 @@ export async function POST(request: Request) {
         },
       ])
       .select()
-      .single();
+      ..maybeSingle();
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
@@ -113,7 +113,7 @@ export async function PATCH(request: Request) {
       })
       .eq("id", id)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });

@@ -16,9 +16,13 @@ type Product = {
   image_url: string | null;
 };
 
+type CartItem = Product & {
+  quantity: number;
+};
+
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
-  const [cartItems, setCartItems] = useState<Product[]>([]);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [message, setMessage] = useState("Welcome to REAL.");
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [loadingProducts, setLoadingProducts] = useState(true);
@@ -79,15 +83,59 @@ export default function Home() {
       return;
     }
 
-    const updatedCart = [...cartItems, product];
-    setCartItems(updatedCart);
+    const existingItem = cartItems.find((item) => item.id === product.id);
+    const availableStock = Number(product.stock_quantity ?? 0);
+
+    if (existingItem) {
+      if (existingItem.quantity >= availableStock) {
+        setMessage(`Max stock reached for ${product.name}.`);
+        return;
+      }
+
+      setCartItems((prev) =>
+        prev.map((item) =>
+          item.id === product.id
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        )
+      );
+    } else {
+      setCartItems((prev) => [...prev, { ...product, quantity: 1 }]);
+    }
+
     setMessage(`${product.name} added to cart.`);
     setIsCartOpen(true);
   }
 
-  function removeFromCart(indexToRemove: number) {
-    const updatedCart = cartItems.filter((_, index) => index !== indexToRemove);
-    setCartItems(updatedCart);
+  function increaseQuantity(id: number) {
+    const product = products.find((p) => p.id === id);
+    if (!product) return;
+
+    const maxStock = Number(product.stock_quantity ?? 0);
+
+    setCartItems((prev) =>
+      prev.map((item) =>
+        item.id === id && item.quantity < maxStock
+          ? { ...item, quantity: item.quantity + 1 }
+          : item
+      )
+    );
+  }
+
+  function decreaseQuantity(id: number) {
+    setCartItems((prev) =>
+      prev
+        .map((item) =>
+          item.id === id
+            ? { ...item, quantity: item.quantity - 1 }
+            : item
+        )
+        .filter((item) => item.quantity > 0)
+    );
+  }
+
+  function removeFromCart(id: number) {
+    setCartItems((prev) => prev.filter((item) => item.id !== id));
     setMessage("Item removed from cart.");
   }
 
@@ -96,8 +144,12 @@ export default function Home() {
     setMessage("Cart cleared.");
   }
 
-  const cartCount = cartItems.length;
-  const totalPrice = cartItems.reduce((sum, item) => sum + Number(item.price), 0);
+  const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+
+  const totalPrice = cartItems.reduce(
+    (sum, item) => sum + Number(item.price) * item.quantity,
+    0
+  );
 
   const categories = useMemo(() => {
     const uniqueCategories = Array.from(
@@ -441,9 +493,9 @@ export default function Home() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {cartItems.map((item, index) => (
+                  {cartItems.map((item) => (
                     <div
-                      key={`${item.id}-${index}`}
+                      key={item.id}
                       className="rounded-2xl border border-white/10 bg-white/5 p-4"
                     >
                       <div className="flex items-start justify-between gap-4">
@@ -452,17 +504,40 @@ export default function Home() {
                           <p className="mt-1 text-sm text-slate-400">
                             {item.tag || "Item"}
                           </p>
+                          <p className="mt-1 text-sm text-slate-400">
+                            ${Number(item.price).toFixed(2)} × {item.quantity}
+                          </p>
                           <p className="mt-2 text-cyan-300 font-bold">
-                            ${Number(item.price).toFixed(2)}
+                            ${(Number(item.price) * item.quantity).toFixed(2)}
                           </p>
                         </div>
 
-                        <button
-                          onClick={() => removeFromCart(index)}
-                          className="rounded-xl bg-red-500/20 px-3 py-2 text-sm font-semibold text-red-300"
-                        >
-                          Remove
-                        </button>
+                        <div className="flex flex-col items-end gap-2">
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => decreaseQuantity(item.id)}
+                              className="rounded-lg bg-white/10 px-3 py-1 font-bold"
+                            >
+                              -
+                            </button>
+                            <span className="min-w-[24px] text-center font-bold">
+                              {item.quantity}
+                            </span>
+                            <button
+                              onClick={() => increaseQuantity(item.id)}
+                              className="rounded-lg bg-white/10 px-3 py-1 font-bold"
+                            >
+                              +
+                            </button>
+                          </div>
+
+                          <button
+                            onClick={() => removeFromCart(item.id)}
+                            className="rounded-xl bg-red-500/20 px-3 py-2 text-sm font-semibold text-red-300"
+                          >
+                            Remove
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))}

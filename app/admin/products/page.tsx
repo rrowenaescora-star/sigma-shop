@@ -375,7 +375,9 @@ export default function AdminProductsPage() {
   >
     Delete
   </button>
-
+                      </div>
+                     
+                  
                       
                     </div>
                   </div>

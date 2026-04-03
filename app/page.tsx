@@ -1,7 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import {
+  memo,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 type Product = {
   id: number;
@@ -20,6 +26,112 @@ type CartItem = Product & {
   quantity: number;
 };
 
+type ProductCardProps = {
+  product: Product;
+  onBuy: (product: Product) => void;
+};
+
+const ProductCard = memo(function ProductCard({
+  product,
+  onBuy,
+}: ProductCardProps) {
+  const quantity = Number(product.stock_quantity ?? 0);
+
+  const stockLabel =
+    quantity <= 0
+      ? "Out of Stock"
+      : quantity <= 3
+      ? "Limited"
+      : product.stock || "In Stock";
+
+  const outOfStock = quantity <= 0 || product.stock === "Out of Stock";
+
+  return (
+    <div className="overflow-hidden rounded-[2rem] border border-white/10 bg-[#101729] shadow-xl">
+      <div className="relative h-64 bg-gradient-to-br from-cyan-400/20 via-transparent to-violet-400/20">
+        <span className="absolute left-4 top-4 rounded-full bg-[#0a1120] px-3 py-1 text-xs font-bold text-cyan-300">
+          {product.tag || "Item"}
+        </span>
+
+        <span
+          className={`absolute right-4 top-4 rounded-full px-3 py-1 text-xs font-semibold ${
+            stockLabel === "Out of Stock"
+              ? "bg-red-500/15 text-red-300"
+              : stockLabel === "Limited"
+              ? "bg-yellow-500/15 text-yellow-300"
+              : "bg-emerald-500/15 text-emerald-300"
+          }`}
+        >
+          {stockLabel}
+        </span>
+
+        <div className="flex h-full items-center justify-center p-6">
+          {product.image_url ? (
+            <img
+              src={product.image_url}
+              alt={product.name}
+              className="max-h-full max-w-full rounded-2xl object-contain"
+              loading="lazy"
+              decoding="async"
+            />
+          ) : (
+            <div className="h-28 w-28 rounded-[2rem] bg-gradient-to-br from-cyan-300 to-violet-400 shadow-[0_0_60px_rgba(103,232,249,0.25)]" />
+          )}
+        </div>
+      </div>
+
+      <div className="p-6">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h4 className="text-2xl font-bold">{product.name}</h4>
+            <p className="mt-1 text-xs text-slate-400">
+              {product.category || "Uncategorized"}
+            </p>
+          </div>
+        </div>
+
+        <p className="mt-2 text-sm leading-6 text-slate-400">
+          {product.description || "No description available."}
+        </p>
+
+        <div className="mt-3">
+          {quantity > 0 ? (
+            <p className="text-sm text-slate-400">
+              Stock left:{" "}
+              <span className="font-bold text-cyan-300">{quantity}</span>
+              {quantity <= 3 && (
+                <span className="ml-2 text-yellow-300">Only a few left</span>
+              )}
+            </p>
+          ) : (
+            <p className="text-sm font-semibold text-red-300">
+              Currently unavailable
+            </p>
+          )}
+        </div>
+
+        <div className="mt-5 flex items-center justify-between">
+          <p className="text-3xl font-extrabold text-cyan-300">
+            ${Number(product.price).toFixed(2)}
+          </p>
+
+          <button
+            onClick={() => onBuy(product)}
+            className={`rounded-2xl px-5 py-3 font-bold ${
+              outOfStock
+                ? "bg-slate-700 text-slate-300"
+                : "bg-violet-400 text-slate-950 hover:brightness-110"
+            }`}
+            disabled={outOfStock}
+          >
+            {outOfStock ? "Unavailable" : "Buy"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+});
+
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -29,6 +141,8 @@ export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOption, setSortOption] = useState("default");
+
+  const deferredSearchQuery = useDeferredValue(searchQuery);
 
   useEffect(() => {
     const savedCart = localStorage.getItem("real-cart");
@@ -47,7 +161,9 @@ export default function Home() {
     try {
       setLoadingProducts(true);
 
-      const response = await fetch("/api/products");
+      const response = await fetch("/api/products", {
+        cache: "no-store",
+      });
       const result = await response.json();
 
       if (!response.ok) {
@@ -62,14 +178,6 @@ export default function Home() {
     } finally {
       setLoadingProducts(false);
     }
-  }
-
-  function getStockLabel(product: Product) {
-    const quantity = Number(product.stock_quantity ?? 0);
-
-    if (quantity <= 0) return "Out of Stock";
-    if (quantity <= 3) return "Limited";
-    return product.stock || "In Stock";
   }
 
   function isOutOfStock(product: Product) {
@@ -144,11 +252,18 @@ export default function Home() {
     setMessage("Cart cleared.");
   }
 
-  const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  const cartCount = useMemo(
+    () => cartItems.reduce((sum, item) => sum + item.quantity, 0),
+    [cartItems]
+  );
 
-  const totalPrice = cartItems.reduce(
-    (sum, item) => sum + Number(item.price) * item.quantity,
-    0
+  const totalPrice = useMemo(
+    () =>
+      cartItems.reduce(
+        (sum, item) => sum + Number(item.price) * item.quantity,
+        0
+      ),
+    [cartItems]
   );
 
   const categories = useMemo(() => {
@@ -164,12 +279,12 @@ export default function Home() {
   }, [products]);
 
   const filteredProducts = useMemo(() => {
+    const query = deferredSearchQuery.trim().toLowerCase();
+
     const filtered = products.filter((product) => {
       const matchesCategory =
         selectedCategory === "All" ||
         (product.category || "").trim() === selectedCategory;
-
-      const query = searchQuery.trim().toLowerCase();
 
       const matchesSearch =
         query === "" ||
@@ -180,6 +295,8 @@ export default function Home() {
 
       return matchesCategory && matchesSearch;
     });
+
+    if (sortOption === "default") return filtered;
 
     const sorted = [...filtered];
 
@@ -194,7 +311,7 @@ export default function Home() {
     }
 
     return sorted;
-  }, [products, selectedCategory, searchQuery, sortOption]);
+  }, [products, selectedCategory, deferredSearchQuery, sortOption]);
 
   return (
     <div className="min-h-screen bg-[#070b14] text-white relative">
@@ -365,99 +482,13 @@ export default function Home() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2 2xl:grid-cols-3">
-                  {filteredProducts.map((product) => {
-                    const stockLabel = getStockLabel(product);
-                    const outOfStock = isOutOfStock(product);
-                    const quantity = Number(product.stock_quantity ?? 0);
-
-                    return (
-                      <div
-                        key={product.id}
-                        className="overflow-hidden rounded-[2rem] border border-white/10 bg-[#101729] shadow-xl"
-                      >
-                        <div className="relative h-64 bg-gradient-to-br from-cyan-400/20 via-transparent to-violet-400/20">
-                          <span className="absolute left-4 top-4 rounded-full bg-[#0a1120] px-3 py-1 text-xs font-bold text-cyan-300">
-                            {product.tag || "Item"}
-                          </span>
-
-                          <span
-                            className={`absolute right-4 top-4 rounded-full px-3 py-1 text-xs font-semibold ${
-                              stockLabel === "Out of Stock"
-                                ? "bg-red-500/15 text-red-300"
-                                : stockLabel === "Limited"
-                                ? "bg-yellow-500/15 text-yellow-300"
-                                : "bg-emerald-500/15 text-emerald-300"
-                            }`}
-                          >
-                            {stockLabel}
-                          </span>
-
-                          <div className="flex h-full items-center justify-center p-6">
-                            {product.image_url ? (
-                              <img
-                                src={product.image_url}
-                                alt={product.name}
-                                className="max-h-full max-w-full rounded-2xl object-contain"
-                              />
-                            ) : (
-                              <div className="h-28 w-28 rounded-[2rem] bg-gradient-to-br from-cyan-300 to-violet-400 shadow-[0_0_60px_rgba(103,232,249,0.25)]" />
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="p-6">
-                          <div className="flex items-start justify-between gap-3">
-                            <div>
-                              <h4 className="text-2xl font-bold">{product.name}</h4>
-                              <p className="mt-1 text-xs text-slate-400">
-                                {product.category || "Uncategorized"}
-                              </p>
-                            </div>
-                          </div>
-
-                          <p className="mt-2 text-sm leading-6 text-slate-400">
-                            {product.description || "No description available."}
-                          </p>
-
-                          <div className="mt-3">
-                            {quantity > 0 ? (
-                              <p className="text-sm text-slate-400">
-                                Stock left:{" "}
-                                <span className="font-bold text-cyan-300">{quantity}</span>
-                                {quantity <= 3 && (
-                                  <span className="ml-2 text-yellow-300">
-                                    Only a few left
-                                  </span>
-                                )}
-                              </p>
-                            ) : (
-                              <p className="text-sm font-semibold text-red-300">
-                                Currently unavailable
-                              </p>
-                            )}
-                          </div>
-
-                          <div className="mt-5 flex items-center justify-between">
-                            <p className="text-3xl font-extrabold text-cyan-300">
-                              ${Number(product.price).toFixed(2)}
-                            </p>
-
-                            <button
-                              onClick={() => handleBuy(product)}
-                              className={`rounded-2xl px-5 py-3 font-bold ${
-                                outOfStock
-                                  ? "bg-slate-700 text-slate-300"
-                                  : "bg-violet-400 text-slate-950 hover:brightness-110"
-                              }`}
-                              disabled={outOfStock}
-                            >
-                              {outOfStock ? "Unavailable" : "Buy"}
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
+                  {filteredProducts.map((product) => (
+                    <ProductCard
+                      key={product.id}
+                      product={product}
+                      onBuy={handleBuy}
+                    />
+                  ))}
                 </div>
               )}
             </section>

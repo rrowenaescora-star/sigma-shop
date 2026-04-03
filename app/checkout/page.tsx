@@ -47,9 +47,11 @@ export default function CheckoutPage() {
   const [notes, setNotes] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
   const [couponCode, setCouponCode] = useState("");
   const [discount, setDiscount] = useState(0);
   const [couponError, setCouponError] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState("");
 
   useEffect(() => {
     const savedCart = localStorage.getItem("real-cart");
@@ -58,36 +60,60 @@ export default function CheckoutPage() {
     }
   }, []);
 
- const finalPrice = useMemo(() => {
-  return Math.max(totalPrice - discount, 0);
-}, [totalPrice, discount]);
-  
+  const totalPrice = useMemo(() => {
+    return cartItems.reduce(
+      (sum, item) => sum + Number(item.price) * item.quantity,
+      0
+    );
+  }, [cartItems]);
 
+  const finalPrice = useMemo(() => {
+    return Math.max(totalPrice - discount, 0);
+  }, [totalPrice, discount]);
 
   const isCheckoutDisabled =
     cartItems.length === 0 || !robloxUsername.trim() || !contactInfo.trim();
+
   async function applyCoupon() {
-  setCouponError("");
+    setCouponError("");
 
-  const res = await fetch("/api/coupons", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-     body: JSON.stringify({
-  totalPrice: finalPrice,
-}),
-  });
+    if (!couponCode.trim()) {
+      setCouponError("Please enter a coupon code.");
+      setDiscount(0);
+      setAppliedCoupon("");
+      return;
+    }
 
-  const data = await res.json();
+    try {
+      const res = await fetch("/api/coupons", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          code: couponCode.trim(),
+          cartTotal: totalPrice,
+        }),
+      });
 
-  if (!res.ok) {
-    setCouponError(data.error);
-    return;
+      const data = await res.json();
+
+      if (!res.ok) {
+        setCouponError(data.error || "Failed to apply coupon.");
+        setDiscount(0);
+        setAppliedCoupon("");
+        return;
+      }
+
+      setDiscount(Number(data.discount || 0));
+      setAppliedCoupon(couponCode.trim().toUpperCase());
+    } catch (error) {
+      console.error(error);
+      setCouponError("Something went wrong while applying coupon.");
+      setDiscount(0);
+      setAppliedCoupon("");
+    }
   }
-
-  setDiscount(data.discount);
-}
 
   async function handlePayPalSuccess(
     paypalOrderId: string,
@@ -113,14 +139,12 @@ export default function CheckoutPage() {
           contactInfo,
           notes,
           items: cartItems,
-          totalPrice,
+          totalPrice: finalPrice,
           paypalOrderId,
           paymentStatus: "Paid",
           payerEmail,
           paidAmount,
-          totalPrice: finalPrice,
-          couponCode,
-          discount,
+          couponCode: appliedCoupon || couponCode.trim() || undefined,
         }),
       });
 
@@ -214,31 +238,41 @@ export default function CheckoutPage() {
                 placeholder="Enter your Roblox username"
                 required
               />
-            </div>      
+            </div>
+
             <div>
-  <label className="text-sm text-slate-300">Coupon</label>
+              <label className="mb-2 block text-sm font-semibold text-slate-300">
+                Coupon
+              </label>
 
-  <div className="flex gap-2 mt-2">
-    <input
-      value={couponCode}
-      onChange={(e) => setCouponCode(e.target.value)}
-      className="flex-1 rounded-xl bg-white/5 px-4 py-2"
-      placeholder="Enter code"
-    />
+              <div className="flex gap-2 mt-2">
+                <input
+                  value={couponCode}
+                  onChange={(e) => setCouponCode(e.target.value)}
+                  className="flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-2 outline-none"
+                  placeholder="Enter code"
+                />
 
-    <button
-      onClick={applyCoupon}
-      className="bg-cyan-400 text-black px-4 rounded-xl"
-    >
-      Apply
-    </button>
-  </div>
+                <button
+                  type="button"
+                  onClick={applyCoupon}
+                  className="bg-cyan-400 text-black px-4 rounded-xl font-semibold"
+                >
+                  Apply
+                </button>
+              </div>
 
-  {couponError && (
-    <p className="text-red-400 text-sm mt-2">{couponError}</p>
-  )}
-</div>
-            
+              {couponError && (
+                <p className="text-red-400 text-sm mt-2">{couponError}</p>
+              )}
+
+              {!couponError && discount > 0 && (
+                <p className="text-green-400 text-sm mt-2">
+                  Coupon applied: -${discount.toFixed(2)}
+                  {appliedCoupon ? ` (${appliedCoupon})` : ""}
+                </p>
+              )}
+            </div>
 
             <div>
               <label className="mb-2 block text-sm font-semibold text-slate-300">
@@ -291,10 +325,12 @@ export default function CheckoutPage() {
                   style={{ layout: "vertical" }}
                   disabled={isCheckoutDisabled || isSubmitting}
                   forceReRender={[
-                    totalPrice,
+                    finalPrice,
                     robloxUsername,
                     contactInfo,
                     isSubmitting,
+                    discount,
+                    appliedCoupon,
                   ]}
                   createOrder={async () => {
                     const response = await fetch("/api/paypal/create-order", {
@@ -303,7 +339,7 @@ export default function CheckoutPage() {
                         "Content-Type": "application/json",
                       },
                       body: JSON.stringify({
-                        totalPrice,
+                        totalPrice: finalPrice,
                       }),
                     });
 
@@ -372,10 +408,24 @@ export default function CheckoutPage() {
             )}
           </div>
 
-          <div className="mt-8 border-t border-white/10 pt-6">
+          <div className="mt-8 border-t border-white/10 pt-6 space-y-2">
+            {discount > 0 && (
+              <>
+                <div className="flex items-center justify-between text-sm text-slate-400">
+                  <span>Subtotal</span>
+                  <span>${totalPrice.toFixed(2)}</span>
+                </div>
+
+                <div className="flex items-center justify-between text-sm text-green-400">
+                  <span>Discount</span>
+                  <span>- ${discount.toFixed(2)}</span>
+                </div>
+              </>
+            )}
+
             <div className="flex items-center justify-between text-lg font-bold">
               <span>Total</span>
-              <span className="text-cyan-300">${totalPrice.toFixed(2)}</span>
+              <span className="text-cyan-300">${finalPrice.toFixed(2)}</span>
             </div>
           </div>
         </div>

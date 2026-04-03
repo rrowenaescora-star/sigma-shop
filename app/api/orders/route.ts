@@ -16,6 +16,7 @@ export async function POST(request: Request) {
       paymentStatus,
       payerEmail,
       paidAmount,
+      couponCode,
     } = body;
 
     if (!robloxUsername || !contactInfo || !items?.length) {
@@ -66,7 +67,61 @@ export async function POST(request: Request) {
       computedTotal += Number(product.price) * qty;
     }
 
-    if (Math.abs(computedTotal - Number(totalPrice)) > 0.01) {
+    let finalTotal = computedTotal;
+    let appliedDiscount = 0;
+    let couponRow: {
+      id: string;
+      code: string;
+      discount_type: "percent" | "fixed";
+      discount_value: number;
+      is_active: boolean;
+      expires_at: string | null;
+      usage_limit: number | null;
+      used_count: number | null;
+    } | null = null;
+
+    if (couponCode) {
+      const { data: coupon, error: couponError } = await supabase
+        .from("coupons")
+        .select("*")
+        .eq("code", String(couponCode).toUpperCase())
+        .single();
+
+      if (couponError || !coupon) {
+        return NextResponse.json({ error: "Invalid coupon." }, { status: 400 });
+      }
+
+      if (!coupon.is_active) {
+        return NextResponse.json({ error: "Coupon inactive." }, { status: 400 });
+      }
+
+      if (coupon.expires_at && new Date(coupon.expires_at) < new Date()) {
+        return NextResponse.json({ error: "Coupon expired." }, { status: 400 });
+      }
+
+      if (
+        coupon.usage_limit !== null &&
+        coupon.usage_limit !== undefined &&
+        Number(coupon.used_count || 0) >= Number(coupon.usage_limit)
+      ) {
+        return NextResponse.json(
+          { error: "Coupon usage limit reached." },
+          { status: 400 }
+        );
+      }
+
+      if (coupon.discount_type === "percent") {
+        appliedDiscount =
+          (computedTotal * Number(coupon.discount_value || 0)) / 100;
+      } else {
+        appliedDiscount = Number(coupon.discount_value || 0);
+      }
+
+      finalTotal = Math.max(computedTotal - appliedDiscount, 0);
+      couponRow = coupon;
+    }
+
+    if (Math.abs(finalTotal - Number(totalPrice)) > 0.01) {
       return NextResponse.json(
         { error: "Price mismatch detected." },
         { status: 400 }
@@ -84,7 +139,7 @@ export async function POST(request: Request) {
         );
       }
 
-      if (Math.abs(computedTotal - Number(paidAmount)) > 0.01) {
+      if (Math.abs(finalTotal - Number(paidAmount)) > 0.01) {
         return NextResponse.json(
           { error: "Verified PayPal payment amount does not match order total." },
           { status: 400 }
@@ -100,7 +155,7 @@ export async function POST(request: Request) {
           contact_info: contactInfo,
           notes: notes ?? "",
           items,
-          total_price: computedTotal,
+          total_price: finalTotal,
           status: "Pending",
           paypal_order_id: paypalOrderId ?? null,
           payment_status: isPaidOrder ? "Paid" : paymentStatus ?? "Unpaid",
@@ -144,6 +199,15 @@ export async function POST(request: Request) {
           })
           .eq("id", item.id);
       }
+
+      if (couponRow) {
+        await supabase
+          .from("coupons")
+          .update({
+            used_count: Number(couponRow.used_count || 0) + 1,
+          })
+          .eq("id", couponRow.id);
+      }
     }
 
     await sendDiscordOrderNotification({
@@ -156,7 +220,12 @@ export async function POST(request: Request) {
       paypalOrderId: data.paypal_order_id,
     });
 
-    return NextResponse.json({ success: true, order: data });
+    return NextResponse.json({
+      success: true,
+      order: data,
+      discountApplied: appliedDiscount,
+      finalTotal,
+    });
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: "Server error." }, { status: 500 });

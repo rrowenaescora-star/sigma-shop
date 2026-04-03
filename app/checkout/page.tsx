@@ -1,7 +1,8 @@
 "use client";
+
 import { PayPalButtons, PayPalScriptProvider } from "@paypal/react-paypal-js";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 
 type Product = {
   id: number;
@@ -16,12 +17,36 @@ type CartItem = Product & {
   quantity: number;
 };
 
+type OrderSummaryItemProps = {
+  item: CartItem;
+};
+
+const OrderSummaryItem = memo(function OrderSummaryItem({
+  item,
+}: OrderSummaryItemProps) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <h3 className="font-bold">{item.name}</h3>
+          <p className="text-sm text-slate-400">{item.tag}</p>
+          <p className="text-sm text-slate-400">Qty: {item.quantity}</p>
+        </div>
+        <p className="font-bold text-cyan-300">
+          ${(Number(item.price) * item.quantity).toFixed(2)}
+        </p>
+      </div>
+    </div>
+  );
+});
+
 export default function CheckoutPage() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [robloxUsername, setRobloxUsername] = useState("");
   const [contactInfo, setContactInfo] = useState("");
   const [notes, setNotes] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const savedCart = localStorage.getItem("real-cart");
@@ -37,6 +62,9 @@ export default function CheckoutPage() {
     );
   }, [cartItems]);
 
+  const isCheckoutDisabled =
+    cartItems.length === 0 || !robloxUsername.trim() || !contactInfo.trim();
+
   async function handlePayPalSuccess(
     paypalOrderId: string,
     payerEmail: string | null,
@@ -48,38 +76,46 @@ export default function CheckoutPage() {
       return;
     }
 
-    const orderResponse = await fetch("/api/orders", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        robloxUsername,
-        contactInfo,
-        notes,
-        items: cartItems,
-        totalPrice,
-        paypalOrderId,
-        paymentStatus: "Paid",
-        payerEmail,
-        paidAmount,
-      }),
-    });
+    setIsSubmitting(true);
 
-    const orderResult = await orderResponse.json();
+    try {
+      const orderResponse = await fetch("/api/orders", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          robloxUsername,
+          contactInfo,
+          notes,
+          items: cartItems,
+          totalPrice,
+          paypalOrderId,
+          paymentStatus: "Paid",
+          payerEmail,
+          paidAmount,
+        }),
+      });
 
-    if (!orderResponse.ok) {
-      alert(orderResult.error || "Order save failed.");
-      return;
+      const orderResult = await orderResponse.json();
+
+      if (!orderResponse.ok) {
+        alert(orderResult.error || "Order save failed.");
+        return;
+      }
+
+      localStorage.setItem("real-last-order", JSON.stringify(orderResult.order));
+      localStorage.removeItem("real-cart");
+      setCartItems([]);
+
+      window.location.href = `/track-order?orderId=${orderResult.order.id}`;
+    } catch (error) {
+      console.error(error);
+      alert("Something went wrong while saving your order.");
+    } finally {
+      setIsSubmitting(false);
     }
-
-    localStorage.setItem("real-last-order", JSON.stringify(orderResult.order));
-    localStorage.removeItem("real-cart");
-    setCartItems([]);
-
-    window.location.href = `/track-order?orderId=${orderResult.order.id}`;
   }
-
 
   if (submitted) {
     const lastOrderRaw =
@@ -183,80 +219,89 @@ export default function CheckoutPage() {
               <Link
                 href="/"
                 className="rounded-2xl bg-white/10 px-6 py-3 font-semibold"
-              >Back
+              >
+                Back
               </Link>
+            </div>
 
-            
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+              <p className="mb-4 text-sm font-semibold text-slate-300">
+                Pay with PayPal
+              </p>
 
-              <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-4">
-                <p className="mb-4 text-sm font-semibold text-slate-300">
-                  Pay with PayPal
-                </p>
+              <PayPalScriptProvider
+                options={{
+                  clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "",
+                  currency: "USD",
+                  intent: "capture",
+                }}
+              >
+                <PayPalButtons
+                  style={{ layout: "vertical" }}
+                  disabled={isCheckoutDisabled || isSubmitting}
+                  forceReRender={[
+                    totalPrice,
+                    robloxUsername,
+                    contactInfo,
+                    isSubmitting,
+                  ]}
+                  createOrder={async () => {
+                    const response = await fetch("/api/paypal/create-order", {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+                      body: JSON.stringify({
+                        totalPrice,
+                      }),
+                    });
 
-                <PayPalScriptProvider
-                  options={{
-                    clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "",
-                    currency: "USD",
-                    intent: "capture",
-                  }}
-                >
-                  <PayPalButtons
-                    style={{ layout: "vertical" }}
-                    disabled={
-                      cartItems.length === 0 ||
-                      !robloxUsername.trim() ||
-                      !contactInfo.trim()
-                    }
-                    createOrder={async () => {
-                      const response = await fetch("/api/paypal/create-order", {
-                        method: "POST",
-                        headers: {
-                          "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify({
-                          totalPrice,
-                        }),
-                      });
+                    const data = await response.json();
 
-                      const data = await response.json();
-
-                      if (!response.ok) {
-                        throw new Error(data.error || "Failed to create PayPal order.");
-                      }
-
-                      return data.id;
-                    }}
-                    onApprove={async (data) => {
-                      const response = await fetch("/api/paypal/capture-order", {
-                        method: "POST",
-                        headers: {
-                          "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify({
-                          orderID: data.orderID,
-                        }),
-                      });
-
-                      const result = await response.json();
-
-                      if (!response.ok) {
-                        alert(result.error || "Failed to capture payment.");
-                        return;
-                      }
-
-                      await handlePayPalSuccess(
-                        result.orderID || data.orderID || "",
-                        result.payerEmail || null,
-                        result.paidAmount
+                    if (!response.ok) {
+                      throw new Error(
+                        data.error || "Failed to create PayPal order."
                       );
-                    }}
-                    onError={(err) => {
-                      console.error("PayPal error:", err);
-                      alert("PayPal checkout failed.");
-                    }}
-                  />
-                </PayPalScriptProvider>
-              </div>
+                    }
+
+                    return data.id;
+                  }}
+                  onApprove={async (data) => {
+                    const response = await fetch("/api/paypal/capture-order", {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+                      body: JSON.stringify({
+                        orderID: data.orderID,
+                      }),
+                    });
+
+                    const result = await response.json();
+
+                    if (!response.ok) {
+                      alert(result.error || "Failed to capture payment.");
+                      return;
+                    }
+
+                    await handlePayPalSuccess(
+                      result.orderID || data.orderID || "",
+                      result.payerEmail || null,
+                      result.paidAmount
+                    );
+                  }}
+                  onError={(err) => {
+                    console.error("PayPal error:", err);
+                    alert("PayPal checkout failed.");
+                  }}
+                />
+              </PayPalScriptProvider>
+
+              {isCheckoutDisabled && (
+                <p className="mt-3 text-sm text-yellow-300">
+                  Fill in your Roblox username and email before paying.
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -271,23 +316,7 @@ export default function CheckoutPage() {
               </div>
             ) : (
               cartItems.map((item) => (
-                <div
-                  key={item.id}
-                  className="rounded-2xl border border-white/10 bg-white/5 p-4"
-                >
-                  <div className="flex items-center justify-between gap-4">
-                    <div>
-                      <h3 className="font-bold">{item.name}</h3>
-                      <p className="text-sm text-slate-400">{item.tag}</p>
-                      <p className="text-sm text-slate-400">
-                        Qty: {item.quantity}
-                      </p>
-                    </div>
-                    <p className="font-bold text-cyan-300">
-                      ${(Number(item.price) * item.quantity).toFixed(2)}
-                    </p>
-                  </div>
-                </div>
+                <OrderSummaryItem key={item.id} item={item} />
               ))
             )}
           </div>

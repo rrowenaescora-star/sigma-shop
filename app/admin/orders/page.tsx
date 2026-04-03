@@ -178,26 +178,7 @@ export default function AdminOrdersPage() {
               View all saved checkout orders
             </p>
           </div>
-			<div className="mt-6 flex flex-wrap gap-3">
-  <input
-    type="text"
-    placeholder="Search username, email, order ID..."
-    value={search}
-    onChange={(e) => setSearch(e.target.value)}
-    className="rounded-xl border border-white/10 bg-white/5 px-4 py-2"
-  />
-
-  <select
-    value={statusFilter}
-    onChange={(e) => setStatusFilter(e.target.value)}
-    className="rounded-xl border border-white/10 bg-white/5 px-4 py-2"
-  >
-    <option value="">All</option>
-    <option value="Processing">Processing</option>
-    <option value="Delivered">Delivered</option>
-    <option value="Cancelled">Cancelled</option>
-  </select>
-</div>
+			
 
           <div className="flex gap-3">
             <button

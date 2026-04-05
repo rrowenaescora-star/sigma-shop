@@ -19,7 +19,7 @@ export async function POST(request: Request) {
 
     if (!base) {
       return NextResponse.json(
-        { error: "Missing PAYPAL_API_BASE" },
+        { error: "Missing PAYPAL_API_BASE." },
         { status: 500 }
       );
     }
@@ -68,7 +68,10 @@ export async function POST(request: Request) {
 
     if (!data?.id) {
       return NextResponse.json(
-        { error: "PayPal did not return an order ID.", paypal: data },
+        {
+          error: "PayPal did not return an order ID.",
+          paypal: data,
+        },
         { status: 500 }
       );
     }
@@ -78,7 +81,8 @@ export async function POST(request: Request) {
     console.error("Create order failed:", error);
     return NextResponse.json(
       {
-        error: error instanceof Error ? error.message : "Create order failed.",
+        error:
+          error instanceof Error ? error.message : "Create order failed.",
       },
       { status: 500 }
     );

@@ -48,6 +48,11 @@ export default function CheckoutPage() {
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const [couponCode, setCouponCode] = useState("");
+  const [discount, setDiscount] = useState(0);
+  const [couponError, setCouponError] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState("");
+
   useEffect(() => {
     const savedCart = localStorage.getItem("real-cart");
     if (savedCart) {
@@ -62,8 +67,53 @@ export default function CheckoutPage() {
     );
   }, [cartItems]);
 
+  const finalPrice = useMemo(() => {
+    return Math.max(totalPrice - discount, 0);
+  }, [totalPrice, discount]);
+
   const isCheckoutDisabled =
     cartItems.length === 0 || !robloxUsername.trim() || !contactInfo.trim();
+
+  async function applyCoupon() {
+    setCouponError("");
+
+    if (!couponCode.trim()) {
+      setCouponError("Please enter a coupon code.");
+      setDiscount(0);
+      setAppliedCoupon("");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/coupons", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          code: couponCode.trim(),
+          cartTotal: totalPrice,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setCouponError(data.error || "Failed to apply coupon.");
+        setDiscount(0);
+        setAppliedCoupon("");
+        return;
+      }
+
+      setDiscount(Number(data.discount || 0));
+      setAppliedCoupon(couponCode.trim().toUpperCase());
+    } catch (error) {
+      console.error(error);
+      setCouponError("Something went wrong while applying coupon.");
+      setDiscount(0);
+      setAppliedCoupon("");
+    }
+  }
 
   async function handlePayPalSuccess(
     paypalOrderId: string,
@@ -71,6 +121,7 @@ export default function CheckoutPage() {
     paidAmount: number
   ) {
     if (cartItems.length === 0) return;
+
     if (!robloxUsername.trim() || !contactInfo.trim()) {
       alert("Please fill in your Roblox username and contact info first.");
       return;
@@ -89,11 +140,12 @@ export default function CheckoutPage() {
           contactInfo,
           notes,
           items: cartItems,
-          totalPrice,
+          totalPrice: finalPrice,
           paypalOrderId,
           paymentStatus: "Paid",
           payerEmail,
           paidAmount,
+          couponCode: appliedCoupon || couponCode.trim() || undefined,
         }),
       });
 
@@ -191,6 +243,40 @@ export default function CheckoutPage() {
 
             <div>
               <label className="mb-2 block text-sm font-semibold text-slate-300">
+                Coupon
+              </label>
+
+              <div className="mt-2 flex gap-2">
+                <input
+                  value={couponCode}
+                  onChange={(e) => setCouponCode(e.target.value)}
+                  className="flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-2 outline-none"
+                  placeholder="Enter code"
+                />
+
+                <button
+                  type="button"
+                  onClick={applyCoupon}
+                  className="rounded-xl bg-cyan-400 px-4 font-semibold text-black"
+                >
+                  Apply
+                </button>
+              </div>
+
+              {couponError && (
+                <p className="mt-2 text-sm text-red-400">{couponError}</p>
+              )}
+
+              {!couponError && discount > 0 && (
+                <p className="mt-2 text-sm text-green-400">
+                  Coupon applied: -${discount.toFixed(2)}
+                  {appliedCoupon ? ` (${appliedCoupon})` : ""}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-semibold text-slate-300">
                 Email
               </label>
               <input
@@ -240,19 +326,25 @@ export default function CheckoutPage() {
                   style={{ layout: "vertical" }}
                   disabled={isCheckoutDisabled || isSubmitting}
                   forceReRender={[
-                    totalPrice,
+                    finalPrice,
                     robloxUsername,
                     contactInfo,
                     isSubmitting,
+                    discount,
+                    appliedCoupon,
                   ]}
                   createOrder={async () => {
+                    if (!finalPrice || finalPrice <= 0) {
+                      throw new Error("Final price must be greater than 0.");
+                    }
+
                     const response = await fetch("/api/paypal/create-order", {
                       method: "POST",
                       headers: {
                         "Content-Type": "application/json",
                       },
                       body: JSON.stringify({
-                        totalPrice,
+                        totalPrice: finalPrice,
                       }),
                     });
 
@@ -321,10 +413,24 @@ export default function CheckoutPage() {
             )}
           </div>
 
-          <div className="mt-8 border-t border-white/10 pt-6">
+          <div className="mt-8 space-y-2 border-t border-white/10 pt-6">
+            {discount > 0 && (
+              <>
+                <div className="flex items-center justify-between text-sm text-slate-400">
+                  <span>Subtotal</span>
+                  <span>${totalPrice.toFixed(2)}</span>
+                </div>
+
+                <div className="flex items-center justify-between text-sm text-green-400">
+                  <span>Discount</span>
+                  <span>- ${discount.toFixed(2)}</span>
+                </div>
+              </>
+            )}
+
             <div className="flex items-center justify-between text-lg font-bold">
               <span>Total</span>
-              <span className="text-cyan-300">${totalPrice.toFixed(2)}</span>
+              <span className="text-cyan-300">${finalPrice.toFixed(2)}</span>
             </div>
           </div>
         </div>

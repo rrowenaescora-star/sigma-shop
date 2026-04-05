@@ -121,6 +121,7 @@ export default function CheckoutPage() {
     paidAmount: number
   ) {
     if (cartItems.length === 0) return;
+
     if (!robloxUsername.trim() || !contactInfo.trim()) {
       alert("Please fill in your Roblox username and contact info first.");
       return;
@@ -245,7 +246,7 @@ export default function CheckoutPage() {
                 Coupon
               </label>
 
-              <div className="flex gap-2 mt-2">
+              <div className="mt-2 flex gap-2">
                 <input
                   value={couponCode}
                   onChange={(e) => setCouponCode(e.target.value)}
@@ -256,18 +257,18 @@ export default function CheckoutPage() {
                 <button
                   type="button"
                   onClick={applyCoupon}
-                  className="bg-cyan-400 text-black px-4 rounded-xl font-semibold"
+                  className="rounded-xl bg-cyan-400 px-4 font-semibold text-black"
                 >
                   Apply
                 </button>
               </div>
 
               {couponError && (
-                <p className="text-red-400 text-sm mt-2">{couponError}</p>
+                <p className="mt-2 text-sm text-red-400">{couponError}</p>
               )}
 
               {!couponError && discount > 0 && (
-                <p className="text-green-400 text-sm mt-2">
+                <p className="mt-2 text-sm text-green-400">
                   Coupon applied: -${discount.toFixed(2)}
                   {appliedCoupon ? ` (${appliedCoupon})` : ""}
                 </p>
@@ -333,6 +334,10 @@ export default function CheckoutPage() {
                     appliedCoupon,
                   ]}
                   createOrder={async () => {
+                    if (!finalPrice || finalPrice <= 0) {
+                      throw new Error("Final price must be greater than 0.");
+                    }
+
                     const response = await fetch("/api/paypal/create-order", {
                       method: "POST",
                       headers: {
@@ -408,7 +413,7 @@ export default function CheckoutPage() {
             )}
           </div>
 
-          <div className="mt-8 border-t border-white/10 pt-6 space-y-2">
+          <div className="mt-8 space-y-2 border-t border-white/10 pt-6">
             {discount > 0 && (
               <>
                 <div className="flex items-center justify-between text-sm text-slate-400">

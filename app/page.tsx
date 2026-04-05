@@ -359,7 +359,7 @@ export default function Home() {
             <select
               value={sortOption}
               onChange={(e) => setSortOption(e.target.value)}
-              className="mt-4 w-full rounded-2xl border border-white/10 bg-grey/5 px-4 py-3 outline-none"
+              className="mt-4 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none"
             >
               <option value="default">Default</option>
               <option value="price-low-high">Price: Low to High</option>

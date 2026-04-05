@@ -3,10 +3,15 @@ import { getPayPalAccessToken } from "@/lib/paypal";
 
 export async function POST(request: Request) {
   try {
-    const { orderID } = await request.json();
+    const { totalPrice } = await request.json();
 
-    if (!orderID) {
-      return NextResponse.json({ error: "Missing orderID." }, { status: 400 });
+    const numericTotal = Number(totalPrice);
+
+    if (!Number.isFinite(numericTotal) || numericTotal <= 0) {
+      return NextResponse.json(
+        { error: `Invalid total price: ${totalPrice}` },
+        { status: 400 }
+      );
     }
 
     const accessToken = await getPayPalAccessToken();
@@ -19,71 +24,65 @@ export async function POST(request: Request) {
       );
     }
 
-    const captureResponse = await fetch(
-      `${base}/v2/checkout/orders/${orderID}/capture`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
+    const payload = {
+      intent: "CAPTURE",
+      purchase_units: [
+        {
+          amount: {
+            currency_code: "USD",
+            value: numericTotal.toFixed(2),
+          },
         },
-      }
-    );
+      ],
+    };
 
-    const captureData = await captureResponse.json();
+    console.log("PayPal create-order payload:", JSON.stringify(payload));
 
-    console.log("PayPal capture response status:", captureResponse.status);
-    console.log("PayPal capture response body:", JSON.stringify(captureData));
+    const response = await fetch(`${base}/v2/checkout/orders`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify(payload),
+    });
 
-    if (!captureResponse.ok) {
+    const data = await response.json();
+
+    console.log("PayPal create-order response status:", response.status);
+    console.log("PayPal create-order response body:", JSON.stringify(data));
+
+    if (!response.ok) {
       return NextResponse.json(
         {
           error:
-            captureData?.details?.[0]?.description ||
-            captureData?.message ||
-            "Failed to capture PayPal order.",
-          paypal: captureData,
+            data?.details?.[0]?.description ||
+            data?.message ||
+            data?.error_description ||
+            "Failed to create PayPal order.",
+          paypal: data,
         },
         { status: 500 }
       );
     }
 
-    const status = captureData?.status;
-
-    if (status !== "COMPLETED") {
+    if (!data?.id) {
       return NextResponse.json(
-        { error: "Payment not completed.", paypal: captureData },
-        { status: 400 }
+        {
+          error: "PayPal did not return an order ID.",
+          paypal: data,
+        },
+        { status: 500 }
       );
     }
 
-    const purchaseUnit = captureData?.purchase_units?.[0];
-    const capture = purchaseUnit?.payments?.captures?.[0];
-
-    const paidAmount = Number(capture?.amount?.value || 0);
-    const currency = capture?.amount?.currency_code || "USD";
-    const payerEmail = captureData?.payer?.email_address || null;
-
-    if (!Number.isFinite(paidAmount) || paidAmount <= 0) {
-      return NextResponse.json(
-        { error: "Invalid captured payment amount.", paypal: captureData },
-        { status: 400 }
-      );
-    }
-
-    return NextResponse.json({
-      success: true,
-      orderID: captureData?.id || orderID,
-      status,
-      payerEmail,
-      paidAmount,
-      currency,
-    });
+    return NextResponse.json({ id: data.id });
   } catch (error) {
-    console.error("Capture order failed:", error);
+    console.error("Create order failed:", error);
     return NextResponse.json(
       {
-        error: error instanceof Error ? error.message : "Capture failed.",
+        error:
+          error instanceof Error ? error.message : "Create order failed.",
       },
       { status: 500 }
     );

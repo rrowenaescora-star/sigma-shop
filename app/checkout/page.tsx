@@ -17,16 +17,14 @@ type CartItem = Product & {
   quantity: number;
 };
 
-type OrderSummaryItemProps = {
-  item: CartItem;
-};
-
 const OrderSummaryItem = memo(function OrderSummaryItem({
   item,
-}: OrderSummaryItemProps) {
+}: {
+  item: CartItem;
+}) {
   return (
     <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex justify-between gap-4">
         <div>
           <h3 className="font-bold">{item.name}</h3>
           <p className="text-sm text-slate-400">{item.tag}</p>
@@ -45,7 +43,6 @@ export default function CheckoutPage() {
   const [robloxUsername, setRobloxUsername] = useState("");
   const [contactInfo, setContactInfo] = useState("");
   const [notes, setNotes] = useState("");
-  const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [couponCode, setCouponCode] = useState("");
@@ -78,7 +75,7 @@ export default function CheckoutPage() {
     setCouponError("");
 
     if (!couponCode.trim()) {
-      setCouponError("Please enter a coupon code.");
+      setCouponError("Enter a coupon code.");
       setDiscount(0);
       setAppliedCoupon("");
       return;
@@ -140,12 +137,12 @@ export default function CheckoutPage() {
           contactInfo,
           notes,
           items: cartItems,
-          totalPrice: finalPrice,
+          totalPrice: Number(finalPrice.toFixed(2)),
           paypalOrderId,
           paymentStatus: "Paid",
           payerEmail,
-          paidAmount,
-          couponCode: appliedCoupon || couponCode.trim() || undefined,
+          paidAmount: Number(paidAmount),
+          couponCode: appliedCoupon || undefined,
         }),
       });
 
@@ -169,61 +166,16 @@ export default function CheckoutPage() {
     }
   }
 
-  if (submitted) {
-    const lastOrderRaw =
-      typeof window !== "undefined"
-        ? localStorage.getItem("real-last-order")
-        : null;
-
-    const lastOrder = lastOrderRaw ? JSON.parse(lastOrderRaw) : null;
-
-    return (
-      <div className="min-h-screen bg-[#070b14] flex items-center justify-center px-6">
-        <div className="max-w-xl w-full rounded-[2rem] border border-white/10 bg-[#101729] p-8 text-center shadow-xl">
-          <h1 className="text-4xl font-extrabold text-green-400">
-            Order Successful 🎉
-          </h1>
-
-          <p className="mt-4 text-slate-300">
-            Your order has been placed successfully.
-          </p>
-
-          {lastOrder && (
-            <>
-              <p className="mt-6 text-lg text-slate-300">Your Order ID:</p>
-
-              <p className="text-3xl font-extrabold text-cyan-300">
-                #{lastOrder.id}
-              </p>
-
-              <p className="mt-4 text-sm text-slate-400">
-                Save this ID to track your order anytime.
-              </p>
-
-              <a
-                href={`/track-order?orderId=${lastOrder.id}`}
-                className="mt-6 inline-block rounded-2xl bg-cyan-400 px-6 py-3 font-bold text-slate-950"
-              >
-                Track Your Order
-              </a>
-            </>
-          )}
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-[#070b14] text-white px-6 py-12">
-      <div className="mx-auto max-w-6xl grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
-        <div className="rounded-[2rem] border border-white/10 bg-[#101729] p-8 shadow-xl">
+      <div className="mx-auto max-w-6xl grid gap-8 lg:grid-cols-2">
+        <div className="bg-[#101729] p-8 rounded-2xl border border-white/10 shadow-xl">
           <p className="text-sm uppercase tracking-[0.25em] text-cyan-300">
             Checkout
           </p>
           <h1 className="mt-4 text-4xl font-extrabold">Complete your order</h1>
           <p className="mt-4 text-slate-300">
-            Enter your Roblox username and contact info so the order can be
-            handled.
+            Enter your Roblox username and contact info so the order can be handled.
           </p>
 
           <div className="mt-8 space-y-5">
@@ -243,9 +195,22 @@ export default function CheckoutPage() {
 
             <div>
               <label className="mb-2 block text-sm font-semibold text-slate-300">
+                Email
+              </label>
+              <input
+                type="text"
+                value={contactInfo}
+                onChange={(e) => setContactInfo(e.target.value)}
+                className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none"
+                placeholder="Enter your email"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-semibold text-slate-300">
                 Coupon
               </label>
-
               <div className="mt-2 flex gap-2">
                 <input
                   value={couponCode}
@@ -253,7 +218,6 @@ export default function CheckoutPage() {
                   className="flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-2 outline-none"
                   placeholder="Enter code"
                 />
-
                 <button
                   type="button"
                   onClick={applyCoupon}
@@ -273,20 +237,6 @@ export default function CheckoutPage() {
                   {appliedCoupon ? ` (${appliedCoupon})` : ""}
                 </p>
               )}
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-slate-300">
-                Email
-              </label>
-              <input
-                type="text"
-                value={contactInfo}
-                onChange={(e) => setContactInfo(e.target.value)}
-                className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none"
-                placeholder="Enter your email"
-                required
-              />
             </div>
 
             <div>
@@ -326,7 +276,7 @@ export default function CheckoutPage() {
                   style={{ layout: "vertical" }}
                   disabled={isCheckoutDisabled || isSubmitting}
                   forceReRender={[
-                    finalPrice,
+                    Number(finalPrice.toFixed(2)),
                     robloxUsername,
                     contactInfo,
                     isSubmitting,
@@ -334,8 +284,14 @@ export default function CheckoutPage() {
                     appliedCoupon,
                   ]}
                   createOrder={async () => {
-                    if (!finalPrice || finalPrice <= 0) {
-                      throw new Error("Final price must be greater than 0.");
+                    const cleanFinalPrice = Number(finalPrice.toFixed(2));
+
+                    console.log("Frontend totalPrice:", totalPrice);
+                    console.log("Frontend discount:", discount);
+                    console.log("Frontend finalPrice:", cleanFinalPrice);
+
+                    if (!Number.isFinite(cleanFinalPrice) || cleanFinalPrice <= 0) {
+                      throw new Error(`Invalid final price: ${cleanFinalPrice}`);
                     }
 
                     const response = await fetch("/api/paypal/create-order", {
@@ -344,16 +300,19 @@ export default function CheckoutPage() {
                         "Content-Type": "application/json",
                       },
                       body: JSON.stringify({
-                        totalPrice: finalPrice,
+                        totalPrice: cleanFinalPrice.toFixed(2),
                       }),
                     });
 
                     const data = await response.json();
+                    console.log("Frontend /api/paypal/create-order result:", data);
 
                     if (!response.ok) {
-                      throw new Error(
-                        data.error || "Failed to create PayPal order."
-                      );
+                      throw new Error(data.error || "Failed to create PayPal order.");
+                    }
+
+                    if (!data?.id) {
+                      throw new Error("Missing PayPal order ID.");
                     }
 
                     return data.id;
@@ -379,7 +338,7 @@ export default function CheckoutPage() {
                     await handlePayPalSuccess(
                       result.orderID || data.orderID || "",
                       result.payerEmail || null,
-                      result.paidAmount
+                      Number(result.paidAmount || 0)
                     );
                   }}
                   onError={(err) => {
@@ -398,10 +357,10 @@ export default function CheckoutPage() {
           </div>
         </div>
 
-        <div className="rounded-[2rem] border border-white/10 bg-[#101729] p-8 shadow-xl">
-          <h2 className="text-2xl font-extrabold">Order Summary</h2>
+        <div className="bg-[#101729] p-8 rounded-2xl border border-white/10 shadow-xl">
+          <h2 className="text-2xl font-bold">Order Summary</h2>
 
-          <div className="mt-6 space-y-4">
+          <div className="mt-4 space-y-3">
             {cartItems.length === 0 ? (
               <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-slate-300">
                 Your cart is empty.
@@ -413,24 +372,24 @@ export default function CheckoutPage() {
             )}
           </div>
 
-          <div className="mt-8 space-y-2 border-t border-white/10 pt-6">
+          <div className="mt-6 border-t border-white/10 pt-4">
             {discount > 0 && (
               <>
-                <div className="flex items-center justify-between text-sm text-slate-400">
+                <div className="flex justify-between text-sm text-gray-400">
                   <span>Subtotal</span>
                   <span>${totalPrice.toFixed(2)}</span>
                 </div>
 
-                <div className="flex items-center justify-between text-sm text-green-400">
+                <div className="mt-1 flex justify-between text-green-400">
                   <span>Discount</span>
-                  <span>- ${discount.toFixed(2)}</span>
+                  <span>-${discount.toFixed(2)}</span>
                 </div>
               </>
             )}
 
-            <div className="flex items-center justify-between text-lg font-bold">
+            <div className="mt-2 flex justify-between text-xl font-bold">
               <span>Total</span>
-              <span className="text-cyan-300">${finalPrice.toFixed(2)}</span>
+              <span>${finalPrice.toFixed(2)}</span>
             </div>
           </div>
         </div>

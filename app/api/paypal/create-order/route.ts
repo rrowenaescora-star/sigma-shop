@@ -6,7 +6,7 @@ export async function POST(request: Request) {
     const { totalPrice } = await request.json();
 
     if (!totalPrice) {
-      return NextResponse.json({ error: "Missing total price." }, { status: 400 });
+      return NextResponse.json({ error: "Missing total price." }, { status: 500 });
     }
 
     const accessToken = await getPayPalAccessToken();

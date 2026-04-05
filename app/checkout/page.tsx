@@ -17,23 +17,21 @@ type CartItem = Product & {
   quantity: number;
 };
 
-type OrderSummaryItemProps = {
-  item: CartItem;
-};
-
 const OrderSummaryItem = memo(function OrderSummaryItem({
   item,
-}: OrderSummaryItemProps) {
+}: {
+  item: CartItem;
+}) {
   return (
     <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex justify-between">
         <div>
           <h3 className="font-bold">{item.name}</h3>
           <p className="text-sm text-slate-400">{item.tag}</p>
           <p className="text-sm text-slate-400">Qty: {item.quantity}</p>
         </div>
         <p className="font-bold text-cyan-300">
-          ${(Number(item.price) * item.quantity).toFixed(2)}
+          ${(item.price * item.quantity).toFixed(2)}
         </p>
       </div>
     </div>
@@ -45,7 +43,6 @@ export default function CheckoutPage() {
   const [robloxUsername, setRobloxUsername] = useState("");
   const [contactInfo, setContactInfo] = useState("");
   const [notes, setNotes] = useState("");
-  const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [couponCode, setCouponCode] = useState("");
@@ -55,11 +52,10 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     const savedCart = localStorage.getItem("real-cart");
-    if (savedCart) {
-      setCartItems(JSON.parse(savedCart));
-    }
+    if (savedCart) setCartItems(JSON.parse(savedCart));
   }, []);
 
+  // ✅ total
   const totalPrice = useMemo(() => {
     return cartItems.reduce(
       (sum, item) => sum + Number(item.price) * item.quantity,
@@ -67,6 +63,7 @@ export default function CheckoutPage() {
     );
   }, [cartItems]);
 
+  // ✅ discounted total
   const finalPrice = useMemo(() => {
     return Math.max(totalPrice - discount, 0);
   }, [totalPrice, discount]);
@@ -74,13 +71,12 @@ export default function CheckoutPage() {
   const isCheckoutDisabled =
     cartItems.length === 0 || !robloxUsername.trim() || !contactInfo.trim();
 
+  // ✅ APPLY COUPON
   async function applyCoupon() {
     setCouponError("");
 
     if (!couponCode.trim()) {
-      setCouponError("Please enter a coupon code.");
-      setDiscount(0);
-      setAppliedCoupon("");
+      setCouponError("Enter a coupon code.");
       return;
     }
 
@@ -91,7 +87,7 @@ export default function CheckoutPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          code: couponCode.trim(),
+          code: couponCode,
           cartTotal: totalPrice,
         }),
       });
@@ -99,38 +95,30 @@ export default function CheckoutPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setCouponError(data.error || "Failed to apply coupon.");
+        setCouponError(data.error);
         setDiscount(0);
         setAppliedCoupon("");
         return;
       }
 
       setDiscount(Number(data.discount || 0));
-      setAppliedCoupon(couponCode.trim().toUpperCase());
-    } catch (error) {
-      console.error(error);
-      setCouponError("Something went wrong while applying coupon.");
-      setDiscount(0);
-      setAppliedCoupon("");
+      setAppliedCoupon(couponCode.toUpperCase());
+    } catch (err) {
+      console.error(err);
+      setCouponError("Coupon failed.");
     }
   }
 
+  // ✅ PAYPAL SUCCESS
   async function handlePayPalSuccess(
     paypalOrderId: string,
     payerEmail: string | null,
     paidAmount: number
   ) {
-    if (cartItems.length === 0) return;
-
-    if (!robloxUsername.trim() || !contactInfo.trim()) {
-      alert("Please fill in your Roblox username and contact info first.");
-      return;
-    }
-
     setIsSubmitting(true);
 
     try {
-      const orderResponse = await fetch("/api/orders", {
+      const res = await fetch("/api/orders", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -145,292 +133,149 @@ export default function CheckoutPage() {
           paymentStatus: "Paid",
           payerEmail,
           paidAmount,
-          couponCode: appliedCoupon || couponCode.trim() || undefined,
+          couponCode: appliedCoupon || undefined,
         }),
       });
 
-      const orderResult = await orderResponse.json();
+      const data = await res.json();
 
-      if (!orderResponse.ok) {
-        alert(orderResult.error || "Order save failed.");
+      if (!res.ok) {
+        alert(data.error || "Order failed.");
         return;
       }
 
-      localStorage.setItem("real-last-order", JSON.stringify(orderResult.order));
       localStorage.removeItem("real-cart");
-      setCartItems([]);
-
-      window.location.href = `/track-order?orderId=${orderResult.order.id}`;
-    } catch (error) {
-      console.error(error);
-      alert("Something went wrong while saving your order.");
+      window.location.href = `/track-order?orderId=${data.order.id}`;
+    } catch (err) {
+      console.error(err);
+      alert("Order failed.");
     } finally {
       setIsSubmitting(false);
     }
   }
 
-  if (submitted) {
-    const lastOrderRaw =
-      typeof window !== "undefined"
-        ? localStorage.getItem("real-last-order")
-        : null;
-
-    const lastOrder = lastOrderRaw ? JSON.parse(lastOrderRaw) : null;
-
-    return (
-      <div className="min-h-screen bg-[#070b14] flex items-center justify-center px-6">
-        <div className="max-w-xl w-full rounded-[2rem] border border-white/10 bg-[#101729] p-8 text-center shadow-xl">
-          <h1 className="text-4xl font-extrabold text-green-400">
-            Order Successful 🎉
-          </h1>
-
-          <p className="mt-4 text-slate-300">
-            Your order has been placed successfully.
-          </p>
-
-          {lastOrder && (
-            <>
-              <p className="mt-6 text-lg text-slate-300">Your Order ID:</p>
-
-              <p className="text-3xl font-extrabold text-cyan-300">
-                #{lastOrder.id}
-              </p>
-
-              <p className="mt-4 text-sm text-slate-400">
-                Save this ID to track your order anytime.
-              </p>
-
-              <a
-                href={`/track-order?orderId=${lastOrder.id}`}
-                className="mt-6 inline-block rounded-2xl bg-cyan-400 px-6 py-3 font-bold text-slate-950"
-              >
-                Track Your Order
-              </a>
-            </>
-          )}
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-[#070b14] text-white px-6 py-12">
-      <div className="mx-auto max-w-6xl grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
-        <div className="rounded-[2rem] border border-white/10 bg-[#101729] p-8 shadow-xl">
-          <p className="text-sm uppercase tracking-[0.25em] text-cyan-300">
-            Checkout
-          </p>
-          <h1 className="mt-4 text-4xl font-extrabold">Complete your order</h1>
-          <p className="mt-4 text-slate-300">
-            Enter your Roblox username and contact info so the order can be
-            handled.
-          </p>
+      <div className="mx-auto max-w-6xl grid gap-8 lg:grid-cols-2">
 
-          <div className="mt-8 space-y-5">
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-slate-300">
-                Roblox Username
-              </label>
-              <input
-                type="text"
-                value={robloxUsername}
-                onChange={(e) => setRobloxUsername(e.target.value)}
-                className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none"
-                placeholder="Enter your Roblox username"
-                required
-              />
-            </div>
+        {/* LEFT */}
+        <div className="bg-[#101729] p-8 rounded-2xl">
+          <h1 className="text-3xl font-bold">Checkout</h1>
 
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-slate-300">
-                Coupon
-              </label>
+          {/* USER */}
+          <input
+            placeholder="Roblox Username"
+            value={robloxUsername}
+            onChange={(e) => setRobloxUsername(e.target.value)}
+            className="mt-4 w-full p-3 rounded bg-white/5"
+          />
 
-              <div className="mt-2 flex gap-2">
-                <input
-                  value={couponCode}
-                  onChange={(e) => setCouponCode(e.target.value)}
-                  className="flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-2 outline-none"
-                  placeholder="Enter code"
-                />
+          <input
+            placeholder="Email"
+            value={contactInfo}
+            onChange={(e) => setContactInfo(e.target.value)}
+            className="mt-4 w-full p-3 rounded bg-white/5"
+          />
 
-                <button
-                  type="button"
-                  onClick={applyCoupon}
-                  className="rounded-xl bg-cyan-400 px-4 font-semibold text-black"
-                >
-                  Apply
-                </button>
-              </div>
+          {/* COUPON */}
+          <div className="mt-4 flex gap-2">
+            <input
+              placeholder="Coupon"
+              value={couponCode}
+              onChange={(e) => setCouponCode(e.target.value)}
+              className="flex-1 p-3 rounded bg-white/5"
+            />
+            <button onClick={applyCoupon} className="bg-cyan-400 px-4 rounded">
+              Apply
+            </button>
+          </div>
 
-              {couponError && (
-                <p className="mt-2 text-sm text-red-400">{couponError}</p>
-              )}
+          {couponError && <p className="text-red-400 mt-2">{couponError}</p>}
+          {discount > 0 && (
+            <p className="text-green-400 mt-2">
+              Discount: -${discount.toFixed(2)}
+            </p>
+          )}
 
-              {!couponError && discount > 0 && (
-                <p className="mt-2 text-sm text-green-400">
-                  Coupon applied: -${discount.toFixed(2)}
-                  {appliedCoupon ? ` (${appliedCoupon})` : ""}
-                </p>
-              )}
-            </div>
+          {/* PAYPAL */}
+          <div className="mt-6">
+            <PayPalScriptProvider
+              options={{
+                clientId:
+                  process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "",
+                currency: "USD",
+              }}
+            >
+              <PayPalButtons
+                disabled={isCheckoutDisabled || isSubmitting}
+                forceReRender={[finalPrice]}
+                createOrder={async () => {
+                  if (finalPrice <= 0) throw new Error("Invalid price");
 
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-slate-300">
-                Email
-              </label>
-              <input
-                type="text"
-                value={contactInfo}
-                onChange={(e) => setContactInfo(e.target.value)}
-                className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none"
-                placeholder="Enter your email"
-                required
-              />
-            </div>
+                  const res = await fetch("/api/paypal/create-order", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      totalPrice: Number(finalPrice).toFixed(2),
+                    }),
+                  });
 
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-slate-300">
-                Notes
-              </label>
-              <textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                className="min-h-[120px] w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none"
-                placeholder="Extra notes for your order"
-              />
-            </div>
+                  const data = await res.json();
 
-            <div className="flex gap-3">
-              <Link
-                href="/"
-                className="rounded-2xl bg-white/10 px-6 py-3 font-semibold"
-              >
-                Back
-              </Link>
-            </div>
+                  if (!res.ok) throw new Error(data.error);
 
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-              <p className="mb-4 text-sm font-semibold text-slate-300">
-                Pay with PayPal
-              </p>
-
-              <PayPalScriptProvider
-                options={{
-                  clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "",
-                  currency: "USD",
-                  intent: "capture",
+                  return data.id;
                 }}
-              >
-                <PayPalButtons
-                  style={{ layout: "vertical" }}
-                  disabled={isCheckoutDisabled || isSubmitting}
-                  forceReRender={[
-                    finalPrice,
-                    robloxUsername,
-                    contactInfo,
-                    isSubmitting,
-                    discount,
-                    appliedCoupon,
-                  ]}
-                  createOrder={async () => {
-                    if (!finalPrice || finalPrice <= 0) {
-                      throw new Error("Final price must be greater than 0.");
-                    }
+                onApprove={async (data) => {
+                  const res = await fetch("/api/paypal/capture-order", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      orderID: data.orderID,
+                    }),
+                  });
 
-                    const response = await fetch("/api/paypal/create-order", {
-                      method: "POST",
-                      headers: {
-                        "Content-Type": "application/json",
-                      },
-                      body: JSON.stringify({
-                        totalPrice: finalPrice,
-                      }),
-                    });
+                  const result = await res.json();
 
-                    const data = await response.json();
-
-                    if (!response.ok) {
-                      throw new Error(
-                        data.error || "Failed to create PayPal order."
-                      );
-                    }
-
-                    return data.id;
-                  }}
-                  onApprove={async (data) => {
-                    const response = await fetch("/api/paypal/capture-order", {
-                      method: "POST",
-                      headers: {
-                        "Content-Type": "application/json",
-                      },
-                      body: JSON.stringify({
-                        orderID: data.orderID,
-                      }),
-                    });
-
-                    const result = await response.json();
-
-                    if (!response.ok) {
-                      alert(result.error || "Failed to capture payment.");
-                      return;
-                    }
-
-                    await handlePayPalSuccess(
-                      result.orderID || data.orderID || "",
-                      result.payerEmail || null,
-                      result.paidAmount
-                    );
-                  }}
-                  onError={(err) => {
-                    console.error("PayPal error:", err);
-                    alert("PayPal checkout failed.");
-                  }}
-                />
-              </PayPalScriptProvider>
-
-              {isCheckoutDisabled && (
-                <p className="mt-3 text-sm text-yellow-300">
-                  Fill in your Roblox username and email before paying.
-                </p>
-              )}
-            </div>
+                  await handlePayPalSuccess(
+                    result.orderID,
+                    result.payerEmail,
+                    result.paidAmount
+                  );
+                }}
+              />
+            </PayPalScriptProvider>
           </div>
         </div>
 
-        <div className="rounded-[2rem] border border-white/10 bg-[#101729] p-8 shadow-xl">
-          <h2 className="text-2xl font-extrabold">Order Summary</h2>
+        {/* RIGHT */}
+        <div className="bg-[#101729] p-8 rounded-2xl">
+          <h2 className="text-2xl font-bold">Order Summary</h2>
 
-          <div className="mt-6 space-y-4">
-            {cartItems.length === 0 ? (
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-slate-300">
-                Your cart is empty.
-              </div>
-            ) : (
-              cartItems.map((item) => (
-                <OrderSummaryItem key={item.id} item={item} />
-              ))
-            )}
+          <div className="mt-4 space-y-3">
+            {cartItems.map((item) => (
+              <OrderSummaryItem key={item.id} item={item} />
+            ))}
           </div>
 
-          <div className="mt-8 space-y-2 border-t border-white/10 pt-6">
+          <div className="mt-6 border-t pt-4">
             {discount > 0 && (
               <>
-                <div className="flex items-center justify-between text-sm text-slate-400">
+                <div className="flex justify-between text-sm text-gray-400">
                   <span>Subtotal</span>
                   <span>${totalPrice.toFixed(2)}</span>
                 </div>
 
-                <div className="flex items-center justify-between text-sm text-green-400">
+                <div className="flex justify-between text-green-400">
                   <span>Discount</span>
-                  <span>- ${discount.toFixed(2)}</span>
+                  <span>-${discount.toFixed(2)}</span>
                 </div>
               </>
             )}
 
-            <div className="flex items-center justify-between text-lg font-bold">
+            <div className="flex justify-between text-xl font-bold mt-2">
               <span>Total</span>
-              <span className="text-cyan-300">${finalPrice.toFixed(2)}</span>
+              <span>${finalPrice.toFixed(2)}</span>
             </div>
           </div>
         </div>

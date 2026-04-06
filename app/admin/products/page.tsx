@@ -227,6 +227,7 @@ export default function AdminProductsPage() {
             >
               Save
             </button>
+            <LogoutButton />
           </div>
 
           <div>

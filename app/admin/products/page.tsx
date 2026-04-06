@@ -41,23 +41,27 @@ export default function AdminProductsPage() {
   const router = useRouter();
 
   const supabase = createBrowserClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
 
-  // 🔥 PROTECT PAGE
   useEffect(() => {
     async function checkUser() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
 
-      if (!user || user.email !== process.env.NEXT_PUBLIC_ADMIN_EMAIL) {
+        if (!user || user.email !== process.env.NEXT_PUBLIC_ADMIN_EMAIL) {
+          router.replace("/admin/login");
+          return;
+        }
+
+        loadProducts();
+      } catch (error) {
+        console.error("Admin auth check error:", error);
         router.replace("/admin/login");
-        return;
       }
-
-      loadProducts();
     }
 
     checkUser();
@@ -80,14 +84,17 @@ export default function AdminProductsPage() {
       setMessage("Products loaded.");
     } catch (error) {
       console.error(error);
-      setMessage("Something went wrong.");
+      setMessage("Something went wrong while loading products.");
     } finally {
       setLoading(false);
     }
   }
 
   function updateForm(field: string, value: string | boolean) {
-    setForm((prev) => ({ ...prev, [field]: value }));
+    setForm((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
   }
 
   async function handleCreateProduct() {
@@ -98,7 +105,9 @@ export default function AdminProductsPage() {
 
     const response = await fetch("/api/admin/products", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
         name: form.name,
         slug: form.slug,
@@ -115,37 +124,11 @@ export default function AdminProductsPage() {
     const result = await response.json();
 
     if (!response.ok) {
-      alert(result.error || "Failed.");
+      alert(result.error || "Failed to create product.");
       return;
     }
 
-    alert("Created!");
-    setForm(emptyForm);
-    loadProducts();
-  }
-
-  async function handleUpdateProduct() {
-    if (!editingId) return;
-
-    const response = await fetch("/api/admin/products", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        id: editingId,
-        ...form,
-        price: Number(form.price),
-      }),
-    });
-
-    const result = await response.json();
-
-    if (!response.ok) {
-      alert(result.error || "Failed.");
-      return;
-    }
-
-    alert("Updated!");
-    setEditingId(null);
+    alert("Product created successfully.");
     setForm(emptyForm);
     loadProducts();
   }
@@ -163,23 +146,86 @@ export default function AdminProductsPage() {
       imageUrl: product.image_url || "",
       isActive: product.is_active,
     });
+    setMessage(`Editing product #${product.id}`);
   }
 
-  async function handleArchiveProduct(id: number, isActive: boolean) {
+  async function handleUpdateProduct() {
+    if (!editingId) return;
+
     const response = await fetch("/api/admin/products", {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, isActive: !isActive }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        id: editingId,
+        name: form.name,
+        slug: form.slug,
+        price: Number(form.price),
+        tag: form.tag,
+        stock: form.stock,
+        category: form.category,
+        description: form.description,
+        imageUrl: form.imageUrl,
+        isActive: form.isActive,
+      }),
     });
 
-    await response.json();
+    const result = await response.json();
+
+    if (!response.ok) {
+      alert(result.error || "Failed to update product.");
+      return;
+    }
+
+    alert("Product updated successfully.");
+    setEditingId(null);
+    setForm(emptyForm);
     loadProducts();
   }
 
-  // 🔒 BLOCK UI while checking auth
+  async function handleArchiveProduct(id: number, isActive: boolean) {
+    const action = isActive ? "archive" : "restore";
+    const confirmed = window.confirm(
+      `Are you sure you want to ${action} this product?`
+    );
+    if (!confirmed) return;
+
+    const response = await fetch("/api/admin/products", {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        id,
+        isActive: !isActive,
+      }),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      alert(result.error || `Failed to ${action} product.`);
+      return;
+    }
+
+    alert(`Product ${action}d successfully.`);
+    if (editingId === id) {
+      setEditingId(null);
+      setForm(emptyForm);
+    }
+    loadProducts();
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+    setForm(emptyForm);
+    setMessage("Edit cancelled.");
+  }
+
   if (loading && message === "Checking access...") {
     return (
-      <div className="min-h-screen flex items-center justify-center text-white">
+      <div className="min-h-screen bg-[#070b14] text-white flex items-center justify-center">
         Checking access...
       </div>
     );
@@ -188,64 +234,231 @@ export default function AdminProductsPage() {
   return (
     <div className="min-h-screen bg-[#070b14] text-white px-6 py-10">
       <div className="mx-auto max-w-7xl">
-        <h1 className="text-4xl font-extrabold mb-6">Admin Dashboard</h1>
-
-        <button
-          onClick={loadProducts}
-          className="mb-4 bg-cyan-400 px-4 py-2 rounded"
-        >
-          Refresh
-        </button>
-
-        <div className="mb-6">{message}</div>
-
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <h2 className="text-xl font-bold mb-3">
-              {editingId ? "Edit" : "Create"}
-            </h2>
+            <p className="text-sm uppercase tracking-[0.25em] text-cyan-300">
+              Admin
+            </p>
+            <h1 className="mt-2 text-4xl font-extrabold">Products Dashboard</h1>
+            <p className="mt-2 text-slate-400">
+              Add, edit, archive, and manage your store products
+            </p>
+          </div>
 
-            <input
-              placeholder="Name"
-              value={form.name}
-              onChange={(e) => updateForm("name", e.target.value)}
-              className="block w-full mb-2 p-2 bg-black"
-            />
-
-            <input
-              placeholder="Price"
-              value={form.price}
-              onChange={(e) => updateForm("price", e.target.value)}
-              className="block w-full mb-2 p-2 bg-black"
-            />
-
+          <div className="flex gap-3">
             <button
-              onClick={
-                editingId ? handleUpdateProduct : handleCreateProduct
-              }
-              className="bg-cyan-400 px-4 py-2"
+              onClick={loadProducts}
+              className="rounded-2xl bg-cyan-400 px-5 py-3 font-bold text-slate-950"
             >
-              Save
+              Refresh Products
             </button>
             <LogoutButton />
           </div>
+        </div>
 
-          <div>
-            {products.map((p) => (
-              <div key={p.id} className="border p-3 mb-2">
-                <h3>{p.name}</h3>
-                <p>${p.price}</p>
+        <div className="mt-6 rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-4 text-sm text-cyan-100">
+          {message}
+        </div>
 
-                <button onClick={() => startEdit(p)}>Edit</button>
-                <button
-                  onClick={() =>
-                    handleArchiveProduct(p.id, p.is_active)
-                  }
-                >
-                  Toggle
-                </button>
+        <div className="mt-8 grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
+          <div className="rounded-[2rem] border border-white/10 bg-[#101729] p-6 shadow-xl">
+            <h2 className="text-2xl font-bold">
+              {editingId ? `Edit Product #${editingId}` : "Add New Product"}
+            </h2>
+
+            <div className="mt-6 space-y-4">
+              <input
+                type="text"
+                value={form.name}
+                onChange={(e) => updateForm("name", e.target.value)}
+                placeholder="Product name"
+                className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none"
+              />
+
+              <input
+                type="text"
+                value={form.slug}
+                onChange={(e) => updateForm("slug", e.target.value)}
+                placeholder="Slug (example: kitsune-pack)"
+                className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none"
+              />
+
+              <input
+                type="number"
+                step="0.01"
+                value={form.price}
+                onChange={(e) => updateForm("price", e.target.value)}
+                placeholder="Price"
+                className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none"
+              />
+
+              <input
+                type="text"
+                value={form.tag}
+                onChange={(e) => updateForm("tag", e.target.value)}
+                placeholder="Tag (example: Hot)"
+                className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none"
+              />
+
+              <select
+                value={form.stock}
+                onChange={(e) => updateForm("stock", e.target.value)}
+                className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none"
+              >
+                <option value="In Stock">In Stock</option>
+                <option value="Limited">Limited</option>
+                <option value="Out of Stock">Out of Stock</option>
+              </select>
+
+              <input
+                type="text"
+                value={form.category}
+                onChange={(e) => updateForm("category", e.target.value)}
+                placeholder="Category"
+                className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none"
+              />
+
+              <textarea
+                value={form.description}
+                onChange={(e) => updateForm("description", e.target.value)}
+                placeholder="Description"
+                className="min-h-[120px] w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none"
+              />
+
+              <input
+                type="text"
+                value={form.imageUrl}
+                onChange={(e) => updateForm("imageUrl", e.target.value)}
+                placeholder="Image URL (optional)"
+                className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none"
+              />
+
+              <label className="flex items-center gap-3 text-sm text-slate-300">
+                <input
+                  type="checkbox"
+                  checked={form.isActive}
+                  onChange={(e) => updateForm("isActive", e.target.checked)}
+                />
+                Active product
+              </label>
+
+              <div className="flex gap-3">
+                {editingId ? (
+                  <>
+                    <button
+                      onClick={handleUpdateProduct}
+                      className="rounded-2xl bg-cyan-400 px-5 py-3 font-bold text-slate-950"
+                    >
+                      Save Changes
+                    </button>
+
+                    <button
+                      onClick={cancelEdit}
+                      className="rounded-2xl bg-white/10 px-5 py-3 font-semibold"
+                    >
+                      Cancel
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={handleCreateProduct}
+                    className="rounded-2xl bg-cyan-400 px-5 py-3 font-bold text-slate-950"
+                  >
+                    Add Product
+                  </button>
+                )}
               </div>
-            ))}
+            </div>
+          </div>
+
+          <div className="rounded-[2rem] border border-white/10 bg-[#101729] p-6 shadow-xl">
+            <h2 className="text-2xl font-bold">All Products</h2>
+
+            <div className="mt-6 grid gap-4">
+              {loading ? (
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-slate-300">
+                  Loading...
+                </div>
+              ) : products.length === 0 ? (
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-slate-300">
+                  No products found.
+                </div>
+              ) : (
+                products.map((product) => (
+                  <div
+                    key={product.id}
+                    className="rounded-2xl border border-white/10 bg-white/5 p-5"
+                  >
+                    <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                      <div className="flex gap-4">
+                        <div className="h-24 w-24 shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-white/5 flex items-center justify-center">
+                          {product.image_url ? (
+                            <img
+                              src={product.image_url}
+                              alt={product.name}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-cyan-300 to-violet-400" />
+                          )}
+                        </div>
+
+                        <div>
+                          <h3 className="text-xl font-bold">{product.name}</h3>
+                          <p className="mt-1 text-sm text-slate-400">
+                            Slug: {product.slug || "N/A"}
+                          </p>
+                          <p className="mt-1 text-sm text-slate-400">
+                            Category: {product.category || "N/A"}
+                          </p>
+                          <p className="mt-1 text-sm text-slate-400">
+                            Tag: {product.tag || "N/A"}
+                          </p>
+                          <p className="mt-1 text-sm text-slate-400">
+                            Stock: {product.stock}
+                          </p>
+                          <p className="mt-1 text-sm text-slate-400">
+                            Status: {product.is_active ? "Active" : "Archived"}
+                          </p>
+                          <p className="mt-2 text-slate-300">
+                            {product.description || "No description."}
+                          </p>
+                          <p className="mt-2 text-xs text-cyan-300 break-all">
+                            {product.image_url || "No image URL"}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col gap-3 md:items-end">
+                        <span className="text-2xl font-extrabold text-cyan-300">
+                          ${Number(product.price).toFixed(2)}
+                        </span>
+
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => startEdit(product)}
+                            className="rounded-xl bg-violet-400 px-4 py-2 font-bold text-slate-950"
+                          >
+                            Edit
+                          </button>
+
+                          <button
+                            onClick={() =>
+                              handleArchiveProduct(product.id, product.is_active)
+                            }
+                            className={`rounded-xl px-4 py-2 font-bold text-white ${
+                              product.is_active ? "bg-red-500" : "bg-green-500"
+                            }`}
+                          >
+                            {product.is_active ? "Archive" : "Restore"}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
       </div>

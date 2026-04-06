@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   title: "REAL Shop",
   description: "Blox Fruits Store",
   icons: {
-    icon: "/icon.png", // 🔥 your favicon here
+    icon: "/king1.png", // 🔥 your favicon here
   },
 };
 

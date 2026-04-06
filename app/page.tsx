@@ -14,7 +14,6 @@ type Product = {
   category: string | null;
   description: string | null;
   image_url: string | null;
-  created_at?: string | null;
 };
 
 type CartItem = Product & {
@@ -56,16 +55,7 @@ export default function Home() {
         return;
       }
 
-      const incomingProducts: Product[] = result.products || [];
-
-      // Newest-first fallback in case API is not ordering yet
-      const sortedByNewest = [...incomingProducts].sort((a, b) => {
-        const aTime = a.created_at ? new Date(a.created_at).getTime() : 0;
-        const bTime = b.created_at ? new Date(b.created_at).getTime() : 0;
-        return bTime - aTime;
-      });
-
-      setProducts(sortedByNewest);
+      setProducts(result.products || []);
     } catch (error) {
       console.error(error);
       setMessage("Something went wrong while loading products.");
@@ -201,12 +191,6 @@ export default function Home() {
       sorted.sort((a, b) => a.name.localeCompare(b.name));
     } else if (sortOption === "name-z-a") {
       sorted.sort((a, b) => b.name.localeCompare(a.name));
-    } else if (sortOption === "newest") {
-      sorted.sort((a, b) => {
-        const aTime = a.created_at ? new Date(a.created_at).getTime() : 0;
-        const bTime = b.created_at ? new Date(b.created_at).getTime() : 0;
-        return bTime - aTime;
-      });
     }
 
     return sorted;
@@ -215,7 +199,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-[#070b14] text-white relative">
       <div className="flex min-h-screen">
-        <aside className="hidden lg:flex lg:fixed lg:top-0 lg:left-0 lg:h-screen lg:w-72 border-r border-white/10">
+        <aside className="hidden lg:flex lg:fixed lg:top-0 lg:left-0 lg:h-screen lg:w-72 overflow-hidden border-r border-white/10">
           <img
             src="/man_isolated_zoom.gif"
             alt="Sidebar background"
@@ -258,7 +242,7 @@ export default function Home() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search products..."
-                className="mt-4 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none placeholder:text-slate-400"
+                className="mt-4 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none"
               />
             </div>
 
@@ -267,10 +251,9 @@ export default function Home() {
               <select
                 value={sortOption}
                 onChange={(e) => setSortOption(e.target.value)}
-                className="mt-4 w-full rounded-2xl border border-white/10 bg-[#101729] px-4 py-3 text-white outline-none"
+                className="mt-4 w-full rounded-2xl border bg-black/50 px-4 py-3 outline-red"
               >
                 <option value="default">Default</option>
-                <option value="newest">Newest First</option>
                 <option value="price-low-high">Price: Low to High</option>
                 <option value="price-high-low">Price: High to Low</option>
                 <option value="name-a-z">Name: A to Z</option>
@@ -298,7 +281,7 @@ export default function Home() {
           <div className="sticky top-0 z-40 border-b border-white/10 bg-[#0a1020]/90 backdrop-blur">
             <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
               <div>
-                <h2 className="text-2xl font-extrabold lg:hidden">Bloxhop</h2>
+                <h2 className="text-2xl font-extrabold lg:hidden">REAL</h2>
                 <p className="text-sm text-slate-400">Blox Fruits shop</p>
               </div>
 
@@ -314,7 +297,7 @@ export default function Home() {
                   onClick={() => setIsCartOpen(true)}
                   className="rounded-2xl bg-violet-400 px-4 py-2 text-sm font-bold text-slate-950"
                 >
-                  Cart 🛒 ({cartCount})
+                   Cart 🛒 ({cartCount})
                 </button>
               </div>
             </div>
@@ -365,16 +348,15 @@ export default function Home() {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search by name, description, category, or tag..."
-                    className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none placeholder:text-slate-400"
+                    className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none"
                   />
 
                   <select
                     value={sortOption}
                     onChange={(e) => setSortOption(e.target.value)}
-                    className="w-full rounded-2xl border border-white/10 bg-[#101729] px-4 py-3 text-white outline-none"
+                    className="w-full rounded-2xl border-r border-white/10 bg-black/50 px-4 py-3 outline-none"
                   >
                     <option value="default">Sort: Default</option>
-                    <option value="newest">Sort: Newest First</option>
                     <option value="price-low-high">Sort: Price Low to High</option>
                     <option value="price-high-low">Sort: Price High to Low</option>
                     <option value="name-a-z">Sort: Name A to Z</option>
@@ -400,10 +382,10 @@ export default function Home() {
 
                     return (
                       <div
-                        key={product.id}
-                        className="overflow-hidden rounded-[2rem] border border-white/10 bg-[#101729] shadow-xl"
-                      >
-                        <div className="relative h-64 bg-gradient-to-br from-cyan-400/20 via-transparent to-violet-400/20">
+  key={product.id}
+  className="group overflow-hidden rounded-[2rem] border border-white/10 bg-[#101729] shadow-xl"
+>
+                        <div className="relative h-64 bg-gradient-to-br hover:brightness-150 from-cyan-400/20 via-transparent to-violet-400/20">
                           <span className="absolute left-4 top-4 rounded-full bg-[#0a1120] px-3 py-1 text-xs font-bold text-cyan-300">
                             {product.tag || "Item"}
                           </span>
@@ -422,11 +404,11 @@ export default function Home() {
 
                           <div className="flex h-full items-center justify-center p-6">
                             {product.image_url ? (
-                              <img
-                                src={product.image_url}
-                                alt={product.name}
-                                className="max-h-full max-w-full rounded-2xl object-contain"
-                              />
+                             <img
+  src={product.image_url}
+  alt={product.name}
+  className="max-h-full max-w-full rounded-2xl object-contain transition-transform duration-300 ease-out group-hover:scale-110"
+/>
                             ) : (
                               <div className="h-28 w-28 rounded-[2rem] bg-gradient-to-br from-cyan-300 to-violet-400 shadow-[0_0_60px_rgba(103,232,249,0.25)]" />
                             )}

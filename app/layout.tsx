@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "REAL Shop",
+  title: "Bloxhop",
   description: "Blox Fruits Store",
   icons: {
     icon: "/king1.png", // 🔥 your favicon here

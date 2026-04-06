@@ -14,6 +14,7 @@ type Product = {
   category: string | null;
   description: string | null;
   image_url: string | null;
+  created_at?: string | null;
 };
 
 type CartItem = Product & {
@@ -55,7 +56,16 @@ export default function Home() {
         return;
       }
 
-      setProducts(result.products || []);
+      const incomingProducts: Product[] = result.products || [];
+
+      // Newest-first fallback in case API is not ordering yet
+      const sortedByNewest = [...incomingProducts].sort((a, b) => {
+        const aTime = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const bTime = b.created_at ? new Date(b.created_at).getTime() : 0;
+        return bTime - aTime;
+      });
+
+      setProducts(sortedByNewest);
     } catch (error) {
       console.error(error);
       setMessage("Something went wrong while loading products.");
@@ -191,6 +201,12 @@ export default function Home() {
       sorted.sort((a, b) => a.name.localeCompare(b.name));
     } else if (sortOption === "name-z-a") {
       sorted.sort((a, b) => b.name.localeCompare(a.name));
+    } else if (sortOption === "newest") {
+      sorted.sort((a, b) => {
+        const aTime = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const bTime = b.created_at ? new Date(b.created_at).getTime() : 0;
+        return bTime - aTime;
+      });
     }
 
     return sorted;
@@ -199,7 +215,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-[#070b14] text-white relative">
       <div className="flex min-h-screen">
-        <aside className="hidden lg:flex lg:fixed lg:top-0 lg:left-0 lg:h-screen lg:w-72 overflow-hidden border-r border-white/10">
+        <aside className="hidden lg:flex lg:fixed lg:top-0 lg:left-0 lg:h-screen lg:w-72 border-r border-white/10">
           <img
             src="/man_isolated_zoom.gif"
             alt="Sidebar background"
@@ -242,7 +258,7 @@ export default function Home() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search products..."
-                className="mt-4 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none"
+                className="mt-4 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none placeholder:text-slate-400"
               />
             </div>
 
@@ -251,9 +267,10 @@ export default function Home() {
               <select
                 value={sortOption}
                 onChange={(e) => setSortOption(e.target.value)}
-                className="mt-4 w-full rounded-2xl border bg-black/50 px-4 py-3 outline-red"
+                className="mt-4 w-full rounded-2xl border border-white/10 bg-[#101729] px-4 py-3 text-white outline-none"
               >
                 <option value="default">Default</option>
+                <option value="newest">Newest First</option>
                 <option value="price-low-high">Price: Low to High</option>
                 <option value="price-high-low">Price: High to Low</option>
                 <option value="name-a-z">Name: A to Z</option>
@@ -297,7 +314,7 @@ export default function Home() {
                   onClick={() => setIsCartOpen(true)}
                   className="rounded-2xl bg-violet-400 px-4 py-2 text-sm font-bold text-slate-950"
                 >
-                   Cart 🛒 ({cartCount})
+                  Cart 🛒 ({cartCount})
                 </button>
               </div>
             </div>
@@ -348,15 +365,16 @@ export default function Home() {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search by name, description, category, or tag..."
-                    className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none"
+                    className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none placeholder:text-slate-400"
                   />
 
                   <select
                     value={sortOption}
                     onChange={(e) => setSortOption(e.target.value)}
-                    className="w-full rounded-2xl border-r border-white/10 bg-black/50 px-4 py-3 outline-none"
+                    className="w-full rounded-2xl border border-white/10 bg-[#101729] px-4 py-3 text-white outline-none"
                   >
                     <option value="default">Sort: Default</option>
+                    <option value="newest">Sort: Newest First</option>
                     <option value="price-low-high">Sort: Price Low to High</option>
                     <option value="price-high-low">Sort: Price High to Low</option>
                     <option value="name-a-z">Sort: Name A to Z</option>

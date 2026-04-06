@@ -1,7 +1,42 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
+
+async function requireAdmin() {
+  const cookieStore = await cookies();
+
+  const authClient = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll();
+        },
+        setAll() {},
+      },
+    }
+  );
+
+  const {
+    data: { user },
+  } = await authClient.auth.getUser();
+
+  // 🔥 ONLY ALLOW YOUR EMAIL
+  if (!user || user.email !== process.env.ADMIN_EMAIL) {
+    return null;
+  }
+
+  return user;
+}
 
 export async function GET() {
+  const user = await requireAdmin();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const { data, error } = await supabase
       .from("products")
@@ -23,6 +58,11 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const user = await requireAdmin();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const body = await request.json();
 
@@ -62,8 +102,6 @@ export async function POST(request: Request) {
       ])
       .select()
       .maybeSingle();
-    console.log("CREATE product data:", data);
-console.log("CREATE product error:", error);
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
@@ -80,6 +118,11 @@ console.log("CREATE product error:", error);
 }
 
 export async function PATCH(request: Request) {
+  const user = await requireAdmin();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const body = await request.json();
 
@@ -97,7 +140,10 @@ export async function PATCH(request: Request) {
     } = body;
 
     if (!id) {
-      return NextResponse.json({ error: "Missing product ID." }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing product ID." },
+        { status: 400 }
+      );
     }
 
     const { data, error } = await supabase
@@ -117,10 +163,6 @@ export async function PATCH(request: Request) {
       .select()
       .maybeSingle();
 
-  console.log("PATCH id:", id);
-  console.log("PATCH data:", data);
-  console.log("PATCH error:", error);
-
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
@@ -134,7 +176,13 @@ export async function PATCH(request: Request) {
     );
   }
 }
+
 export async function DELETE(request: Request) {
+  const user = await requireAdmin();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const body = await request.json();
     const { id } = body;

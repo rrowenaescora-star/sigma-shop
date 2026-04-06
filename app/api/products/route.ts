@@ -9,7 +9,7 @@ export async function GET() {
         "id, name, slug, price, tag, stock, stock_quantity, category, description, image_url"
       )
       .eq("is_active", true)
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: true });
 
     if (error) {
       console.error("Fetch products error:", error);

@@ -23,7 +23,7 @@ type CartItem = Product & {
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [message, setMessage] = useState("Welcome to REAL.");
+  const [message, setMessage] = useState("Welcome to Bloxhop.");
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("All");
@@ -213,7 +213,7 @@ export default function Home() {
               <p className="text-sm uppercase tracking-[0.25em] text-cyan-300">
                 Store
               </p>
-              <h1 className="mt-2 text-3xl font-extrabold">REAL</h1>
+              <h1 className="mt-2 text-3xl font-extrabold">BLOXHOP</h1>
             </div>
 
             <div className="mt-8">
@@ -281,7 +281,7 @@ export default function Home() {
           <div className="sticky top-0 z-40 border-b border-white/10 bg-[#0a1020]/90 backdrop-blur">
             <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
               <div>
-                <h2 className="text-2xl font-extrabold lg:hidden">REAL</h2>
+                <h2 className="text-2xl font-extrabold lg:hidden">BLOXSHOP</h2>
                 <p className="text-sm text-slate-400">Blox Fruits shop</p>
               </div>
 

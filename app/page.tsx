@@ -298,7 +298,7 @@ export default function Home() {
           <div className="sticky top-0 z-40 border-b border-white/10 bg-[#0a1020]/90 backdrop-blur">
             <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
               <div>
-                <h2 className="text-2xl font-extrabold lg:hidden">REAL</h2>
+                <h2 className="text-2xl font-extrabold lg:hidden">Bloxhop</h2>
                 <p className="text-sm text-slate-400">Blox Fruits shop</p>
               </div>
 

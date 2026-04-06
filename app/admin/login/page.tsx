@@ -15,16 +15,15 @@ export default function AdminLoginPage() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
 
-  async function handleLogin(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
+ async function handleLogin(e: React.FormEvent) {
+  e.preventDefault();
+  setLoading(true);
 
+  try {
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
-
-    setLoading(false);
 
     if (error) {
       alert(error.message);
@@ -33,7 +32,13 @@ export default function AdminLoginPage() {
 
     router.replace("/admin/products");
     router.refresh();
+  } catch (error) {
+    console.error(error);
+    alert("Login failed.");
+  } finally {
+    setLoading(false);
   }
+}
 
   return (
     <div className="min-h-screen bg-[#070b14] text-white flex items-center justify-center px-6">

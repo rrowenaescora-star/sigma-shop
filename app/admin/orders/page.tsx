@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 type Order = {
   id: string;
@@ -16,12 +17,19 @@ type Order = {
 };
 
 export default function AdminOrdersPage() {
+  const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
   async function fetchOrders() {
     try {
       const res = await fetch("/api/admin/orders");
+
+      if (res.status === 401) {
+        router.replace("/admin/login");
+        return;
+      }
+
       const data = await res.json();
 
       if (!res.ok) {
@@ -63,6 +71,11 @@ export default function AdminOrdersPage() {
         }),
       });
 
+      if (res.status === 401) {
+        router.replace("/admin/login");
+        return;
+      }
+
       const data = await res.json();
 
       if (!res.ok) {
@@ -97,9 +110,7 @@ export default function AdminOrdersPage() {
           >
             <div className="flex justify-between">
               <div>
-                <p className="font-bold text-lg">
-                  #{order.id}
-                </p>
+                <p className="font-bold text-lg">#{order.id}</p>
                 <p>👤 {order.roblox_username}</p>
                 <p>📧 {order.contact_info}</p>
                 <p className="text-cyan-300 font-bold">
@@ -125,7 +136,6 @@ export default function AdminOrdersPage() {
 
             {/* CONTROLS */}
             <div className="mt-4 grid gap-2 md:grid-cols-4">
-              
               {/* STATUS */}
               <select
                 className="bg-white/10 p-2 rounded"

@@ -2,6 +2,21 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
+type CookieToSet = {
+  name: string;
+  value: string;
+  options?: {
+    domain?: string;
+    expires?: Date;
+    httpOnly?: boolean;
+    maxAge?: number;
+    path?: string;
+    sameSite?: "lax" | "strict" | "none" | boolean;
+    secure?: boolean;
+    priority?: "low" | "medium" | "high";
+  };
+};
+
 export async function middleware(request: NextRequest) {
   const response = NextResponse.next();
 
@@ -13,7 +28,7 @@ export async function middleware(request: NextRequest) {
         getAll() {
           return request.cookies.getAll();
         },
-        setAll(cookies) {
+        setAll(cookies: CookieToSet[]) {
           cookies.forEach(({ name, value, options }) => {
             response.cookies.set(name, value, options);
           });
@@ -29,27 +44,21 @@ export async function middleware(request: NextRequest) {
   const isAdminRoute = request.nextUrl.pathname.startsWith("/admin");
   const isLoginPage = request.nextUrl.pathname.startsWith("/admin/login");
 
-  // 🔐 Not logged in → redirect to login
   if (isAdminRoute && !user && !isLoginPage) {
     return NextResponse.redirect(new URL("/admin/login", request.url));
   }
 
-  // 🔐 Logged in but NOT admin → block
   if (user && user.email !== process.env.ADMIN_EMAIL) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
-  // 🔐 Already logged in → skip login page
   if (user && isLoginPage) {
-    return NextResponse.redirect(
-      new URL("/admin/products", request.url)
-    );
+    return NextResponse.redirect(new URL("/admin/products", request.url));
   }
 
   return response;
 }
 
-// IMPORTANT: Only protect admin routes
 export const config = {
   matcher: ["/admin/:path*"],
 };

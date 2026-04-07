@@ -8,7 +8,7 @@ async function requireAdmin() {
 
   const authClient = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
         getAll() {
@@ -21,14 +21,20 @@ async function requireAdmin() {
 
   const {
     data: { user },
+    error,
   } = await authClient.auth.getUser();
 
-  // 🔥 ONLY ALLOW YOUR EMAIL
-const admins = process.env.ADMIN_EMAILS?.split(",") || [];
+  if (error) {
+    console.error("Admin auth getUser error:", error.message);
+    return null;
+  }
 
-if (!user || !admins.includes(user.email ?? "")) {
-  return null;
-}
+  const admins =
+    process.env.ADMIN_EMAILS?.split(",").map((email) => email.trim()) || [];
+
+  if (!user || (admins.length > 0 && !admins.includes(user.email ?? ""))) {
+    return null;
+  }
 
   return user;
 }
@@ -49,7 +55,7 @@ export async function GET() {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ products: data });
+    return NextResponse.json({ products: data || [] });
   } catch (error) {
     console.error("Admin products GET error:", error);
     return NextResponse.json(

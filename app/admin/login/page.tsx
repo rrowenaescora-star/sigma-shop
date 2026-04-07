@@ -8,49 +8,43 @@ export default function AdminLoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
- async function handleLogin(e: React.FormEvent) {
-  e.preventDefault();
+  async function handleLogin(e: React.FormEvent) {
+    e.preventDefault();
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  if (!supabaseUrl || !supabaseAnonKey) {
-    alert("Missing Supabase environment variables.");
-    return;
-  }
-
-  const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey);
-
-  setLoading(true);
-
-  try {
-    const { error } = await supabase.auth.signInWithPassword({
-      email: email.trim(),
-      password,
-    });
-
-    if (error) {
-      alert(error.message);
+    if (!supabaseUrl || !supabaseAnonKey) {
+      alert("Missing Supabase environment variables.");
       return;
     }
 
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
+    const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey);
 
-    if (!session) {
-      alert("Login succeeded, but no session was found yet.");
-      return;
+    setLoading(true);
+
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+
+      if (error) {
+        alert(error.message);
+        return;
+      }
+
+      // Give Supabase a moment to write the session cookie
+      setTimeout(() => {
+        window.location.href = "/admin/products";
+      }, 800);
+    } catch (error) {
+      console.error(error);
+      alert("Login failed.");
+    } finally {
+      setLoading(false);
     }
-
-    window.location.assign("/admin/products");
-  } catch (error) {
-    console.error(error);
-    alert("Login failed.");
-  } finally {
-    setLoading(false);
   }
-}
 
   return (
     <div className="min-h-screen bg-[#070b14] text-white flex items-center justify-center px-6">

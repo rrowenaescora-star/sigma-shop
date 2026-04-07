@@ -52,7 +52,7 @@ export default function AdminProductsPage() {
           data: { user },
         } = await supabase.auth.getUser();
 
-        if (!user || user.email !== process.env.NEXT_PUBLIC_ADMIN_EMAIL) {
+        if (!user || user.email !== process.env.NEXT_PUBLIC_ADMIN_EMAILS) {
           router.replace("/admin/login");
           return;
         }

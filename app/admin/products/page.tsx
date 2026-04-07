@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createBrowserClient } from "@supabase/ssr";
-import { useRouter } from "next/navigation";
 import LogoutButton from "../logout-button";
 
 type Product = {
@@ -34,37 +32,12 @@ const emptyForm = {
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState("Checking access...");
+  const [message, setMessage] = useState("Loading products...");
   const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState(emptyForm);
 
-  const router = useRouter();
-
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
-
   useEffect(() => {
-    async function checkUser() {
-      try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-
-        if (!user || user.email !== process.env.NEXT_PUBLIC_ADMIN_EMAILS) {
-          router.replace("/admin/login");
-          return;
-        }
-
-        loadProducts();
-      } catch (error) {
-        console.error("Admin auth check error:", error);
-        router.replace("/admin/login");
-      }
-    }
-
-    checkUser();
+    loadProducts();
   }, []);
 
   async function loadProducts() {
@@ -72,7 +45,10 @@ export default function AdminProductsPage() {
       setLoading(true);
       setMessage("Loading products...");
 
-      const response = await fetch("/api/admin/products");
+      const response = await fetch("/api/admin/products", {
+        cache: "no-store",
+      });
+
       const result = await response.json();
 
       if (!response.ok) {
@@ -221,14 +197,6 @@ export default function AdminProductsPage() {
     setEditingId(null);
     setForm(emptyForm);
     setMessage("Edit cancelled.");
-  }
-
-  if (loading && message === "Checking access...") {
-    return (
-      <div className="min-h-screen bg-[#070b14] text-white flex items-center justify-center">
-        Checking access...
-      </div>
-    );
   }
 
   return (

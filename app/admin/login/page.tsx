@@ -12,7 +12,7 @@ export default function AdminLoginPage() {
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  const allowedAdminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
+  const allowedAdmins = process.env.NEXT_PUBLIC_ADMIN_EMAILS?.split(",") || [];
 
   const supabase = useMemo(() => {
     if (!supabaseUrl || !supabaseAnonKey) return null;
@@ -62,13 +62,11 @@ export default function AdminLoginPage() {
         return;
       }
 
-      if (allowedAdminEmail && user.email !== allowedAdminEmail) {
-        alert(
-          `This account is not allowed. Logged in as: ${user.email ?? "unknown"}`
-        );
-        await supabase.auth.signOut();
-        return;
-      }
+    if (allowedAdmins.length && !allowedAdmins.includes(user.email ?? "")) {
+  alert(`This account is not allowed: ${user.email}`);
+  await supabase.auth.signOut();
+  return;
+}
 
       window.location.href = "/admin/products";
     } catch (error) {

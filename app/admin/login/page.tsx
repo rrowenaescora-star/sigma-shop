@@ -31,18 +31,18 @@ export default function AdminLoginPage() {
 
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password,
-      });
+  email,
+  password,
+});
 
-      console.log("LOGIN DATA:", data);
-      console.log("LOGIN ERROR:", error);
+console.log("LOGIN:", data, error);
 
-      if (error) {
-        alert(error.message);
-        return;
-      }
+if (error) {
+  alert(error.message);
+  return;
+}
 
+alert("LOGIN SUCCESS");
       const {
         data: { user },
         error: userError,

@@ -48,7 +48,9 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/admin/login", request.url));
   }
 
-  if (user && user.email !== process.env.ADMIN_EMAIL) {
+  const admins = process.env.ADMIN_EMAILS?.split(",") || [];
+
+if (user && !admins.includes(user.email ?? "")) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 

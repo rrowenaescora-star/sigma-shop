@@ -20,12 +20,10 @@ type CookieToSet = {
 export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
-  // Always allow login page itself
   if (pathname === "/admin/login") {
     return NextResponse.next();
   }
 
-  // Only guard admin pages
   if (!pathname.startsWith("/admin")) {
     return NextResponse.next();
   }
@@ -54,7 +52,8 @@ export async function proxy(request: NextRequest) {
       data: { user },
     } = await supabase.auth.getUser();
 
-    const admins = process.env.ADMIN_EMAILS?.split(",") || [];
+    const admins =
+      process.env.ADMIN_EMAILS?.split(",").map((email) => email.trim()) || [];
 
     if (!user) {
       return NextResponse.redirect(new URL("/admin/login", request.url));

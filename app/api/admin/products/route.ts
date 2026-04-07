@@ -24,7 +24,7 @@ async function requireAdmin() {
   } = await authClient.auth.getUser();
 
   // 🔥 ONLY ALLOW YOUR EMAIL
-  if (!user || user.email !== process.env.ADMIN_EMAIL) {
+  if (!user || user.email !== process.env.ADMIN_EMAILS) {
     return null;
   }
 

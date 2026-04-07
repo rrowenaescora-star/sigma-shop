@@ -8,40 +8,49 @@ export default function AdminLoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function handleLogin(e: React.FormEvent) {
-    e.preventDefault();
+ async function handleLogin(e: React.FormEvent) {
+  e.preventDefault();
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-    if (!supabaseUrl || !supabaseAnonKey) {
-      alert("Missing Supabase environment variables.");
+  if (!supabaseUrl || !supabaseAnonKey) {
+    alert("Missing Supabase environment variables.");
+    return;
+  }
+
+  const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey);
+
+  setLoading(true);
+
+  try {
+    const { error } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password,
+    });
+
+    if (error) {
+      alert(error.message);
       return;
     }
 
-    const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey);
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
 
-    setLoading(true);
-
-    try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password,
-      });
-
-      if (error) {
-        alert(error.message);
-        return;
-      }
-
-      window.location.href = "/admin/products";
-    } catch (error) {
-      console.error(error);
-      alert("Login failed.");
-    } finally {
-      setLoading(false);
+    if (!session) {
+      alert("Login succeeded, but no session was found yet.");
+      return;
     }
+
+    window.location.assign("/admin/products");
+  } catch (error) {
+    console.error(error);
+    alert("Login failed.");
+  } finally {
+    setLoading(false);
   }
+}
 
   return (
     <div className="min-h-screen bg-[#070b14] text-white flex items-center justify-center px-6">

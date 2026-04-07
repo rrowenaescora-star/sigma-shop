@@ -50,7 +50,7 @@ export default function AdminLoginPage() {
 
       console.log("SIGNED IN USER:", user);
       console.log("GET USER ERROR:", userError);
-      console.log("ALLOWED ADMIN EMAIL:", allowedAdminEmail);
+      console.log("ALLOWED ADMINS:", allowedAdmins);
 
       if (userError) {
         alert(userError.message);

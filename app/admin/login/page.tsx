@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createBrowserClient } from "@supabase/ssr";
 
@@ -10,35 +10,45 @@ export default function AdminLoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
- async function handleLogin(e: React.FormEvent) {
-  e.preventDefault();
-  setLoading(true);
+  const supabase = useMemo(() => {
+    if (!supabaseUrl || !supabaseAnonKey) return null;
 
-  try {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    return createBrowserClient(supabaseUrl, supabaseAnonKey);
+  }, [supabaseUrl, supabaseAnonKey]);
 
-    if (error) {
-      alert(error.message);
+  async function handleLogin(e: React.FormEvent) {
+    e.preventDefault();
+
+    if (!supabase) {
+      alert("Missing Supabase environment variables.");
       return;
     }
 
-    router.replace("/admin/products");
-    router.refresh();
-  } catch (error) {
-    console.error(error);
-    alert("Login failed.");
-  } finally {
-    setLoading(false);
+    setLoading(true);
+
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        alert(error.message);
+        return;
+      }
+
+      router.replace("/admin/products");
+      router.refresh();
+    } catch (error) {
+      console.error(error);
+      alert("Login failed.");
+    } finally {
+      setLoading(false);
+    }
   }
-}
 
   return (
     <div className="min-h-screen bg-[#070b14] text-white flex items-center justify-center px-6">
@@ -53,6 +63,12 @@ export default function AdminLoginPage() {
         <p className="mt-2 text-slate-400">
           Sign in to access the admin dashboard
         </p>
+
+        {!supabase && (
+          <div className="mt-6 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300">
+            Missing Supabase environment variables. Check Vercel settings.
+          </div>
+        )}
 
         <input
           type="email"
@@ -74,9 +90,9 @@ export default function AdminLoginPage() {
 
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || !supabase}
           className={`mt-6 w-full rounded-2xl py-3 font-bold ${
-            loading
+            loading || !supabase
               ? "bg-slate-700 text-slate-300"
               : "bg-cyan-400 text-slate-950"
           }`}

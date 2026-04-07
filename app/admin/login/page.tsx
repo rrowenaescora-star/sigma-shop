@@ -12,10 +12,10 @@ export default function AdminLoginPage() {
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const allowedAdminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
 
   const supabase = useMemo(() => {
     if (!supabaseUrl || !supabaseAnonKey) return null;
-
     return createBrowserClient(supabaseUrl, supabaseAnonKey);
   }, [supabaseUrl, supabaseAnonKey]);
 
@@ -30,18 +30,47 @@ export default function AdminLoginPage() {
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
         password,
       });
+
+      console.log("LOGIN DATA:", data);
+      console.log("LOGIN ERROR:", error);
 
       if (error) {
         alert(error.message);
         return;
       }
 
-      router.replace("/admin/products");
-      router.refresh();
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      console.log("SIGNED IN USER:", user);
+      console.log("GET USER ERROR:", userError);
+      console.log("ALLOWED ADMIN EMAIL:", allowedAdminEmail);
+
+      if (userError) {
+        alert(userError.message);
+        return;
+      }
+
+      if (!user) {
+        alert("Login succeeded but no user session was found.");
+        return;
+      }
+
+      if (allowedAdminEmail && user.email !== allowedAdminEmail) {
+        alert(
+          `This account is not allowed. Logged in as: ${user.email ?? "unknown"}`
+        );
+        await supabase.auth.signOut();
+        return;
+      }
+
+      window.location.href = "/admin/products";
     } catch (error) {
       console.error(error);
       alert("Login failed.");

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import LogoutButton from "../logout-button";
 
 type Product = {
@@ -8,8 +8,10 @@ type Product = {
   name: string;
   slug: string | null;
   price: number;
+  compare_at_price?: number | null;
   tag: string | null;
   stock: string;
+  stock_quantity?: number | null;
   category: string | null;
   description: string | null;
   image_url: string | null;
@@ -21,8 +23,10 @@ const emptyForm = {
   name: "",
   slug: "",
   price: "",
+  compareAtPrice: "",
   tag: "",
   stock: "In Stock",
+  stockQuantity: "",
   category: "",
   description: "",
   imageUrl: "",
@@ -39,6 +43,27 @@ export default function AdminProductsPage() {
   useEffect(() => {
     loadProducts();
   }, []);
+
+  const parsedPrice = Number(form.price || 0);
+  const parsedCompareAtPrice = Number(form.compareAtPrice || 0);
+
+  const discountPreview = useMemo(() => {
+    if (!form.price || !form.compareAtPrice) return null;
+    if (!Number.isFinite(parsedPrice) || !Number.isFinite(parsedCompareAtPrice)) {
+      return null;
+    }
+    if (parsedCompareAtPrice <= parsedPrice || parsedPrice <= 0) return null;
+
+    const percentOff = Math.round(
+      ((parsedCompareAtPrice - parsedPrice) / parsedCompareAtPrice) * 100
+    );
+    const savings = parsedCompareAtPrice - parsedPrice;
+
+    return {
+      percentOff,
+      savings,
+    };
+  }, [form.price, form.compareAtPrice, parsedPrice, parsedCompareAtPrice]);
 
   async function loadProducts() {
     try {
@@ -88,8 +113,13 @@ export default function AdminProductsPage() {
         name: form.name,
         slug: form.slug,
         price: Number(form.price),
+        compare_at_price: form.compareAtPrice
+          ? Number(form.compareAtPrice)
+          : null,
         tag: form.tag,
         stock: form.stock,
+        stock_quantity:
+          form.stockQuantity === "" ? null : Number(form.stockQuantity),
         category: form.category,
         description: form.description,
         imageUrl: form.imageUrl,
@@ -115,8 +145,15 @@ export default function AdminProductsPage() {
       name: product.name || "",
       slug: product.slug || "",
       price: String(product.price ?? ""),
+      compareAtPrice: product.compare_at_price
+        ? String(product.compare_at_price)
+        : "",
       tag: product.tag || "",
       stock: product.stock || "In Stock",
+      stockQuantity:
+        product.stock_quantity === null || product.stock_quantity === undefined
+          ? ""
+          : String(product.stock_quantity),
       category: product.category || "",
       description: product.description || "",
       imageUrl: product.image_url || "",
@@ -138,8 +175,13 @@ export default function AdminProductsPage() {
         name: form.name,
         slug: form.slug,
         price: Number(form.price),
+        compare_at_price: form.compareAtPrice
+          ? Number(form.compareAtPrice)
+          : null,
         tag: form.tag,
         stock: form.stock,
+        stock_quantity:
+          form.stockQuantity === "" ? null : Number(form.stockQuantity),
         category: form.category,
         description: form.description,
         imageUrl: form.imageUrl,
@@ -200,7 +242,7 @@ export default function AdminProductsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#070b14] text-white px-6 py-10">
+    <div className="min-h-screen bg-[#070b14] px-6 py-10 text-white">
       <div className="mx-auto max-w-7xl">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
@@ -261,6 +303,33 @@ export default function AdminProductsPage() {
               />
 
               <input
+                type="number"
+                step="0.01"
+                value={form.compareAtPrice}
+                onChange={(e) => updateForm("compareAtPrice", e.target.value)}
+                placeholder="Original price / Compare-at price (optional)"
+                className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none"
+              />
+
+              {discountPreview ? (
+                <div className="rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-4">
+                  <p className="text-sm font-bold text-emerald-300">
+                    🔥 {discountPreview.percentOff}% OFF
+                  </p>
+                  <p className="mt-1 text-sm text-slate-300">
+                    Customer saves ${discountPreview.savings.toFixed(2)}
+                  </p>
+                </div>
+              ) : form.compareAtPrice ? (
+                <div className="rounded-2xl border border-yellow-400/20 bg-yellow-500/10 p-4">
+                  <p className="text-sm text-yellow-200">
+                    Compare-at price should be higher than the actual price to
+                    show a discount.
+                  </p>
+                </div>
+              ) : null}
+
+              <input
                 type="text"
                 value={form.tag}
                 onChange={(e) => updateForm("tag", e.target.value)}
@@ -277,6 +346,28 @@ export default function AdminProductsPage() {
                 <option value="Limited">Limited</option>
                 <option value="Out of Stock">Out of Stock</option>
               </select>
+
+              <input
+                type="number"
+                min="0"
+                step="1"
+                value={form.stockQuantity}
+                onChange={(e) => updateForm("stockQuantity", e.target.value)}
+                placeholder="Stock quantity (example: 10)"
+                className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none"
+              />
+
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-300">
+                {form.stockQuantity === "" ? (
+                  <p>No stock quantity set yet.</p>
+                ) : Number(form.stockQuantity) <= 0 ? (
+                  <p className="text-red-300">This product will be treated as out of stock.</p>
+                ) : Number(form.stockQuantity) <= 3 ? (
+                  <p className="text-yellow-300">This product will show as limited stock.</p>
+                ) : (
+                  <p className="text-emerald-300">This product will show as in stock.</p>
+                )}
+              </div>
 
               <input
                 type="text"
@@ -359,7 +450,7 @@ export default function AdminProductsPage() {
                   >
                     <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                       <div className="flex gap-4">
-                        <div className="h-24 w-24 shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-white/5 flex items-center justify-center">
+                        <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-white/5">
                           {product.image_url ? (
                             <img
                               src={product.image_url}
@@ -383,7 +474,10 @@ export default function AdminProductsPage() {
                             Tag: {product.tag || "N/A"}
                           </p>
                           <p className="mt-1 text-sm text-slate-400">
-                            Stock: {product.stock}
+                            Stock label: {product.stock}
+                          </p>
+                          <p className="mt-1 text-sm text-slate-400">
+                            Stock quantity: {product.stock_quantity ?? "N/A"}
                           </p>
                           <p className="mt-1 text-sm text-slate-400">
                             Status: {product.is_active ? "Active" : "Archived"}
@@ -391,16 +485,35 @@ export default function AdminProductsPage() {
                           <p className="mt-2 text-slate-300">
                             {product.description || "No description."}
                           </p>
-                          <p className="mt-2 text-xs text-cyan-300 break-all">
+                          <p className="mt-2 break-all text-xs text-cyan-300">
                             {product.image_url || "No image URL"}
                           </p>
                         </div>
                       </div>
 
                       <div className="flex flex-col gap-3 md:items-end">
-                        <span className="text-2xl font-extrabold text-cyan-300">
-                          ${Number(product.price).toFixed(2)}
-                        </span>
+                        <div className="flex flex-col items-start md:items-end">
+                          <span className="text-2xl font-extrabold text-cyan-300">
+                            ${Number(product.price).toFixed(2)}
+                          </span>
+
+                          {product.compare_at_price &&
+                          Number(product.compare_at_price) > Number(product.price) ? (
+                            <>
+                              <span className="text-sm text-slate-500 line-through">
+                                ${Number(product.compare_at_price).toFixed(2)}
+                              </span>
+                              <span className="mt-1 text-xs font-bold text-emerald-300">
+                                {Math.round(
+                                  ((Number(product.compare_at_price) - Number(product.price)) /
+                                    Number(product.compare_at_price)) *
+                                    100
+                                )}
+                                % OFF
+                              </span>
+                            </>
+                          ) : null}
+                        </div>
 
                         <div className="flex gap-2">
                           <button

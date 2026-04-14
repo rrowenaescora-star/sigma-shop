@@ -1,0 +1,37 @@
+what to check
+==================================================================================
+/admin/products
+-to edit/ADD/delete prodcuts
+/admin/orders
+-to see costumers orders
+ ==================================================================================
+to update stock in supbase 
+-SQL EDITOR
+(paste this and run)
+=set quantity*
+___________________________________________________________________________________
+UPDATE products
+SET stock_quantity = 0;
+
+___________________________________________________________________________________
+
+-For Coupons(usage limits)*(replace the variables)
+___________________________________________________________________________________
+insert into coupons (code, discount_type, discount_value, usage_limit)
+values 
+('REAL', 'percent', 2, 5);
+___________________________________________________________________________________
+-expiration days (replace the variables)
+___________________________________________________________________________________
+insert into coupons (code, discount_type, discount_value, expires_at)
+values 
+('EASTER50', 'percent', 50, now() + interval '2 days');
+_______________________________________________________________________________
+Business Email
+support@bloxhop.site
+Bloxhop@123
+the rest password
+123qwe*Q
+for orders/products (both emails)
+asdmin123
+

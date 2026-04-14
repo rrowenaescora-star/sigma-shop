@@ -1,6 +1,5 @@
 "use client";
 
-import { PayPalButtons, PayPalScriptProvider } from "@paypal/react-paypal-js";
 import Link from "next/link";
 import { memo, useEffect, useMemo, useState } from "react";
 
@@ -100,7 +99,8 @@ export default function CheckoutPage() {
     cartItems.length === 0 ||
     !robloxUsername.trim() ||
     !contactInfo.trim() ||
-    !isVerified;
+    !isVerified ||
+    isSubmitting;
 
   async function applyCoupon() {
     setCouponError("");
@@ -187,12 +187,7 @@ export default function CheckoutPage() {
     }
   }
 
-  async function saveOrder(options?: {
-    paypalOrderId?: string | null;
-    payerEmail?: string | null;
-    paidAmount?: number;
-    paymentStatus?: string;
-  }) {
+  async function saveOrder(paymentStatus: string) {
     if (cartItems.length === 0) return;
 
     if (!robloxUsername.trim() || !contactInfo.trim()) {
@@ -221,10 +216,10 @@ export default function CheckoutPage() {
           notes,
           items: cartItems,
           totalPrice: Number(finalPrice.toFixed(2)),
-          paypalOrderId: options?.paypalOrderId ?? null,
-          paymentStatus: options?.paymentStatus ?? "Unpaid",
-          payerEmail: options?.payerEmail || null,
-          paidAmount: Number(options?.paidAmount ?? finalPrice),
+          paypalOrderId: null,
+          paymentStatus,
+          payerEmail: null,
+          paidAmount: paymentStatus === "Free" ? 0 : null,
           couponCode: appliedCoupon || undefined,
         }),
       });
@@ -249,26 +244,12 @@ export default function CheckoutPage() {
     }
   }
 
-  async function handlePayPalSuccess(
-    paypalOrderId: string,
-    payerEmail: string | null,
-    paidAmount: number
-  ) {
-    await saveOrder({
-      paypalOrderId,
-      payerEmail,
-      paidAmount,
-      paymentStatus: "Paid",
-    });
+  async function handleFreeCheckout() {
+    await saveOrder("Free");
   }
 
-  async function handleFreeCheckout() {
-    await saveOrder({
-      paypalOrderId: null,
-      payerEmail: null,
-      paidAmount: 0,
-      paymentStatus: "Free",
-    });
+  async function handleManualCheckout() {
+    await saveOrder("Manual Payment Pending");
   }
 
   return (
@@ -301,6 +282,15 @@ export default function CheckoutPage() {
               <li>• Digital delivery usually takes 5 to 30 minutes</li>
               <li>• In rare cases, delivery may take up to 3 hours</li>
               <li>• Eligible nondelivery orders may qualify for a refund</li>
+            </ul>
+          </div>
+
+          <div className="mt-4 rounded-2xl border border-yellow-400/20 bg-yellow-400/5 p-4 text-sm text-yellow-100">
+            <p className="font-semibold text-yellow-300">Temporary Payment Notice</p>
+            <ul className="mt-2 space-y-1">
+              <li>• PayPal is temporarily unavailable</li>
+              <li>• You can place your order now and pay manually after submission</li>
+              <li>• Use your Order ID on the tracking page when contacting support</li>
             </ul>
           </div>
 
@@ -450,9 +440,9 @@ export default function CheckoutPage() {
                   <button
                     type="button"
                     onClick={handleFreeCheckout}
-                    disabled={isCheckoutDisabled || isSubmitting}
+                    disabled={isCheckoutDisabled}
                     className={`w-full rounded-2xl py-3 font-bold transition ${
-                      isCheckoutDisabled || isSubmitting
+                      isCheckoutDisabled
                         ? "cursor-not-allowed bg-slate-700 text-slate-300"
                         : "bg-emerald-400 text-black hover:brightness-110"
                     }`}
@@ -463,92 +453,26 @@ export default function CheckoutPage() {
               ) : (
                 <>
                   <p className="mb-4 text-sm font-semibold text-slate-300">
-                    Pay with PayPal
+                    Manual payment checkout
                   </p>
 
-                  <PayPalScriptProvider
-                    options={{
-                      clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "",
-                      currency: "USD",
-                      intent: "capture",
-                    }}
+                  <button
+                    type="button"
+                    onClick={handleManualCheckout}
+                    disabled={isCheckoutDisabled}
+                    className={`w-full rounded-2xl py-3 font-bold transition ${
+                      isCheckoutDisabled
+                        ? "cursor-not-allowed bg-slate-700 text-slate-300"
+                        : "bg-cyan-400 text-black hover:brightness-110"
+                    }`}
                   >
-                    <PayPalButtons
-                      style={{ layout: "vertical" }}
-                      disabled={isCheckoutDisabled || isSubmitting}
-                      forceReRender={[
-                        Number(finalPrice.toFixed(2)),
-                        robloxUsername,
-                        contactInfo,
-                        isSubmitting,
-                        discount,
-                        appliedCoupon,
-                        isVerified,
-                      ]}
-                      createOrder={async () => {
-                        const cleanFinalPrice = Number(finalPrice.toFixed(2));
+                    {isSubmitting ? "Creating Order..." : "Place Order"}
+                  </button>
 
-                        console.log("Frontend totalPrice:", totalPrice);
-                        console.log("Frontend discount:", discount);
-                        console.log("Frontend finalPrice:", cleanFinalPrice);
-
-                        if (!Number.isFinite(cleanFinalPrice) || cleanFinalPrice <= 0) {
-                          throw new Error(`Invalid final price: ${cleanFinalPrice}`);
-                        }
-
-                        const response = await fetch("/api/paypal/create-order", {
-                          method: "POST",
-                          headers: {
-                            "Content-Type": "application/json",
-                          },
-                          body: JSON.stringify({
-                            totalPrice: cleanFinalPrice.toFixed(2),
-                          }),
-                        });
-
-                        const data = await response.json();
-                        console.log("Frontend /api/paypal/create-order result:", data);
-
-                        if (!response.ok) {
-                          throw new Error(data.error || "Failed to create PayPal order.");
-                        }
-
-                        if (!data?.id) {
-                          throw new Error("Missing PayPal order ID.");
-                        }
-
-                        return data.id;
-                      }}
-                      onApprove={async (data) => {
-                        const response = await fetch("/api/paypal/capture-order", {
-                          method: "POST",
-                          headers: {
-                            "Content-Type": "application/json",
-                          },
-                          body: JSON.stringify({
-                            orderID: data.orderID,
-                          }),
-                        });
-
-                        const result = await response.json();
-
-                        if (!response.ok) {
-                          alert(result.error || "Failed to capture payment.");
-                          return;
-                        }
-
-                        await handlePayPalSuccess(
-                          result.orderID || data.orderID || "",
-                          result.payerEmail || null,
-                          Number(result.paidAmount || 0)
-                        );
-                      }}
-                      onError={(err) => {
-                        console.error("PayPal error:", err);
-                        alert("PayPal checkout failed.");
-                      }}
-                    />
-                  </PayPalScriptProvider>
+                  <p className="mt-3 text-sm text-slate-400">
+                    After placing the order, use the tracking page and your Order ID to
+                    contact support for manual payment instructions.
+                  </p>
                 </>
               )}
 

@@ -1,0 +1,97 @@
+[35mapp/admin/login/page.tsx[m[36m:[m  const [[1;31memail[m, set[1;31mEmail[m] = useState("");
+[35mapp/admin/login/page.tsx[m[36m:[m        [1;31memail[m: [1;31memail[m.trim(),
+[35mapp/admin/login/page.tsx[m[36m:[m          type="[1;31memail[m"
+[35mapp/admin/login/page.tsx[m[36m:[m          placeholder="Admin [1;31memail[m"
+[35mapp/admin/login/page.tsx[m[36m:[m          value={[1;31memail[m}
+[35mapp/admin/login/page.tsx[m[36m:[m          onChange={(e) => set[1;31mEmail[m(e.target.value)}
+[35mapp/api/admin/orders/route.ts[m[36m:[mimport { send[1;31mEmail[msIndividually } from "@/lib/[1;31memail[m";
+[35mapp/api/admin/orders/route.ts[m[36m:[mfunction isValid[1;31mEmail[m(value: string | null | undefined) {
+[35mapp/api/admin/orders/route.ts[m[36m:[m    process.env.ADMIN_[1;31mEMAIL[mS?.split(",").map(([1;31memail[m) => [1;31memail[m.trim()) || [];
+[35mapp/api/admin/orders/route.ts[m[36m:[m  if (!user || (admins.length > 0 && !admins.includes(user.[1;31memail[m ?? ""))) {
+[35mapp/api/admin/orders/route.ts[m[36m:[m      const recipients = [data.payer_[1;31memail[m, data.contact_info]
+[35mapp/api/admin/orders/route.ts[m[36m:[m        .filter((value): value is string => isValid[1;31mEmail[m(value))
+[35mapp/api/admin/orders/route.ts[m[36m:[m      const shouldSendDelivery[1;31mEmail[m =
+[35mapp/api/admin/orders/route.ts[m[36m:[m        uniqueRecipients.length > 0 && !data.delivery_[1;31memail[m_sent_at;
+[35mapp/api/admin/orders/route.ts[m[36m:[m      if (shouldSendDelivery[1;31mEmail[m) {
+[35mapp/api/admin/orders/route.ts[m[36m:[m                          This is a transactional [1;31memail[m confirming delivery.
+[35mapp/api/admin/orders/route.ts[m[36m:[m          const results = await send[1;31mEmail[msIndividually({
+[35mapp/api/admin/orders/route.ts[m[36m:[m            const { error: [1;31memail[mFlagError } = await supabase
+[35mapp/api/admin/orders/route.ts[m[36m:[m                delivery_[1;31memail[m_sent_at: new Date().toISOString(),
+[35mapp/api/admin/orders/route.ts[m[36m:[m            if ([1;31memail[mFlagError) {
+[35mapp/api/admin/orders/route.ts[m[36m:[m                "Failed to save delivery_[1;31memail[m_sent_at:",
+[35mapp/api/admin/orders/route.ts[m[36m:[m                [1;31memail[mFlagError
+[35mapp/api/admin/orders/route.ts[m[36m:[m          console.log("Delivery [1;31memail[m results:", results);
+[35mapp/api/admin/orders/route.ts[m[36m:[m        } catch ([1;31memail[mError) {
+[35mapp/api/admin/orders/route.ts[m[36m:[m          console.error("Delivery [1;31memail[m batch failed:", [1;31memail[mError);
+[35mapp/api/admin/orders/route.ts[m[36m:[m      } else if (data.delivery_[1;31memail[m_sent_at) {
+[35mapp/api/admin/orders/route.ts[m[36m:[m        console.log("Delivery [1;31memail[m already sent for this order.");
+[35mapp/api/admin/orders/route.ts[m[36m:[m        console.log("No valid [1;31memail[m found for this order.");
+[35mapp/api/admin/products/route.ts[m[36m:[m    process.env.ADMIN_[1;31mEMAIL[mS?.split(",").map(([1;31memail[m) => [1;31memail[m.trim()) || [];
+[35mapp/api/admin/products/route.ts[m[36m:[m  if (!user || (admins.length > 0 && !admins.includes(user.[1;31memail[m ?? ""))) {
+[35mapp/api/orders/route.ts[m[36m:[mimport { send[1;31mEmail[m } from "@/lib/[1;31memail[m";
+[35mapp/api/orders/route.ts[m[36m:[mfunction isValid[1;31mEmail[m(value: string | null | undefined) {
+[35mapp/api/orders/route.ts[m[36m:[m      payer[1;31mEmail[m,
+[35mapp/api/orders/route.ts[m[36m:[m          payer_[1;31memail[m: payer[1;31mEmail[m ?? null,
+[35mapp/api/orders/route.ts[m[36m:[m    const [1;31memail[mSubject =
+[35mapp/api/orders/route.ts[m[36m:[m    const recipients = [payer[1;31mEmail[m, contactInfo]
+[35mapp/api/orders/route.ts[m[36m:[m      .filter((value): value is string => isValid[1;31mEmail[m(value))
+[35mapp/api/orders/route.ts[m[36m:[m      for (const [1;31memail[m of uniqueRecipients) {
+[35mapp/api/orders/route.ts[m[36m:[m          await send[1;31mEmail[m({
+[35mapp/api/orders/route.ts[m[36m:[m            to: [1;31memail[m,
+[35mapp/api/orders/route.ts[m[36m:[m            subject: [1;31memail[mSubject,
+[35mapp/api/orders/route.ts[m[36m:[m                                  <p style="margin:0; font-size:15px;"><strong>Sent To:</strong> ${[1;31memail[m}</p>
+[35mapp/api/orders/route.ts[m[36m:[m                              This is a transactional [1;31memail[m about your order.
+[35mapp/api/orders/route.ts[m[36m:[m        } catch ([1;31memail[mError) {
+[35mapp/api/orders/route.ts[m[36m:[m          console.error(`POST [1;31memail[m failed for ${[1;31memail[m}:`, [1;31memail[mError);
+[35mapp/api/orders/route.ts[m[36m:[m      console.log("No valid [1;31memail[m found for POST order.");
+[35mapp/api/paypal/capture-order/route.ts[m[36m:[m    // 🔥 STEP 4: GET PAYER [1;31mEMAIL[m
+[35mapp/api/paypal/capture-order/route.ts[m[36m:[m    const payer[1;31mEmail[m = captureData?.payer?.[1;31memail[m_address || null;
+[35mapp/api/paypal/capture-order/route.ts[m[36m:[m      payer[1;31mEmail[m,
+[35mapp/api/test-email/route.ts[m[36m:[mimport { send[1;31mEmail[m } from "@/lib/[1;31memail[m";
+[35mapp/api/test-email/route.ts[m[36m:[m    await send[1;31mEmail[m({
+[35mapp/api/test-email/route.ts[m[36m:[m      subject: "Test [1;31mEmail[m from Bloxhop",
+[35mapp/api/test-email/route.ts[m[36m:[m    console.error("TEST [1;31mEMAIL[m ERROR:", error);
+[35mapp/api/test-email/route.ts[m[36m:[m        error: "Failed to send [1;31memail[m",
+[35mapp/checkout/page.tsx[m[36m:[m    payer[1;31mEmail[m?: string | null;
+[35mapp/checkout/page.tsx[m[36m:[m          payer[1;31mEmail[m: options?.payer[1;31mEmail[m || null,
+[35mapp/checkout/page.tsx[m[36m:[m    payer[1;31mEmail[m: string | null,
+[35mapp/checkout/page.tsx[m[36m:[m      payer[1;31mEmail[m,
+[35mapp/checkout/page.tsx[m[36m:[m      payer[1;31mEmail[m: null,
+[35mapp/checkout/page.tsx[m[36m:[m                [1;31mEmail[m
+[35mapp/checkout/page.tsx[m[36m:[m                type="[1;31memail[m"
+[35mapp/checkout/page.tsx[m[36m:[m                placeholder="Enter your [1;31memail[m"
+[35mapp/checkout/page.tsx[m[36m:[m                          result.payer[1;31mEmail[m || null,
+[35mapp/checkout/page.tsx[m[36m:[m                  Fill in your Roblox username, verify it, and enter your [1;31memail[m before continuing.
+[35mapp/contact/page.tsx[m[36m:[m            <h2 className="text-xl font-semibold mb-2">Support [1;31mEmail[m</h2>
+[35mapp/page.tsx[m[36m:[m              <p>[1;31mEmail[m: bloxhop@bloxhop.site</p>
+[35mapp/privacy/page.tsx[m[36m:[m              <li>[1;31mEmail[m or contact information</li>
+[35mapp/terms/page.tsx[m[36m:[m            <p>[1;31mEmail[m: bloxhop@bloxhop.site</p>
+[35mapp/track-order/page.tsx[m[36m:[m  payer_[1;31memail[m?: string | null;
+[35mlib/email.ts[m[36m:[mimport nod[1;31memail[mer from "nod[1;31memail[mer";
+[35mlib/email.ts[m[36m:[mconst host = process.env.[1;31mEMAIL[m_HOST!;
+[35mlib/email.ts[m[36m:[mconst port = Number(process.env.[1;31mEMAIL[m_PORT!);
+[35mlib/email.ts[m[36m:[mconst user = process.env.[1;31mEMAIL[m_USER!;
+[35mlib/email.ts[m[36m:[mconst pass = process.env.[1;31mEMAIL[m_PASS!;
+[35mlib/email.ts[m[36m:[mexport const transporter = nod[1;31memail[mer.createTransport({
+[35mlib/email.ts[m[36m:[mexport async function send[1;31mEmail[m({
+[35mlib/email.ts[m[36m:[mexport async function send[1;31mEmail[msIndividually({
+[35mlib/email.ts[m[36m:[m    .map(([1;31memail[m) => [1;31memail[m.trim().toLowerCase())
+[35mlib/email.ts[m[36m:[m    .filter(([1;31memail[m) => {
+[35mlib/email.ts[m[36m:[m      if (seen.has([1;31memail[m)) return false;
+[35mlib/email.ts[m[36m:[m      seen.add([1;31memail[m);
+[35mlib/email.ts[m[36m:[m  const results: Array<{ [1;31memail[m: string; ok: boolean; error?: string }> = [];
+[35mlib/email.ts[m[36m:[m  for (const [1;31memail[m of uniqueRecipients) {
+[35mlib/email.ts[m[36m:[m      await send[1;31mEmail[m({ to: [1;31memail[m, subject, html });
+[35mlib/email.ts[m[36m:[m      results.push({ [1;31memail[m, ok: true });
+[35mlib/email.ts[m[36m:[m      console.error(`[1;31mEmail[m send failed for ${[1;31memail[m}:`, error);
+[35mlib/email.ts[m[36m:[m        [1;31memail[m,
+[35mpackage-lock.json[m[36m:[m        "nod[1;31memail[mer": "^8.0.5",
+[35mpackage-lock.json[m[36m:[m        "@types/nod[1;31memail[mer": "^8.0.0",
+[35mpackage-lock.json[m[36m:[m    "node_modules/@types/nod[1;31memail[mer": {
+[35mpackage-lock.json[m[36m:[m      "resolved": "https://registry.npmjs.org/@types/nod[1;31memail[mer/-/nod[1;31memail[mer-8.0.0.tgz",
+[35mpackage-lock.json[m[36m:[m    "node_modules/nod[1;31memail[mer": {
+[35mpackage-lock.json[m[36m:[m      "resolved": "https://registry.npmjs.org/nod[1;31memail[mer/-/nod[1;31memail[mer-8.0.5.tgz",
+[35mpackage.json[m[36m:[m    "nod[1;31memail[mer": "^8.0.5",
+[35mpackage.json[m[36m:[m    "@types/nod[1;31memail[mer": "^8.0.0",
+[35mwhat to check.txt[m[36m:[mBusiness [1;31mEmail[m
+[35mwhat to check.txt[m[36m:[mfor orders/products (both [1;31memail[ms)

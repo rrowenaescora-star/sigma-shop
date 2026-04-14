@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   title: "Bloxhop",
   description: "Fast and secure delivery of digital products.",
   icons: {
-    icon: "/logo.png", // 🔥 make sure logo.png is in /public
+    icon: "/logo.png",
   },
 };
 

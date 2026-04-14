@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 async function sendDiscordWebhook(payload: unknown) {
   const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
 
@@ -25,6 +26,8 @@ function safeText(value: unknown, fallback = "N/A") {
   return text.length > 0 ? text : fallback;
 }
 
+=======
+>>>>>>> 0d9908d25852ce108b61128f297f3e2a452932cf
 export async function sendDiscordOrderNotification(params: {
   orderId: number;
   robloxUsername: string;
@@ -34,6 +37,7 @@ export async function sendDiscordOrderNotification(params: {
   deliveryStatus?: string | null;
   paypalOrderId?: string | null;
 }) {
+<<<<<<< HEAD
   const orderId = params.orderId;
   const robloxUsername = safeText(params.robloxUsername);
   const contactInfo = safeText(params.contactInfo);
@@ -54,6 +58,31 @@ export async function sendDiscordOrderNotification(params: {
       {
         title: isFreeOrder ? "New Free Order" : "New Paid Order",
         color: isFreeOrder ? 5763719 : 3447003,
+=======
+  const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
+
+  if (!webhookUrl) {
+    throw new Error("Missing DISCORD_WEBHOOK_URL");
+  }
+
+  const {
+    orderId,
+    robloxUsername,
+    contactInfo,
+    totalPrice,
+    paymentStatus,
+    deliveryStatus,
+    paypalOrderId,
+  } = params;
+
+  const payload = {
+    username: "REAL Shop",
+    content: `🛒 New order received: #${orderId}`,
+    embeds: [
+      {
+        title: "New Paid Order",
+        color: 5763719,
+>>>>>>> 0d9908d25852ce108b61128f297f3e2a452932cf
         fields: [
           {
             name: "Order ID",
@@ -72,36 +101,71 @@ export async function sendDiscordOrderNotification(params: {
           },
           {
             name: "Total",
+<<<<<<< HEAD
             value: totalPrice <= 0 ? "FREE" : `$${totalPrice.toFixed(2)}`,
+=======
+            value: `$${Number(totalPrice).toFixed(2)}`,
+>>>>>>> 0d9908d25852ce108b61128f297f3e2a452932cf
             inline: true,
           },
           {
             name: "Payment Status",
+<<<<<<< HEAD
             value: paymentStatus,
+=======
+            value: paymentStatus || "Unknown",
+>>>>>>> 0d9908d25852ce108b61128f297f3e2a452932cf
             inline: true,
           },
           {
             name: "Delivery Status",
+<<<<<<< HEAD
             value: deliveryStatus,
+=======
+            value: deliveryStatus || "Pending",
+>>>>>>> 0d9908d25852ce108b61128f297f3e2a452932cf
             inline: true,
           },
           {
             name: "PayPal Order ID",
+<<<<<<< HEAD
             value: paypalOrderId,
+=======
+            value: paypalOrderId || "N/A",
+>>>>>>> 0d9908d25852ce108b61128f297f3e2a452932cf
             inline: false,
           },
         ],
         footer: {
+<<<<<<< HEAD
           text: isFreeOrder
             ? "Bloxhop Free Order Alert"
             : "Bloxhop Paid Order Alert",
+=======
+          text: "REAL Shop Order Alert",
+>>>>>>> 0d9908d25852ce108b61128f297f3e2a452932cf
         },
         timestamp: new Date().toISOString(),
       },
     ],
   };
 
+<<<<<<< HEAD
   await sendDiscordWebhook(payload);
+=======
+  const response = await fetch(webhookUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Discord webhook failed: ${text}`);
+  }
+>>>>>>> 0d9908d25852ce108b61128f297f3e2a452932cf
 }
 
 export async function sendDiscordDeliveredNotification(params: {
@@ -113,6 +177,7 @@ export async function sendDiscordDeliveredNotification(params: {
   deliveryNotes?: string | null;
   handledBy?: string | null;
 }) {
+<<<<<<< HEAD
   const orderId = params.orderId;
   const robloxUsername = safeText(params.robloxUsername);
   const contactInfo = safeText(params.contactInfo);
@@ -123,6 +188,26 @@ export async function sendDiscordDeliveredNotification(params: {
 
   const payload = {
     username: "Bloxhop",
+=======
+  const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
+
+  if (!webhookUrl) {
+    throw new Error("Missing DISCORD_WEBHOOK_URL");
+  }
+
+  const {
+    orderId,
+    robloxUsername,
+    contactInfo,
+    totalPrice,
+    deliveryStatus,
+    deliveryNotes,
+    handledBy,
+  } = params;
+
+  const payload = {
+    username: "REAL Shop",
+>>>>>>> 0d9908d25852ce108b61128f297f3e2a452932cf
     content: `📦 Order delivered: #${orderId}`,
     embeds: [
       {
@@ -146,32 +231,68 @@ export async function sendDiscordDeliveredNotification(params: {
           },
           {
             name: "Total",
+<<<<<<< HEAD
             value: totalPrice <= 0 ? "FREE" : `$${totalPrice.toFixed(2)}`,
+=======
+            value: `$${Number(totalPrice).toFixed(2)}`,
+>>>>>>> 0d9908d25852ce108b61128f297f3e2a452932cf
             inline: true,
           },
           {
             name: "Delivery Status",
+<<<<<<< HEAD
             value: deliveryStatus,
+=======
+            value: deliveryStatus || "Delivered",
+>>>>>>> 0d9908d25852ce108b61128f297f3e2a452932cf
             inline: true,
           },
           {
             name: "Handled By",
+<<<<<<< HEAD
             value: handledBy,
+=======
+            value: handledBy || "N/A",
+>>>>>>> 0d9908d25852ce108b61128f297f3e2a452932cf
             inline: true,
           },
           {
             name: "Delivery Notes",
+<<<<<<< HEAD
             value: deliveryNotes,
+=======
+            value: deliveryNotes || "No delivery notes",
+>>>>>>> 0d9908d25852ce108b61128f297f3e2a452932cf
             inline: false,
           },
         ],
         footer: {
+<<<<<<< HEAD
           text: "Bloxhop Delivery Alert",
+=======
+          text: "REAL Shop Delivery Alert",
+>>>>>>> 0d9908d25852ce108b61128f297f3e2a452932cf
         },
         timestamp: new Date().toISOString(),
       },
     ],
   };
 
+<<<<<<< HEAD
   await sendDiscordWebhook(payload);
 }
+=======
+  const response = await fetch(webhookUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Discord webhook failed: ${text}`);
+  }
+}
+>>>>>>> 0d9908d25852ce108b61128f297f3e2a452932cf

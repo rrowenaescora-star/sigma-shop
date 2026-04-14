@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+
+>>>>>>> 0d9908d25852ce108b61128f297f3e2a452932cf
 "use client";
 
 import { PayPalButtons, PayPalScriptProvider } from "@paypal/react-paypal-js";
@@ -11,7 +15,10 @@ type Product = {
   tag: string;
   stock: "In Stock" | "Limited" | "Out of Stock";
   stock_quantity?: number | null;
+<<<<<<< HEAD
   image_url?: string | null;
+=======
+>>>>>>> 0d9908d25852ce108b61128f297f3e2a452932cf
 };
 
 type CartItem = Product & {
@@ -25,6 +32,7 @@ const OrderSummaryItem = memo(function OrderSummaryItem({
 }) {
   return (
     <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+<<<<<<< HEAD
       <div className="flex items-center justify-between gap-4">
         <div className="flex min-w-0 items-center gap-4">
           <div className="relative h-16 w-16 flex-shrink-0 rounded-2xl border border-white/10 bg-[#0c1324]">
@@ -52,6 +60,15 @@ const OrderSummaryItem = memo(function OrderSummaryItem({
         </div>
 
         <p className="flex-shrink-0 text-lg font-extrabold text-white">
+=======
+      <div className="flex justify-between gap-4">
+        <div>
+          <h3 className="font-bold">{item.name}</h3>
+          <p className="text-sm text-slate-400">{item.tag}</p>
+          <p className="text-sm text-slate-400">Qty: {item.quantity}</p>
+        </div>
+        <p className="font-bold text-cyan-300">
+>>>>>>> 0d9908d25852ce108b61128f297f3e2a452932cf
           ${(Number(item.price) * item.quantity).toFixed(2)}
         </p>
       </div>
@@ -71,6 +88,7 @@ export default function CheckoutPage() {
   const [couponError, setCouponError] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState("");
 
+<<<<<<< HEAD
   const [robloxUserId, setRobloxUserId] = useState<number | null>(null);
   const [robloxAvatar, setRobloxAvatar] = useState<string | null>(null);
   const [robloxDisplayName, setRobloxDisplayName] = useState("");
@@ -78,6 +96,8 @@ export default function CheckoutPage() {
   const [verifyLoading, setVerifyLoading] = useState(false);
   const [verifyError, setVerifyError] = useState("");
 
+=======
+>>>>>>> 0d9908d25852ce108b61128f297f3e2a452932cf
   useEffect(() => {
     const savedCart = localStorage.getItem("real-cart");
     if (savedCart) {
@@ -97,10 +117,14 @@ export default function CheckoutPage() {
   }, [totalPrice, discount]);
 
   const isCheckoutDisabled =
+<<<<<<< HEAD
     cartItems.length === 0 ||
     !robloxUsername.trim() ||
     !contactInfo.trim() ||
     !isVerified;
+=======
+    cartItems.length === 0 || !robloxUsername.trim() || !contactInfo.trim();
+>>>>>>> 0d9908d25852ce108b61128f297f3e2a452932cf
 
   async function applyCoupon() {
     setCouponError("");
@@ -143,6 +167,7 @@ export default function CheckoutPage() {
     }
   }
 
+<<<<<<< HEAD
   async function verifyRobloxUser() {
     if (!robloxUsername.trim()) {
       setVerifyError("Please enter a Roblox username first.");
@@ -193,6 +218,13 @@ export default function CheckoutPage() {
     paidAmount?: number;
     paymentStatus?: string;
   }) {
+=======
+  async function handlePayPalSuccess(
+    paypalOrderId: string,
+    payerEmail: string | null,
+    paidAmount: number
+  ) {
+>>>>>>> 0d9908d25852ce108b61128f297f3e2a452932cf
     if (cartItems.length === 0) return;
 
     if (!robloxUsername.trim() || !contactInfo.trim()) {
@@ -200,11 +232,14 @@ export default function CheckoutPage() {
       return;
     }
 
+<<<<<<< HEAD
     if (!isVerified || !robloxUserId) {
       alert("Please verify your Roblox username first.");
       return;
     }
 
+=======
+>>>>>>> 0d9908d25852ce108b61128f297f3e2a452932cf
     setIsSubmitting(true);
 
     try {
@@ -215,16 +250,26 @@ export default function CheckoutPage() {
         },
         body: JSON.stringify({
           robloxUsername,
+<<<<<<< HEAD
           robloxUserId,
           robloxDisplayName,
+=======
+>>>>>>> 0d9908d25852ce108b61128f297f3e2a452932cf
           contactInfo,
           notes,
           items: cartItems,
           totalPrice: Number(finalPrice.toFixed(2)),
+<<<<<<< HEAD
           paypalOrderId: options?.paypalOrderId ?? null,
           paymentStatus: options?.paymentStatus ?? "Unpaid",
           payerEmail: options?.payerEmail || null,
           paidAmount: Number(options?.paidAmount ?? finalPrice),
+=======
+          paypalOrderId,
+          paymentStatus: "Paid",
+          payerEmail,
+          paidAmount: Number(paidAmount),
+>>>>>>> 0d9908d25852ce108b61128f297f3e2a452932cf
           couponCode: appliedCoupon || undefined,
         }),
       });
@@ -249,6 +294,7 @@ export default function CheckoutPage() {
     }
   }
 
+<<<<<<< HEAD
   async function handlePayPalSuccess(
     paypalOrderId: string,
     payerEmail: string | null,
@@ -281,10 +327,21 @@ export default function CheckoutPage() {
 
           <h1 className="mt-4 text-4xl font-extrabold">Complete your order</h1>
 
+=======
+  return (
+    <div className="min-h-screen bg-[#070b14] text-white px-6 py-12">
+      <div className="mx-auto max-w-6xl grid gap-8 lg:grid-cols-2">
+        <div className="bg-[#101729] p-8 rounded-2xl border border-white/10 shadow-xl">
+          <p className="text-sm uppercase tracking-[0.25em] text-cyan-300">
+            Checkout
+          </p>
+          <h1 className="mt-4 text-4xl font-extrabold">Complete your order</h1>
+>>>>>>> 0d9908d25852ce108b61128f297f3e2a452932cf
           <p className="mt-4 text-slate-300">
             Enter your Roblox username and contact info so the order can be handled.
           </p>
 
+<<<<<<< HEAD
           <p className="mt-2 text-sm text-slate-400">
             Support:{" "}
             <a
@@ -304,6 +361,8 @@ export default function CheckoutPage() {
             </ul>
           </div>
 
+=======
+>>>>>>> 0d9908d25852ce108b61128f297f3e2a452932cf
           <div className="mt-8 space-y-5">
             <div>
               <label className="mb-2 block text-sm font-semibold text-slate-300">
@@ -312,6 +371,7 @@ export default function CheckoutPage() {
               <input
                 type="text"
                 value={robloxUsername}
+<<<<<<< HEAD
                 onChange={(e) => {
                   setRobloxUsername(e.target.value);
                   setIsVerified(false);
@@ -320,10 +380,14 @@ export default function CheckoutPage() {
                   setRobloxDisplayName("");
                   setVerifyError("");
                 }}
+=======
+                onChange={(e) => setRobloxUsername(e.target.value)}
+>>>>>>> 0d9908d25852ce108b61128f297f3e2a452932cf
                 className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none"
                 placeholder="Enter your Roblox username"
                 required
               />
+<<<<<<< HEAD
 
               <div className="mt-2 flex gap-2">
                 <button
@@ -369,6 +433,8 @@ export default function CheckoutPage() {
                   </div>
                 </div>
               )}
+=======
+>>>>>>> 0d9908d25852ce108b61128f297f3e2a452932cf
             </div>
 
             <div>
@@ -376,7 +442,11 @@ export default function CheckoutPage() {
                 Email
               </label>
               <input
+<<<<<<< HEAD
                 type="email"
+=======
+                type="text"
+>>>>>>> 0d9908d25852ce108b61128f297f3e2a452932cf
                 value={contactInfo}
                 onChange={(e) => setContactInfo(e.target.value)}
                 className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none"
@@ -399,7 +469,11 @@ export default function CheckoutPage() {
                 <button
                   type="button"
                   onClick={applyCoupon}
+<<<<<<< HEAD
                   className="rounded-xl bg-cyan-400 px-4 font-semibold text-black hover:brightness-150"
+=======
+                  className="rounded-xl bg-cyan-400 px-4 font-semibold text-black"
+>>>>>>> 0d9908d25852ce108b61128f297f3e2a452932cf
                 >
                   Apply
                 </button>
@@ -439,6 +513,7 @@ export default function CheckoutPage() {
             </div>
 
             <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+<<<<<<< HEAD
               {finalPrice <= 0 ? (
                 <>
                   <p className="mb-4 text-sm font-semibold text-emerald-300">
@@ -589,11 +664,109 @@ export default function CheckoutPage() {
                 </Link>
                 .
               </p>
+=======
+              <p className="mb-4 text-sm font-semibold text-slate-300">
+                Pay with PayPal
+              </p>
+
+              <PayPalScriptProvider
+                options={{
+                  clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "",
+                  currency: "USD",
+                  intent: "capture",
+                }}
+              >
+                <PayPalButtons
+                  style={{ layout: "vertical" }}
+                  disabled={isCheckoutDisabled || isSubmitting}
+                  forceReRender={[
+                    Number(finalPrice.toFixed(2)),
+                    robloxUsername,
+                    contactInfo,
+                    isSubmitting,
+                    discount,
+                    appliedCoupon,
+                  ]}
+                  createOrder={async () => {
+                    const cleanFinalPrice = Number(finalPrice.toFixed(2));
+
+                    console.log("Frontend totalPrice:", totalPrice);
+                    console.log("Frontend discount:", discount);
+                    console.log("Frontend finalPrice:", cleanFinalPrice);
+
+                    if (!Number.isFinite(cleanFinalPrice) || cleanFinalPrice <= 0) {
+                      throw new Error(`Invalid final price: ${cleanFinalPrice}`);
+                    }
+
+                    const response = await fetch("/api/paypal/create-order", {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+                      body: JSON.stringify({
+                        totalPrice: cleanFinalPrice.toFixed(2),
+                      }),
+                    });
+
+                    const data = await response.json();
+                    console.log("Frontend /api/paypal/create-order result:", data);
+
+                    if (!response.ok) {
+                      throw new Error(data.error || "Failed to create PayPal order.");
+                    }
+
+                    if (!data?.id) {
+                      throw new Error("Missing PayPal order ID.");
+                    }
+
+                    return data.id;
+                  }}
+                  onApprove={async (data) => {
+                    const response = await fetch("/api/paypal/capture-order", {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+                      body: JSON.stringify({
+                        orderID: data.orderID,
+                      }),
+                    });
+
+                    const result = await response.json();
+
+                    if (!response.ok) {
+                      alert(result.error || "Failed to capture payment.");
+                      return;
+                    }
+
+                    await handlePayPalSuccess(
+                      result.orderID || data.orderID || "",
+                      result.payerEmail || null,
+                      Number(result.paidAmount || 0)
+                    );
+                  }}
+                  onError={(err) => {
+                    console.error("PayPal error:", err);
+                    alert("PayPal checkout failed.");
+                  }}
+                />
+              </PayPalScriptProvider>
+
+              {isCheckoutDisabled && (
+                <p className="mt-3 text-sm text-yellow-300">
+                  Fill in your Roblox username and email before paying.
+                </p>
+              )}
+>>>>>>> 0d9908d25852ce108b61128f297f3e2a452932cf
             </div>
           </div>
         </div>
 
+<<<<<<< HEAD
         <div className="rounded-2xl border border-white/10 bg-[#101729] p-8 shadow-xl">
+=======
+        <div className="bg-[#101729] p-8 rounded-2xl border border-white/10 shadow-xl">
+>>>>>>> 0d9908d25852ce108b61128f297f3e2a452932cf
           <h2 className="text-2xl font-bold">Order Summary</h2>
 
           <div className="mt-4 space-y-3">
@@ -625,6 +798,7 @@ export default function CheckoutPage() {
 
             <div className="mt-2 flex justify-between text-xl font-bold">
               <span>Total</span>
+<<<<<<< HEAD
               <span>
                 {finalPrice <= 0
                   ? discount > 0
@@ -632,10 +806,17 @@ export default function CheckoutPage() {
                     : "FREE"
                   : `$${finalPrice.toFixed(2)}`}
               </span>
+=======
+              <span>${finalPrice.toFixed(2)}</span>
+>>>>>>> 0d9908d25852ce108b61128f297f3e2a452932cf
             </div>
           </div>
         </div>
       </div>
     </div>
   );
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 0d9908d25852ce108b61128f297f3e2a452932cf

@@ -3,12 +3,15 @@ import { supabase } from "@/lib/supabase";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { sendDiscordDeliveredNotification } from "@/lib/discord";
+<<<<<<< HEAD
 import { sendEmailsIndividually } from "@/lib/email";
 
 function isValidEmail(value: string | null | undefined) {
   if (!value) return false;
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 }
+=======
+>>>>>>> 0d9908d25852ce108b61128f297f3e2a452932cf
 
 async function requireAdmin() {
   const cookieStore = await cookies();
@@ -46,6 +49,10 @@ async function requireAdmin() {
   return user;
 }
 
+<<<<<<< HEAD
+=======
+// ✅ GET ORDERS
+>>>>>>> 0d9908d25852ce108b61128f297f3e2a452932cf
 export async function GET() {
   const user = await requireAdmin();
   if (!user) {
@@ -59,7 +66,14 @@ export async function GET() {
       .order("created_at", { ascending: false });
 
     if (error) {
+<<<<<<< HEAD
       return NextResponse.json({ error: error.message }, { status: 500 });
+=======
+      return NextResponse.json(
+        { error: error.message },
+        { status: 500 }
+      );
+>>>>>>> 0d9908d25852ce108b61128f297f3e2a452932cf
     }
 
     return NextResponse.json({ orders: data || [] });
@@ -72,6 +86,10 @@ export async function GET() {
   }
 }
 
+<<<<<<< HEAD
+=======
+// ✅ UPDATE ORDER
+>>>>>>> 0d9908d25852ce108b61128f297f3e2a452932cf
 export async function PATCH(request: Request) {
   const user = await requireAdmin();
   if (!user) {
@@ -80,18 +98,38 @@ export async function PATCH(request: Request) {
 
   try {
     const body = await request.json();
+<<<<<<< HEAD
     const { id, status, deliveryStatus, deliveryNotes, handledBy } = body;
 
     if (!id) {
       return NextResponse.json({ error: "Missing order ID." }, { status: 400 });
+=======
+
+    const { id, status, deliveryStatus, deliveryNotes, handledBy } = body;
+
+    if (!id) {
+      return NextResponse.json(
+        { error: "Missing order ID." },
+        { status: 400 }
+      );
+>>>>>>> 0d9908d25852ce108b61128f297f3e2a452932cf
     }
 
     const updateData: Record<string, unknown> = {};
 
     if (status) updateData.status = status;
     if (deliveryStatus) updateData.delivery_status = deliveryStatus;
+<<<<<<< HEAD
     if (deliveryNotes !== undefined) updateData.delivery_notes = deliveryNotes;
     if (handledBy !== undefined) updateData.handled_by = handledBy;
+=======
+    if (deliveryNotes !== undefined) {
+      updateData.delivery_notes = deliveryNotes;
+    }
+    if (handledBy !== undefined) {
+      updateData.handled_by = handledBy;
+    }
+>>>>>>> 0d9908d25852ce108b61128f297f3e2a452932cf
 
     if (deliveryStatus === "Delivered") {
       updateData.delivered_at = new Date().toISOString();
@@ -105,6 +143,7 @@ export async function PATCH(request: Request) {
       .single();
 
     if (error) {
+<<<<<<< HEAD
       console.error("Supabase update error:", error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
@@ -251,6 +290,25 @@ export async function PATCH(request: Request) {
       } else {
         console.log("No valid email found for this order.");
       }
+=======
+      return NextResponse.json(
+        { error: error.message },
+        { status: 500 }
+      );
+    }
+
+    // 🔥 Discord notify
+    if (data.delivery_status === "Delivered") {
+      await sendDiscordDeliveredNotification({
+        orderId: data.id,
+        robloxUsername: data.roblox_username,
+        contactInfo: data.contact_info,
+        totalPrice: Number(data.total_price),
+        deliveryStatus: data.delivery_status,
+        deliveryNotes: data.delivery_notes,
+        handledBy: data.handled_by,
+      });
+>>>>>>> 0d9908d25852ce108b61128f297f3e2a452932cf
     }
 
     return NextResponse.json({ success: true, order: data });
@@ -261,4 +319,8 @@ export async function PATCH(request: Request) {
       { status: 500 }
     );
   }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 0d9908d25852ce108b61128f297f3e2a452932cf

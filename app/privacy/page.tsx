@@ -7,9 +7,8 @@ export const metadata = {
 
 export default function PrivacyPage() {
   return (
-    <main className="min-h-screen bg-[#0b1220] text-white px-6 py-12">
-      <LegalPageShell  className="mx-auto max-w-3xl">
-        <h1 className="text-3xl font-bold mb-6">Privacy Policy</h1>
+      <LegalPageShell title="Privacy Policy">
+   
 
         <div className="space-y-4 text-white/90 leading-7">
           <p>Bloxhop respects your privacy.</p>
@@ -58,6 +57,6 @@ export default function PrivacyPage() {
           </section>
         </div>
      </LegalPageShell>
-    </main>
+
   );
 }

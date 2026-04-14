@@ -1,8 +1,8 @@
 import LegalPageShell from "@/components/legal-page-shell";
 export default function RefundPage() {
   return (
-     <LegalPageShell  className="max-w-3xl mx-auto p-8 text-white">
-      <h1 className="text-3xl font-bold mb-4">Refund Policy</h1>
+     <LegalPageShell  title="refund Policy">
+     
 
       <p className="mb-4">
         All purchases on Bloxhop are for digital goods and are delivered manually.

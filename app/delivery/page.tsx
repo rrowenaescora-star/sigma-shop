@@ -2,8 +2,7 @@ import LegalPageShell from "@/components/legal-page-shell";
 
 export default function DeliveryPage() {
   return (
-     <LegalPageShell className="max-w-3xl mx-auto p-8 text-white">
-      <h1 className="text-3xl font-bold mb-4">Delivery Policy</h1>
+     <LegalPageShell title="Delivery Policy">
 
       <p className="mb-4">
         All products sold on Bloxhop are digital items.

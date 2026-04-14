@@ -1,5 +1,4 @@
 import { sendDiscordOrderNotification } from "@/lib/discord";
-<<<<<<< HEAD
 import { sendEmail } from "@/lib/email";
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
@@ -9,11 +8,6 @@ function isValidEmail(value: string | null | undefined) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 }
 
-=======
-import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
-
->>>>>>> 0d9908d25852ce108b61128f297f3e2a452932cf
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -140,18 +134,11 @@ export async function POST(request: Request) {
       );
     }
 
-<<<<<<< HEAD
     const isFreeOrder = finalTotal <= 0;
     const isPaidOrder =
       paymentStatus === "Paid" || paymentStatus === "COMPLETED";
 
     if (!isFreeOrder && (paypalOrderId || isPaidOrder)) {
-=======
-    const isPaidOrder =
-      paymentStatus === "Paid" || paymentStatus === "COMPLETED";
-
-    if (paypalOrderId || isPaidOrder) {
->>>>>>> 0d9908d25852ce108b61128f297f3e2a452932cf
       if (paidAmount === undefined || paidAmount === null) {
         return NextResponse.json(
           { error: "Missing verified PayPal payment amount." },
@@ -167,15 +154,12 @@ export async function POST(request: Request) {
       }
     }
 
-<<<<<<< HEAD
     const finalPaymentStatus = isPaidOrder
       ? "Paid"
       : isFreeOrder
       ? "Free"
       : paymentStatus ?? "Unpaid";
 
-=======
->>>>>>> 0d9908d25852ce108b61128f297f3e2a452932cf
     const { data, error } = await supabase
       .from("orders")
       .insert([
@@ -186,13 +170,8 @@ export async function POST(request: Request) {
           items,
           total_price: finalTotal,
           status: "Pending",
-<<<<<<< HEAD
           paypal_order_id: isFreeOrder ? null : paypalOrderId ?? null,
           payment_status: finalPaymentStatus,
-=======
-          paypal_order_id: paypalOrderId ?? null,
-          payment_status: isPaidOrder ? "Paid" : paymentStatus ?? "Unpaid",
->>>>>>> 0d9908d25852ce108b61128f297f3e2a452932cf
           payer_email: payerEmail ?? null,
           paid_at: isPaidOrder ? new Date().toISOString() : null,
         },
@@ -204,11 +183,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-<<<<<<< HEAD
     if (isPaidOrder || isFreeOrder) {
-=======
-    if (isPaidOrder) {
->>>>>>> 0d9908d25852ce108b61128f297f3e2a452932cf
       for (const item of items) {
         const { data: product } = await supabase
           .from("products")
@@ -219,15 +194,7 @@ export async function POST(request: Request) {
         if (!product) continue;
 
         const qty = Number(item.quantity || 1);
-<<<<<<< HEAD
         const newStock = Math.max(Number(product.stock_quantity || 0) - qty, 0);
-=======
-
-        const newStock = Math.max(
-          Number(product.stock_quantity || 0) - qty,
-          0
-        );
->>>>>>> 0d9908d25852ce108b61128f297f3e2a452932cf
 
         let stockLabel = "In Stock";
         if (newStock === 0) stockLabel = "Out of Stock";
@@ -252,7 +219,6 @@ export async function POST(request: Request) {
       }
     }
 
-<<<<<<< HEAD
     const emailSubject =
       data.payment_status === "Paid"
         ? "Your Bloxhop Payment Has Been Confirmed"
@@ -384,18 +350,6 @@ export async function POST(request: Request) {
       console.error("Discord order notification failed:", discordError);
     }
 
-=======
-    await sendDiscordOrderNotification({
-      orderId: data.id,
-      robloxUsername: data.roblox_username,
-      contactInfo: data.contact_info,
-      totalPrice: Number(data.total_price),
-      paymentStatus: data.payment_status,
-      deliveryStatus: data.delivery_status,
-      paypalOrderId: data.paypal_order_id,
-    });
-
->>>>>>> 0d9908d25852ce108b61128f297f3e2a452932cf
     return NextResponse.json({
       success: true,
       order: data,
@@ -406,8 +360,4 @@ export async function POST(request: Request) {
     console.error(error);
     return NextResponse.json({ error: "Server error." }, { status: 500 });
   }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> 0d9908d25852ce108b61128f297f3e2a452932cf

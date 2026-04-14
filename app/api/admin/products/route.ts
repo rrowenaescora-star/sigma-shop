@@ -227,8 +227,4 @@ export async function DELETE(request: Request) {
       { status: 500 }
     );
   }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> 0d9908d25852ce108b61128f297f3e2a452932cf

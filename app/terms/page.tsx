@@ -7,9 +7,8 @@ export const metadata = {
 
 export default function TermsPage() {
   return (
-    <main className="min-h-screen bg-[#0b1220] text-white px-6 py-12">
-     <LegalPageShell className="mx-auto max-w-3xl">
-        <h1 className="text-3xl font-bold mb-6">Terms of Service</h1>
+     <LegalPageShell title="Terms of Services">
+      
 
         <div className="space-y-4 text-white/90 leading-7">
           <p>
@@ -73,6 +72,5 @@ export default function TermsPage() {
           </section>
         </div>
       </LegalPageShell>
-    </main>
   );
 }

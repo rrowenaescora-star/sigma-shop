@@ -6,10 +6,8 @@ export const metadata = {
 
 export default function ContactPage() {
   return (
-    <main className="min-h-screen bg-[#0b1220] text-white px-6 py-12">
-      <LegalPageShell className="mx-auto max-w-3xl">
-        <h1 className="text-3xl font-bold mb-6">Contact Us</h1>
-
+      <LegalPageShell title="Contact Us">
+       
         <div className="space-y-4 text-white/90 leading-7">
           <p>Need help? We are here for you.</p>
 
@@ -39,6 +37,5 @@ export default function ContactPage() {
           </section>
         </div>
       </LegalPageShell>
-    </main>
   );
 }

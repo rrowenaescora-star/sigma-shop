@@ -1,7 +1,4 @@
-<<<<<<< HEAD
 
-=======
->>>>>>> 0d9908d25852ce108b61128f297f3e2a452932cf
 import { NextResponse } from "next/server";
 import { getPayPalAccessToken } from "@/lib/paypal";
 

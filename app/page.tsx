@@ -24,7 +24,9 @@ type CartItem = Product & {
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [message, setMessage] = useState("Welcome to BLOXHOP. Secure your Blox Fruits items today.");
+  const [message, setMessage] = useState(
+    "Welcome to BLOXHOP. Secure your Blox Fruits items today."
+  );
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("All");
@@ -359,11 +361,15 @@ export default function Home() {
                   </span>
 
                   <h1 className="mt-5 max-w-3xl text-4xl font-black leading-tight md:text-5xl">
-                    Buy Blox Fruits items faster with a cleaner premium store.
+                    Buy Blox Fruits items with fast digital delivery and secure checkout.
                   </h1>
 
                   <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300 md:text-base">
                     Browse discounted deals, limited stock items, and secure your order with a smoother shopping experience.
+                  </p>
+
+                  <p className="mt-2 text-sm text-slate-400">
+                    Delivery: 5–30 minutes | Support: bloxhop@bloxhop.site
                   </p>
 
                   <div className="mt-6 flex flex-wrap gap-3">
@@ -419,6 +425,35 @@ export default function Home() {
                   </h3>
                   <p className="mt-2 text-sm text-slate-400">Your selected order value</p>
                 </div>
+              </div>
+            </section>
+
+            <section className="mt-8 grid gap-4 md:grid-cols-2">
+              <div className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-5">
+                <h3 className="text-lg font-bold text-cyan-300">
+                  Delivery Information
+                </h3>
+                <p className="mt-2 text-sm text-slate-300">
+                  All items are digitally delivered directly in-game using your Roblox username.
+                </p>
+                <p className="mt-2 text-sm text-slate-300">
+                  Delivery time is usually 5–30 minutes and may take up to 3 hours in rare cases.
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-5">
+                <h3 className="text-lg font-bold text-emerald-300">
+                  Refund & Support
+                </h3>
+                <p className="mt-2 text-sm text-slate-300">
+                  If your order is not delivered within 3 hours, you may be eligible for a refund.
+                </p>
+                <p className="mt-2 text-sm text-slate-300">
+                  Contact us anytime at:
+                </p>
+                <p className="mt-1 font-semibold text-white">
+                  bloxhop@bloxhop.site
+                </p>
               </div>
             </section>
 
@@ -486,159 +521,171 @@ export default function Home() {
                 </div>
               </div>
 
-              {loadingProducts ? (
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-slate-300">
-                  Loading products...
-                </div>
-              ) : filteredProducts.length === 0 ? (
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-slate-300">
-                  No products found for this filter or search.
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2 2xl:grid-cols-3">
-                  {filteredProducts.map((product) => {
-                    const stockLabel = getStockLabel(product);
-                    const outOfStock = isOutOfStock(product);
-                    const quantity = Number(product.stock_quantity ?? 0);
-                    const discountPercent = getDiscountPercent(product);
-                    const savingsAmount = getSavingsAmount(product);
+              <div className="max-h-[900px] overflow-y-auto pr-2">
+                {loadingProducts ? (
+                  <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-slate-300">
+                    Loading products...
+                  </div>
+                ) : filteredProducts.length === 0 ? (
+                  <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-slate-300">
+                    No products found for this filter or search.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2 2xl:grid-cols-3">
+                    {filteredProducts.map((product) => {
+                      const stockLabel = getStockLabel(product);
+                      const outOfStock = isOutOfStock(product);
+                      const quantity = Number(product.stock_quantity ?? 0);
+                      const discountPercent = getDiscountPercent(product);
+                      const savingsAmount = getSavingsAmount(product);
 
-                    return (
-                      <div
-                        key={product.id}
-                        className="group overflow-hidden rounded-[2rem] border border-white/10 bg-[#0c1324] shadow-[0_10px_50px_rgba(0,0,0,0.25)] transition duration-300 hover:-translate-y-1 hover:border-cyan-300/20"
-                      >
-                        <div className="relative h-72 overflow-hidden bg-gradient-to-br from-cyan-400/15 via-transparent to-violet-400/15">
-                          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.15),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(167,139,250,0.15),transparent_35%)]" />
+                      return (
+                        <div
+                          key={product.id}
+                          className="group overflow-hidden rounded-[2rem] border border-white/10 bg-[#0c1324] shadow-[0_10px_50px_rgba(0,0,0,0.25)] transition duration-300 hover:-translate-y-1 hover:border-cyan-300/20"
+                        >
+                          <div className="relative h-72 overflow-hidden bg-gradient-to-br from-cyan-400/15 via-transparent to-violet-400/15">
+                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.15),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(167,139,250,0.15),transparent_35%)]" />
 
-                          <div className="absolute left-4 top-4 flex flex-wrap gap-2">
-                            <span className="rounded-full bg-[#09111f] px-3 py-1 text-xs font-bold text-cyan-300">
-                              {product.tag || "Item"}
+                            <div className="absolute left-4 top-4 flex flex-wrap gap-2">
+                              <span className="rounded-full bg-[#09111f] px-3 py-1 text-xs font-bold text-cyan-300">
+                                {product.tag || "Item"}
+                              </span>
+
+                              {discountPercent ? (
+                                <span className="rounded-full bg-red-500/15 px-3 py-1 text-xs font-bold text-red-300">
+                                  🔥 {discountPercent}% OFF
+                                </span>
+                              ) : null}
+                            </div>
+
+                            <span
+                              className={`absolute right-4 top-4 rounded-full px-3 py-1 text-xs font-semibold ${
+                                stockLabel === "Out of Stock"
+                                  ? "bg-red-500/15 text-red-300"
+                                  : stockLabel === "Limited"
+                                  ? "bg-yellow-500/15 text-yellow-300"
+                                  : "bg-emerald-500/15 text-emerald-300"
+                              }`}
+                            >
+                              {stockLabel}
                             </span>
 
-                            {discountPercent ? (
-                              <span className="rounded-full bg-red-500/15 px-3 py-1 text-xs font-bold text-red-300">
-                                🔥 {discountPercent}% OFF
-                              </span>
-                            ) : null}
-                          </div>
-
-                          <span
-                            className={`absolute right-4 top-4 rounded-full px-3 py-1 text-xs font-semibold ${
-                              stockLabel === "Out of Stock"
-                                ? "bg-red-500/15 text-red-300"
-                                : stockLabel === "Limited"
-                                ? "bg-yellow-500/15 text-yellow-300"
-                                : "bg-emerald-500/15 text-emerald-300"
-                            }`}
-                          >
-                            {stockLabel}
-                          </span>
-
-                          <div className="flex h-full items-center justify-center p-6">
-                            {product.image_url ? (
-                              <img
-                                src={product.image_url}
-                                alt={product.name}
-                                className="max-h-full max-w-full rounded-2xl object-contain transition-transform duration-500 ease-out group-hover:scale-110"
-                              />
-                            ) : (
-                              <div className="h-28 w-28 rounded-[2rem] bg-gradient-to-br from-cyan-300 to-violet-400 shadow-[0_0_60px_rgba(103,232,249,0.25)]" />
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="p-6">
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="min-w-0">
-                              <h4 className="truncate text-2xl font-bold">{product.name}</h4>
-                              <p className="mt-1 text-xs text-slate-400">
-                                {product.category || "Uncategorized"}
-                              </p>
+                            <div className="flex h-full items-center justify-center p-6">
+                              {product.image_url ? (
+                                <img
+                                  src={product.image_url}
+                                  alt={product.name}
+                                  className="max-h-full max-w-full rounded-2xl object-contain transition-transform duration-500 ease-out group-hover:scale-110"
+                                />
+                              ) : (
+                                <div className="h-28 w-28 rounded-[2rem] bg-gradient-to-br from-cyan-300 to-violet-400 shadow-[0_0_60px_rgba(103,232,249,0.25)]" />
+                              )}
                             </div>
                           </div>
 
-                          <p className="mt-3 min-h-[48px] text-sm leading-6 text-slate-400">
-                            {product.description || "No description available."}
-                          </p>
+                          <div className="p-6">
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="min-w-0">
+                                <h4 className="truncate text-2xl font-bold">{product.name}</h4>
+                                <p className="mt-1 text-xs text-slate-400">
+                                  {product.category || "Uncategorized"}
+                                </p>
+                              </div>
+                            </div>
 
-                          <div className="mt-4 flex flex-wrap gap-2">
-                            <span className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-slate-300">
-                              🔒 Secure checkout
-                            </span>
-                            <span className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-slate-300">
-                              ⚡ Fast processing
-                            </span>
-                            {quantity > 0 && quantity <= 3 ? (
-                              <span className="rounded-xl border border-yellow-400/10 bg-yellow-500/10 px-3 py-2 text-xs text-yellow-300">
-                                ⏳ Few left
+                            <p className="mt-3 min-h-[48px] text-sm leading-6 text-slate-400">
+                              {product.description || "No description available."}
+                            </p>
+
+                            <div className="mt-4 flex flex-wrap gap-2">
+                              <span className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-slate-300">
+                                🔒 Secure checkout
                               </span>
-                            ) : null}
-                          </div>
+                              <span className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-slate-300">
+                                ⚡ Fast processing
+                              </span>
+                              {quantity > 0 && quantity <= 3 ? (
+                                <span className="rounded-xl border border-yellow-400/10 bg-yellow-500/10 px-3 py-2 text-xs text-yellow-300">
+                                  ⏳ Few left
+                                </span>
+                              ) : null}
+                            </div>
 
-                          <div className="mt-4">
-                            {quantity > 0 ? (
-                              <p className="text-sm text-slate-400/0">
-                               
-                                {quantity <= 3 && (
-                                  <span className="ml-2 text-yellow-300">
-                                    Only a few left
-                                  </span>
-                                )}
-                              </p>
-                            ) : (
-                              <p className="text-sm font-semibold text-red-300">
-                                Currently unavailable
-                              </p>
-                            )}
-                          </div>
+                            <div className="mt-4">
+                              {quantity > 0 ? (
+                                <p className="text-sm text-slate-400/0">
+                                  {quantity <= 3 && (
+                                    <span className="ml-2 text-yellow-300">
+                                      Only a few left
+                                    </span>
+                                  )}
+                                </p>
+                              ) : (
+                                <p className="text-sm font-semibold text-red-300">
+                                  Currently unavailable
+                                </p>
+                              )}
+                            </div>
 
-                          <div className="mt-5">
-                            <div className="flex items-end justify-between gap-3">
-                              <div>
-                                <div className="flex flex-wrap items-center gap-2">
-                                  <p className="text-3xl font-extrabold text-cyan-300">
-                                    ${Number(product.price).toFixed(2)}
-                                  </p>
-
-                                  {product.compare_at_price &&
-                                  Number(product.compare_at_price) > Number(product.price) ? (
-                                    <p className="text-base font-semibold text-slate-500 line-through">
-                                      ${Number(product.compare_at_price).toFixed(2)}
+                            <div className="mt-5">
+                              <div className="flex items-end justify-between gap-3">
+                                <div>
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <p className="text-3xl font-extrabold text-cyan-300">
+                                      ${Number(product.price).toFixed(2)}
                                     </p>
-                                  ) : null}
+
+                                    {product.compare_at_price &&
+                                    Number(product.compare_at_price) > Number(product.price) ? (
+                                      <p className="text-lg font-semibold  text-slate-300  line-through decoration-red-400 ">
+                                        ${Number(product.compare_at_price).toFixed(2)}
+                                      </p>
+                                    ) : null}
+                                  </div>
+
+                                  {savingsAmount ? (
+                                    <p className="mt-1 text-xs font-semibold text-emerald-300">
+                                      You save ${savingsAmount.toFixed(2)}
+                                    </p>
+                                  ) : (
+                                    <p className="mt-1 text-xs text-slate-500">
+                                      Premium item pricing
+                                    </p>
+                                  )}
                                 </div>
 
-                                {savingsAmount ? (
-                                  <p className="mt-1 text-xs font-semibold text-emerald-300">
-                                    You save ${savingsAmount.toFixed(2)}
-                                  </p>
-                                ) : (
-                                  <p className="mt-1 text-xs text-slate-500">
-                                    Premium item pricing
-                                  </p>
-                                )}
+                                <button
+                                  onClick={() => handleBuy(product)}
+                                  className={`rounded-2xl px-5 py-3 font-bold transition ${
+                                    outOfStock
+                                      ? "cursor-not-allowed bg-slate-700 text-slate-300"
+                                      : "bg-violet-400 text-slate-950 hover:brightness-110"
+                                  }`}
+                                  disabled={outOfStock}
+                                >
+                                  {outOfStock ? "Unavailable" : "Buy Now"}
+                                </button>
                               </div>
-
-                              <button
-                                onClick={() => handleBuy(product)}
-                                className={`rounded-2xl px-5 py-3 font-bold transition ${
-                                  outOfStock
-                                    ? "cursor-not-allowed bg-slate-700 text-slate-300"
-                                    : "bg-violet-400 text-slate-950 hover:brightness-110"
-                                }`}
-                                disabled={outOfStock}
-                              >
-                                {outOfStock ? "Unavailable" : "Buy Now"}
-                              </button>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </section>
+
+            <section className="mt-10 rounded-2xl border border-white/10 bg-white/5 p-5 text-sm text-slate-400">
+              <h3 className="mb-2 text-lg font-bold text-white">
+                Business Information
+              </h3>
+
+              <p>Bloxhop</p>
+              <p>Digital goods store for Blox Fruits items</p>
+              <p>Location: Philippines</p>
+              <p>Email: bloxhop@bloxhop.site</p>
             </section>
           </div>
         </main>

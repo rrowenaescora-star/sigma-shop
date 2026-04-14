@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import SiteFooter from "@/components/site-footer"; // 👈 ADD THIS
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,10 +15,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Bloxhop",
-  description: "Blox Fruits Store",
-  icons: {
-    icon: "/king1.png", // 🔥 your favicon here
-  },
+  description: "Fast and secure delivery of Blox Fruits items.",
 };
 
 export default function RootLayout({
@@ -30,7 +28,17 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-screen flex flex-col bg-[#070b14] text-white">
+        
+        {/* MAIN CONTENT */}
+        <div className="flex-1">
+          {children}
+        </div>
+
+        {/* FOOTER (VERY IMPORTANT FOR PAYMONGO) */}
+        <SiteFooter />
+
+      </body>
     </html>
   );
 }

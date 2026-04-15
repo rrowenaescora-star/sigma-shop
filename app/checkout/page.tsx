@@ -281,16 +281,25 @@ export default function CheckoutPage() {
             <ul className="mt-2 space-y-1 text-slate-300">
               <li>• Digital delivery usually takes 5 to 30 minutes</li>
               <li>• In rare cases, delivery may take up to 3 hours</li>
-              <li>• Eligible nondelivery orders may qualify for a refund</li>
+              <li>• Refunds are only issued for non-delivery cases</li>
             </ul>
           </div>
 
           <div className="mt-4 rounded-2xl border border-yellow-400/20 bg-yellow-400/5 p-4 text-sm text-yellow-100">
-            <p className="font-semibold text-yellow-300">Temporary Payment Notice</p>
+            <p className="font-semibold text-yellow-300">Payment Status</p>
             <ul className="mt-2 space-y-1">
-              <li>• PayPal is temporarily unavailable</li>
-              <li>• You can place your order now and pay manually after submission</li>
-              <li>• Use your Order ID on the tracking page when contacting support</li>
+              <li>• Online payments are currently unavailable</li>
+              <li>• You can still submit an order request now</li>
+              <li>• After order submission, use your Order ID on the tracking page and contact support for payment instructions</li>
+            </ul>
+          </div>
+
+          <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-white/80">
+            <p className="font-semibold text-white">Important Notice</p>
+            <ul className="mt-2 space-y-1">
+              <li>• All items are digital and manually delivered</li>
+              <li>• Make sure your Roblox username is correct before submitting</li>
+              <li>• Bloxhop is not affiliated with Roblox Corporation</li>
             </ul>
           </div>
 
@@ -453,7 +462,7 @@ export default function CheckoutPage() {
               ) : (
                 <>
                   <p className="mb-4 text-sm font-semibold text-slate-300">
-                    Manual payment checkout
+                    Submit order request
                   </p>
 
                   <button
@@ -466,12 +475,11 @@ export default function CheckoutPage() {
                         : "bg-cyan-400 text-black hover:brightness-110"
                     }`}
                   >
-                    {isSubmitting ? "Creating Order..." : "Place Order"}
+                    {isSubmitting ? "Creating Order..." : "Submit Order Request"}
                   </button>
 
                   <p className="mt-3 text-sm text-slate-400">
-                    After placing the order, use the tracking page and your Order ID to
-                    contact support for manual payment instructions.
+                    This creates your order and gives you an Order ID for manual payment follow-up.
                   </p>
                 </>
               )}
@@ -483,7 +491,7 @@ export default function CheckoutPage() {
               )}
 
               <p className="mt-4 text-xs leading-5 text-white/70">
-                By purchasing, you agree to our{" "}
+                By submitting, you agree to our{" "}
                 <Link
                   href="/terms"
                   className="underline underline-offset-4 hover:text-white"

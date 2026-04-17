@@ -2,6 +2,9 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
+
+const text = "Join our Discord";
 
 type Product = {
   id: number;
@@ -332,6 +335,48 @@ export default function Home() {
               </div>
 
               <div className="flex items-center gap-3">
+	
+		
+   <Link
+      href="https://discord.gg/EEpftCnkgv"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group inline-block"
+    >
+      <div className="flex items-center overflow-hidden rounded-full  px-1 py-2">
+        <span className="flex max-w-0 overflow-hidden whitespace-nowrap group-hover:max-w-[180px] transition-all duration-600 ease-out">
+          {text.split("").map((char, i) => (
+            <span
+              key={i}
+	
+               className={`inline-block
+      opacity-0 translate-y-2
+      group-hover:opacity-100 group-hover:translate-y-0
+      transition-all duration-300
+      ${char === " " ? "mx-1" : ""}
+    `}
+    style={{ transitionDelay: `${i * 60}ms` }}
+	
+              style={{ transitionDelay: `${i * 60}ms` }}
+		
+     
+            >
+           {char === " " ? "\u00A0" : char}
+            </span>
+          ))}
+        </span>
+
+        <Image
+          src="/discord.png"
+          alt="Discord"
+          width={40}
+          height={40}
+          priority
+          className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 ml-2 translate-x-0 group-hover:-translate-x-1 transition-all  duration-500 ease-out"
+        />
+      </div>
+    </Link>
+
                 <Link
                   href="/track-order"
                   className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium hover:bg-white/10"

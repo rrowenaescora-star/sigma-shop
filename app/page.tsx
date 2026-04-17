@@ -357,7 +357,6 @@ export default function Home() {
     `}
     style={{ transitionDelay: `${i * 60}ms` }}
 	
-              style={{ transitionDelay: `${i * 60}ms` }}
 		
      
             >

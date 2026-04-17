@@ -366,7 +366,7 @@ export default function Home() {
         </span>
 
         <Image
-          src="/discord.png"
+          src="/discord1.png"
           alt="Discord"
           width={40}
           height={40}

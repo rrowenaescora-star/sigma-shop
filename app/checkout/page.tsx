@@ -216,7 +216,9 @@ export default function CheckoutPage() {
           notes,
           items: cartItems,
           totalPrice: Number(finalPrice.toFixed(2)),
-          paypalOrderId: null,
+          xenditSessionId: null,
+          xenditReferenceId: null,
+          paymentMethod: finalPrice <= 0 ? "Free" : "Xendit",
           paymentStatus,
           payerEmail: null,
           paidAmount: paymentStatus === "Free" ? 0 : null,
@@ -248,8 +250,58 @@ export default function CheckoutPage() {
     await saveOrder("Free");
   }
 
-  async function handleManualCheckout() {
-    await saveOrder("Manual Payment Pending");
+  async function handleXenditCheckout() {
+    if (cartItems.length === 0) return;
+
+    if (!robloxUsername.trim() || !contactInfo.trim()) {
+      alert("Please fill in your Roblox username and contact info first.");
+      return;
+    }
+
+    if (!isVerified || !robloxUserId) {
+      alert("Please verify your Roblox username first.");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const res = await fetch("/api/xendit/checkout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          robloxUsername,
+          robloxUserId,
+          robloxDisplayName,
+          contactInfo,
+          notes,
+          items: cartItems,
+          totalPrice: Number(finalPrice.toFixed(2)),
+          couponCode: appliedCoupon || undefined,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.error || "Failed to start payment.");
+        return;
+      }
+
+      if (!data.checkoutUrl) {
+        alert("Missing checkout URL.");
+        return;
+      }
+
+      window.location.href = data.checkoutUrl;
+    } catch (error) {
+      console.error(error);
+      alert("Something went wrong while starting payment.");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -285,12 +337,12 @@ export default function CheckoutPage() {
             </ul>
           </div>
 
-          <div className="mt-4 rounded-2xl border border-yellow-400/20 bg-yellow-400/5 p-4 text-sm text-yellow-100">
-            <p className="font-semibold text-yellow-300">Payment Status</p>
+          <div className="mt-4 rounded-2xl border border-emerald-400/20 bg-emerald-400/5 p-4 text-sm text-emerald-100">
+            <p className="font-semibold text-emerald-300">Payment Methods</p>
             <ul className="mt-2 space-y-1">
-              <li>• Online payments are currently unavailable</li>
-              <li>• You can still submit an order request now</li>
-              <li>• After order submission, use your Order ID on the tracking page and contact support for payment instructions</li>
+              <li>• Secure online checkout is now available</li>
+              <li>• Available methods are shown during payment</li>
+              <li>• After successful payment, your order will appear on the tracking page</li>
             </ul>
           </div>
 
@@ -462,12 +514,12 @@ export default function CheckoutPage() {
               ) : (
                 <>
                   <p className="mb-4 text-sm font-semibold text-slate-300">
-                    Submit order request
+                    Secure online payment
                   </p>
 
                   <button
                     type="button"
-                    onClick={handleManualCheckout}
+                    onClick={handleXenditCheckout}
                     disabled={isCheckoutDisabled}
                     className={`w-full rounded-2xl py-3 font-bold transition ${
                       isCheckoutDisabled
@@ -475,11 +527,11 @@ export default function CheckoutPage() {
                         : "bg-cyan-400 text-black hover:brightness-110"
                     }`}
                   >
-                    {isSubmitting ? "Creating Order..." : "Submit Order Request"}
+                    {isSubmitting ? "Redirecting..." : "Pay Now"}
                   </button>
 
                   <p className="mt-3 text-sm text-slate-400">
-                    This creates your order and gives you an Order ID for manual payment follow-up.
+                    You will be redirected to our secure payment page to complete your order.
                   </p>
                 </>
               )}

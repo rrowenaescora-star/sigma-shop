@@ -39,6 +39,7 @@ async function requireAdmin() {
   return user;
 }
 
+// ✅ GET PRODUCTS
 export async function GET() {
   const user = await requireAdmin();
   if (!user) {
@@ -65,6 +66,7 @@ export async function GET() {
   }
 }
 
+// ✅ CREATE PRODUCT
 export async function POST(request: Request) {
   const user = await requireAdmin();
   if (!user) {
@@ -86,6 +88,7 @@ export async function POST(request: Request) {
       description,
       imageUrl,
       isActive,
+      cost_value, // ✅ NEW
     } = body;
 
     if (!name || price === undefined || price === null) {
@@ -110,6 +113,7 @@ export async function POST(request: Request) {
           description: description || null,
           image_url: imageUrl || null,
           is_active: isActive ?? true,
+          cost_value: cost_value ?? 0, // ✅ NEW
         },
       ])
       .select()
@@ -129,6 +133,7 @@ export async function POST(request: Request) {
   }
 }
 
+// ✅ UPDATE PRODUCT
 export async function PATCH(request: Request) {
   const user = await requireAdmin();
   if (!user) {
@@ -151,6 +156,7 @@ export async function PATCH(request: Request) {
       description,
       imageUrl,
       isActive,
+      cost_value, // ✅ NEW
     } = body;
 
     if (!id) {
@@ -174,6 +180,7 @@ export async function PATCH(request: Request) {
         description,
         image_url: imageUrl,
         is_active: isActive,
+        cost_value: cost_value ?? 0, // ✅ NEW
       })
       .eq("id", id)
       .select()
@@ -193,6 +200,7 @@ export async function PATCH(request: Request) {
   }
 }
 
+// ✅ DELETE PRODUCT
 export async function DELETE(request: Request) {
   const user = await requireAdmin();
   if (!user) {

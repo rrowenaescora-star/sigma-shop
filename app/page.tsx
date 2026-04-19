@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
+import { createClient } from "@/lib/supabase/client";
 
 const text = "Join our Discord";
 
@@ -18,6 +19,7 @@ type Product = {
   category: string | null;
   description: string | null;
   image_url: string | null;
+  is_active: boolean;
 };
 
 type CartItem = Product & {
@@ -45,6 +47,44 @@ export default function Home() {
     loadProducts();
   }, []);
 
+useEffect(() => {
+  const supabase = createClient();
+
+  const channel = supabase
+    .channel("products-realtime")
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "products",
+      },
+      () => {
+        loadProducts();
+      }
+    )
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
+}, []);
+
+useEffect(() => {
+  function syncCart(event: StorageEvent) {
+    if (event.key === "real-cart") {
+      const updatedCart = event.newValue ? JSON.parse(event.newValue) : [];
+      setCartItems(updatedCart);
+    }
+  }
+
+  window.addEventListener("storage", syncCart);
+
+  return () => {
+    window.removeEventListener("storage", syncCart);
+  };
+}, []);
+
   useEffect(() => {
     localStorage.setItem("real-cart", JSON.stringify(cartItems));
   }, [cartItems]);
@@ -53,7 +93,7 @@ export default function Home() {
     try {
       setLoadingProducts(true);
 
-      const response = await fetch("/api/products");
+      const response = await fetch("/api/products", { cache: "no-store" });
       const result = await response.json();
 
       if (!response.ok) {
@@ -78,10 +118,14 @@ export default function Home() {
     return product.stock || "In Stock";
   }
 
-  function isOutOfStock(product: Product) {
-    const quantity = Number(product.stock_quantity ?? 0);
-    return quantity <= 0 || product.stock === "Out of Stock";
-  }
+  function isUnavailable(product: Product) {
+  const quantity = Number(product.stock_quantity ?? 0);
+  return (
+    quantity <= 0 ||
+    product.stock === "Out of Stock" ||
+    product.is_active === false
+  );
+}
 
   function getDiscountPercent(product: Product) {
     const compareAt = Number(product.compare_at_price ?? 0);
@@ -102,34 +146,34 @@ export default function Home() {
   }
 
   function handleBuy(product: Product) {
-    if (isOutOfStock(product)) {
-      setMessage(`${product.name} is currently unavailable.`);
+  if (isUnavailable(product)) {
+    setMessage(`${product.name} is currently unavailable.`);
+    return;
+  }
+
+  const existingItem = cartItems.find((item) => item.id === product.id);
+  const availableStock = Number(product.stock_quantity ?? 0);
+
+  if (existingItem) {
+    if (existingItem.quantity >= availableStock) {
+      setMessage(`Max stock reached for ${product.name}.`);
       return;
     }
 
-    const existingItem = cartItems.find((item) => item.id === product.id);
-    const availableStock = Number(product.stock_quantity ?? 0);
-
-    if (existingItem) {
-      if (existingItem.quantity >= availableStock) {
-        setMessage(`Max stock reached for ${product.name}.`);
-        return;
-      }
-
-      setCartItems((prev) =>
-        prev.map((item) =>
-          item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        )
-      );
-    } else {
-      setCartItems((prev) => [...prev, { ...product, quantity: 1 }]);
-    }
-
-    setMessage(`${product.name} added to cart.`);
-    setIsCartOpen(true);
+    setCartItems((prev) =>
+      prev.map((item) =>
+        item.id === product.id
+          ? { ...item, quantity: item.quantity + 1 }
+          : item
+      )
+    );
+  } else {
+    setCartItems((prev) => [...prev, { ...product, quantity: 1 }]);
   }
+
+  setMessage(`${product.name} added to cart.`);
+  setIsCartOpen(true);
+}
 
   function increaseQuantity(id: number) {
     const product = products.find((p) => p.id === id);
@@ -366,7 +410,7 @@ export default function Home() {
         </span>
 
         <Image
-          src="/discord1.png"
+          src="/discord2.png"
           alt="Discord"
           width={40}
           height={40}
@@ -578,7 +622,7 @@ export default function Home() {
                   <div className="grid grid-cols-1 gap-6 md:grid-cols-2 2xl:grid-cols-3">
                     {filteredProducts.map((product) => {
                       const stockLabel = getStockLabel(product);
-                      const outOfStock = isOutOfStock(product);
+                      const outOfStock = isUnavailable(product);
                       const quantity = Number(product.stock_quantity ?? 0);
                       const discountPercent = getDiscountPercent(product);
                       const savingsAmount = getSavingsAmount(product);
@@ -706,9 +750,9 @@ export default function Home() {
                                       ? "cursor-not-allowed bg-slate-700 text-slate-300"
                                       : "bg-violet-400 text-slate-950 hover:brightness-110"
                                   }`}
-                                  disabled={outOfStock}
+                                  disabled={outOfStock || product.is_active === false}
                                 >
-                                  {outOfStock ? "Unavailable" : "Buy Now"}
+                                  {outOfStock || product.is_active === false ? "Unavailable" : "Buy Now"}
                                 </button>
                               </div>
                             </div>

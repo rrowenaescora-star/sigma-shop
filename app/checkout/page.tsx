@@ -2,15 +2,19 @@
 
 import Link from "next/link";
 import { memo, useEffect, useMemo, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+
+
 
 type Product = {
   id: number;
   name: string;
   price: number;
-  tag: string;
+  tag?: string | null;
   stock: "In Stock" | "Limited" | "Out of Stock";
   stock_quantity?: number | null;
   image_url?: string | null;
+  is_active?: boolean;
 };
 
 type CartItem = Product & {
@@ -19,11 +23,19 @@ type CartItem = Product & {
 
 const OrderSummaryItem = memo(function OrderSummaryItem({
   item,
+  unavailable = false,
 }: {
   item: CartItem;
+  unavailable?: boolean;
 }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+    <div
+      className={`rounded-2xl border p-4 ${
+        unavailable
+          ? "border-red-400/20 bg-red-500/10"
+          : "border-white/10 bg-white/5"
+      }`}
+    >
       <div className="flex items-center justify-between gap-4">
         <div className="flex min-w-0 items-center gap-4">
           <div className="relative h-16 w-16 flex-shrink-0 rounded-2xl border border-white/10 bg-[#0c1324]">
@@ -46,7 +58,12 @@ const OrderSummaryItem = memo(function OrderSummaryItem({
 
           <div className="min-w-0">
             <h3 className="truncate font-bold text-white">{item.name}</h3>
-            <p className="text-sm text-slate-400">{item.tag}</p>
+            <p className="text-sm text-slate-400">{item.tag || "Item"}</p>
+            {unavailable && (
+              <p className="mt-1 text-xs font-semibold text-red-300">
+                This item is no longer available.
+              </p>
+            )}
           </div>
         </div>
 
@@ -77,12 +94,178 @@ export default function CheckoutPage() {
   const [verifyLoading, setVerifyLoading] = useState(false);
   const [verifyError, setVerifyError] = useState("");
 
+  const [usdToPhpRate, setUsdToPhpRate] = useState<number | null>(null);
+  const [rateLoading, setRateLoading] = useState(true);
+
+  const [latestProducts, setLatestProducts] = useState<Product[]>([]);
+  const [productValidationMessage, setProductValidationMessage] = useState("");
+  const [cartLoaded, setCartLoaded] = useState(false);
+
   useEffect(() => {
-    const savedCart = localStorage.getItem("real-cart");
-    if (savedCart) {
-      setCartItems(JSON.parse(savedCart));
+  const savedCart = localStorage.getItem("real-cart");
+  if (savedCart) {
+    setCartItems(JSON.parse(savedCart));
+  }
+  setCartLoaded(true);
+}, []);
+
+  useEffect(() => {
+  if (!cartLoaded) return;
+  localStorage.setItem("real-cart", JSON.stringify(cartItems));
+}, [cartItems, cartLoaded]);
+
+  useEffect(() => {
+    async function loadRate() {
+      try {
+        setRateLoading(true);
+        const res = await fetch("/api/exchange-rate", {
+          method: "GET",
+          cache: "no-store",
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          console.error(data.error || "Failed to load exchange rate.");
+          return;
+        }
+
+        setUsdToPhpRate(Number(data.rate));
+      } catch (error) {
+        console.error("Exchange rate fetch failed:", error);
+      } finally {
+        setRateLoading(false);
+      }
     }
+
+    loadRate();
   }, []);
+
+  useEffect(() => {
+    refreshProductsForValidation();
+  }, []);
+
+useEffect(() => {
+  const supabase = createClient();
+
+  const channel = supabase
+    .channel("checkout-products")
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "products",
+      },
+      () => {
+        refreshProductsForValidation();
+      }
+    )
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
+}, []);
+
+  useEffect(() => {
+    if (latestProducts.length === 0 || cartItems.length === 0) return;
+
+    const updatedCart: CartItem[] = cartItems.map((item) => {
+      const latest = latestProducts.find((p) => p.id === item.id);
+
+      if (!latest) {
+        return {
+          ...item,
+          stock: "Out of Stock",
+          stock_quantity: 0,
+          is_active: false,
+        };
+      }
+
+      return {
+        ...item,
+        price: Number(latest.price),
+        stock: latest.stock,
+        stock_quantity: latest.stock_quantity ?? 0,
+        image_url: latest.image_url ?? null,
+        tag: latest.tag ?? item.tag ?? "Item",
+        is_active: latest.is_active ?? false,
+        quantity: item.quantity,
+      };
+    });
+
+    const changed =
+      updatedCart.length !== cartItems.length ||
+      updatedCart.some((item, index) => {
+        const old = cartItems[index];
+        return (
+          !old ||
+          old.id !== item.id ||
+          old.quantity !== item.quantity ||
+          old.price !== item.price ||
+          old.stock !== item.stock ||
+          old.stock_quantity !== item.stock_quantity ||
+          old.is_active !== item.is_active ||
+          old.tag !== item.tag ||
+          old.image_url !== item.image_url
+        );
+      });
+
+    if (changed) {
+      setCartItems(updatedCart);
+    }
+
+    const unavailableNames = updatedCart
+      .filter((item) => {
+        const stock = Number(item.stock_quantity ?? 0);
+        return (
+          item.is_active === false ||
+          item.stock === "Out of Stock" ||
+          stock <= 0
+        );
+      })
+      .map((item) => item.name);
+
+    if (unavailableNames.length > 0) {
+      setProductValidationMessage(
+        `Some items in your cart are no longer available: ${[
+          ...new Set(unavailableNames),
+        ].join(", ")}.`
+      );
+    } else {
+      setProductValidationMessage("");
+    }
+  }, [latestProducts]);
+
+  async function refreshProductsForValidation() {
+    try {
+      const response = await fetch("/api/products", {
+        cache: "no-store",
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        console.error(result.error || "Failed to refresh products.");
+        return;
+      }
+
+      setLatestProducts(result.products || []);
+    } catch (error) {
+      console.error("Failed to refresh checkout products:", error);
+    }
+  }
+
+  function isCartItemUnavailable(item: CartItem) {
+    const stock = Number(item.stock_quantity ?? 0);
+
+    return (
+      item.is_active === false ||
+      item.stock === "Out of Stock" ||
+      stock <= 0
+    );
+  }
 
   const totalPrice = useMemo(() => {
     return cartItems.reduce(
@@ -95,12 +278,23 @@ export default function CheckoutPage() {
     return Math.max(totalPrice - discount, 0);
   }, [totalPrice, discount]);
 
+  const estimatedPhpTotal = useMemo(() => {
+    if (!usdToPhpRate || finalPrice <= 0) return null;
+    const bufferMultiplier = 1.01;
+    return Math.round(finalPrice * usdToPhpRate * bufferMultiplier * 100) / 100;
+  }, [finalPrice, usdToPhpRate]);
+
+  const hasUnavailableCartItems = useMemo(() => {
+    return cartItems.some((item) => isCartItemUnavailable(item));
+  }, [cartItems]);
+
   const isCheckoutDisabled =
     cartItems.length === 0 ||
     !robloxUsername.trim() ||
     !contactInfo.trim() ||
     !isVerified ||
-    isSubmitting;
+    isSubmitting ||
+    hasUnavailableCartItems;
 
   async function applyCoupon() {
     setCouponError("");
@@ -113,6 +307,20 @@ export default function CheckoutPage() {
     }
 
     try {
+      await refreshProductsForValidation();
+
+      const savedCart = localStorage.getItem("real-cart");
+      const currentCart: CartItem[] = savedCart ? JSON.parse(savedCart) : cartItems;
+
+      const hasUnavailable = currentCart.some((item) =>
+        isCartItemUnavailable(item)
+      );
+
+      if (hasUnavailable) {
+        setCouponError("Your cart contains unavailable items.");
+        return;
+      }
+
       const res = await fetch("/api/coupons", {
         method: "POST",
         headers: {
@@ -187,6 +395,55 @@ export default function CheckoutPage() {
     }
   }
 
+  async function validateCartBeforeSubmit() {
+    try {
+      const response = await fetch("/api/products", {
+        cache: "no-store",
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        alert(result.error || "Failed to validate cart.");
+        return false;
+      }
+
+      const freshProducts: Product[] = result.products || [];
+      setLatestProducts(freshProducts);
+
+      for (const item of cartItems) {
+        const latest = freshProducts.find((p) => p.id === item.id);
+
+        if (!latest) {
+          alert(`${item.name} is no longer available.`);
+          return false;
+        }
+
+        const stock = Number(latest.stock_quantity ?? 0);
+
+        if (
+          latest.is_active === false ||
+          latest.stock === "Out of Stock" ||
+          stock <= 0
+        ) {
+          alert(`${item.name} is currently unavailable.`);
+          return false;
+        }
+
+        if (Number(item.quantity) > stock) {
+          alert(`${item.name} no longer has enough stock.`);
+          return false;
+        }
+      }
+
+      return true;
+    } catch (error) {
+      console.error("Cart validation failed:", error);
+      alert("Failed to validate your cart.");
+      return false;
+    }
+  }
+
   async function saveOrder(paymentStatus: string) {
     if (cartItems.length === 0) return;
 
@@ -199,6 +456,9 @@ export default function CheckoutPage() {
       alert("Please verify your Roblox username first.");
       return;
     }
+
+    const valid = await validateCartBeforeSubmit();
+    if (!valid) return;
 
     setIsSubmitting(true);
 
@@ -262,6 +522,9 @@ export default function CheckoutPage() {
       alert("Please verify your Roblox username first.");
       return;
     }
+
+    const valid = await validateCartBeforeSubmit();
+    if (!valid) return;
 
     setIsSubmitting(true);
 
@@ -346,6 +609,15 @@ export default function CheckoutPage() {
             </ul>
           </div>
 
+          <div className="mt-4 rounded-2xl border border-yellow-400/20 bg-yellow-400/5 p-4 text-sm text-yellow-100">
+            <p className="font-semibold text-yellow-300">Price Preview</p>
+            <ul className="mt-2 space-y-1">
+              <li>• Store prices are shown in USD</li>
+              <li>• Checkout is processed in PHP</li>
+              <li>• The PHP amount below is only an estimate before payment</li>
+            </ul>
+          </div>
+
           <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-white/80">
             <p className="font-semibold text-white">Important Notice</p>
             <ul className="mt-2 space-y-1">
@@ -354,6 +626,18 @@ export default function CheckoutPage() {
               <li>• Bloxhop is not affiliated with Roblox Corporation</li>
             </ul>
           </div>
+
+          {productValidationMessage && (
+            <div className="mt-4 rounded-2xl border border-red-400/20 bg-red-500/10 p-4 text-sm text-red-200">
+              {productValidationMessage}
+            </div>
+          )}
+
+          {hasUnavailableCartItems && (
+            <div className="mt-4 rounded-2xl border border-red-400/20 bg-red-500/10 p-4 text-sm text-red-200">
+              Your cart contains unavailable items. Remove them or wait until they become available again.
+            </div>
+          )}
 
           <div className="mt-8 space-y-5">
             <div>
@@ -513,9 +797,35 @@ export default function CheckoutPage() {
                 </>
               ) : (
                 <>
-                  <p className="mb-4 text-sm font-semibold text-slate-300">
+                  <p className="mb-2 text-sm font-semibold text-slate-300">
                     Secure online payment
                   </p>
+
+                  <div className="mb-4 rounded-2xl border border-cyan-400/20 bg-cyan-400/5 p-4">
+                    <p className="text-sm text-slate-300">Store price</p>
+                    <p className="text-2xl font-extrabold text-white">
+                      ${finalPrice.toFixed(2)} USD
+                    </p>
+
+                    <p className="mt-2 text-sm text-slate-300">
+                      Estimated payment amount
+                    </p>
+
+                    <p className="text-xl font-bold text-cyan-300">
+                      {rateLoading
+                        ? "Loading PHP estimate..."
+                        : estimatedPhpTotal
+                        ? `≈ ₱${estimatedPhpTotal.toLocaleString(undefined, {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })} PHP`
+                        : "PHP estimate unavailable"}
+                    </p>
+
+                    <p className="mt-2 text-xs text-slate-400">
+                      The final PHP amount may vary slightly depending on the live exchange rate at checkout.
+                    </p>
+                  </div>
 
                   <button
                     type="button"
@@ -538,7 +848,7 @@ export default function CheckoutPage() {
 
               {isCheckoutDisabled && (
                 <p className="mt-3 text-sm text-yellow-300">
-                  Fill in your Roblox username, verify it, and enter your email before continuing.
+                  Fill in your Roblox username, verify it, enter your email, and make sure all items are available before continuing.
                 </p>
               )}
 
@@ -587,7 +897,11 @@ export default function CheckoutPage() {
               </div>
             ) : (
               cartItems.map((item) => (
-                <OrderSummaryItem key={item.id} item={item} />
+                <OrderSummaryItem
+                  key={item.id}
+                  item={item}
+                  unavailable={isCartItemUnavailable(item)}
+                />
               ))
             )}
           </div>
@@ -617,6 +931,19 @@ export default function CheckoutPage() {
                   : `$${finalPrice.toFixed(2)}`}
               </span>
             </div>
+
+            {finalPrice > 0 && estimatedPhpTotal && (
+              <div className="mt-2 flex justify-between text-sm text-cyan-300">
+                <span>Estimated PHP</span>
+                <span>
+                  ≈ ₱
+                  {estimatedPhpTotal.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </div>

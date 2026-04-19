@@ -30,6 +30,11 @@ type XenditWebhookBody = {
   metadata?: Record<string, unknown> | null;
 };
 
+type OrderItem = {
+  id: string | number;
+  quantity?: number;
+};
+
 function isValidEmail(value: string | null | undefined) {
   if (!value) return false;
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
@@ -96,20 +101,43 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "Failed to update order." }, { status: 500 });
       }
 
-      for (const item of existingOrder.items ?? []) {
-        const { data: product, error: productError } = await supabase
-          .from("products")
-          .select("stock_quantity")
-          .eq("id", item.id)
-          .single();
+      const { data: settings, error: settingsError } = await supabase
+        .from("shop_settings")
+        .select("id, global_capital")
+        .single();
 
-        if (productError || !product) {
-          console.error("Failed to load product for stock update:", item.id, productError);
+      if (settingsError || !settings) {
+        console.error("Failed to load shop settings:", settingsError);
+        return NextResponse.json(
+          { error: "Failed to load shop settings." },
+          { status: 500 }
+        );
+      }
+
+      let currentCapital = Number(settings.global_capital || 0);
+
+      for (const rawItem of (existingOrder.items ?? []) as OrderItem[]) {
+        const itemId = rawItem?.id;
+        const qty = Number(rawItem?.quantity || 1);
+
+        if (!itemId) {
+          console.error("Order item missing id:", rawItem);
           continue;
         }
 
-        const qty = Number(item.quantity || 1);
-        const newStock = Math.max(Number(product.stock_quantity || 0) - qty, 0);
+        const { data: product, error: productError } = await supabase
+          .from("products")
+          .select("id, stock_quantity, cost_value")
+          .eq("id", itemId)
+          .single();
+
+        if (productError || !product) {
+          console.error("Failed to load product for stock/capital update:", itemId, productError);
+          continue;
+        }
+
+        const currentStock = Number(product.stock_quantity || 0);
+        const newStock = Math.max(currentStock - qty, 0);
 
         let stockLabel = "In Stock";
         if (newStock === 0) stockLabel = "Out of Stock";
@@ -121,10 +149,64 @@ export async function POST(req: Request) {
             stock_quantity: newStock,
             stock: stockLabel,
           })
-          .eq("id", item.id);
+          .eq("id", itemId);
 
         if (stockError) {
-          console.error("Failed to update stock:", item.id, stockError);
+          console.error("Failed to update stock:", itemId, stockError);
+        }
+
+        const costValue = Number(product.cost_value || 0);
+        currentCapital -= costValue * qty;
+      }
+
+      if (currentCapital < 0) {
+        currentCapital = 0;
+      }
+
+      const { error: capitalUpdateError } = await supabase
+        .from("shop_settings")
+        .update({
+          global_capital: currentCapital,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", settings.id);
+
+      if (capitalUpdateError) {
+        console.error("Failed to update global capital:", capitalUpdateError);
+        return NextResponse.json(
+          { error: "Failed to update global capital." },
+          { status: 500 }
+        );
+      }
+
+      const { data: allProducts, error: allProductsError } = await supabase
+        .from("products")
+        .select("id, cost_value");
+
+      if (allProductsError) {
+        console.error("Failed to load products for availability update:", allProductsError);
+        return NextResponse.json(
+          { error: "Failed to update product availability." },
+          { status: 500 }
+        );
+      }
+
+      for (const product of allProducts ?? []) {
+        const isAvailable = Number(product.cost_value || 0) <= currentCapital;
+
+        const { error: availabilityError } = await supabase
+          .from("products")
+          .update({
+            is_active: isAvailable,
+          })
+          .eq("id", product.id);
+
+        if (availabilityError) {
+          console.error(
+            "Failed to update product availability:",
+            product.id,
+            availabilityError
+          );
         }
       }
 

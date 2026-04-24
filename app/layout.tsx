@@ -17,7 +17,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Bloxhop",
-  description: "Fast and secure delivery of digital products.",
+  description:
+    "Digital storefront for in-game products, order tracking, and customer support.",
   icons: {
     icon: "/logo.png",
   },
@@ -33,50 +34,52 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-screen flex flex-col bg-[#070b14] text-white">
+      <body className="flex min-h-screen flex-col bg-[#070b14] text-white">
+        <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-[#0b1220]/70 backdrop-blur-xl">
+          <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 md:px-6 lg:px-8">
+            <Link href="/" className="group flex items-center gap-3">
+              <div className="overflow-hidden rounded-xl border border-white/10 bg-white/[0.04] p-1 transition-all duration-300 ease-in-out group-hover:border-cyan-300/20 group-hover:bg-white/[0.06]">
+                <Image
+                  src="/logo.png"
+                  alt="Bloxhop Logo"
+                  width={40}
+                  height={40}
+                  className="rounded-lg"
+                  priority
+                />
+              </div>
 
-        {/* 🔥 NAVBAR */}
-        <header className="w-full border-b border-white/10 bg-[#0b1220]/80 backdrop-blur">
-          <div className="mx-auto max-w-6xl px-6 py-4 flex items-center justify-between">
-            
-            {/* LOGO + NAME */}
-            <Link href="/" className="flex items-center gap-3">
-              <Image
-                src="/logo.png"
-                alt="Bloxhop Logo"
-                width={40}
-                height={40}
-                className="drop-shadow-[0_0_10px_rgba(0,255,255,0.5)]"
-                priority
-              />
-              <span className="text-lg font-bold tracking-wide">
-                Bloxhop
-              </span>
+              <div className="leading-tight">
+                <span className="block text-lg font-black tracking-wide text-white">
+                  BLOXHOP
+                </span>
+                <span className="block text-xs text-slate-400">
+                  Digital Item Storefront
+                </span>
+              </div>
             </Link>
 
-            {/* NAV LINKS */}
-            <div className="flex items-center gap-6 text-sm text-slate-300">
-              <Link href="/" className="hover:text-white transition">
+            <nav className="flex items-center gap-2 sm:gap-3">
+              <Link
+                href="/"
+                className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-medium text-slate-200 transition-all duration-300 ease-in-out hover:border-cyan-300/20 hover:bg-white/[0.08] hover:text-white"
+              >
                 Home
               </Link>
-              <Link href="/track-order" className="hover:text-white transition">
+
+              <Link
+                href="/track-order"
+                className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-medium text-slate-200 transition-all duration-300 ease-in-out hover:border-cyan-300/20 hover:bg-white/[0.08] hover:text-white"
+              >
                 Track Order
               </Link>
-              <Link href="/terms" className="hover:text-white transition">
-                Terms
-              </Link>
-            </div>
+            </nav>
           </div>
         </header>
 
-        {/* MAIN CONTENT */}
-        <div className="flex-1">
-          {children}
-        </div>
+        <main className="flex-1">{children}</main>
 
-        {/* FOOTER */}
         <SiteFooter />
-
       </body>
     </html>
   );

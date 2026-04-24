@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 
-const text = "Join our Discord";
+const text = "Support Center";
 
 type Product = {
   id: number;
@@ -26,17 +26,48 @@ type CartItem = Product & {
   quantity: number;
 };
 
+function ProductSkeletonCard() {
+  return (
+    <div className="group overflow-hidden rounded-[2rem] border border-slate-700/60 bg-[#0b1628]/70 backdrop-blur-md p-4 shadow-[0_12px_35px_rgba(2,6,23,0.28)]">
+      <div className="skeleton h-72 w-full rounded-[1.5rem]" />
+
+      <div className="mt-5 space-y-3">
+        <div className="skeleton h-6 w-2/3 rounded-xl" />
+        <div className="skeleton h-4 w-1/3 rounded-xl" />
+        <div className="skeleton h-4 w-full rounded-xl" />
+        <div className="skeleton h-4 w-5/6 rounded-xl" />
+
+        <div className="pt-2 space-y-2">
+          <div className="skeleton h-8 w-28 rounded-xl" />
+          <div className="skeleton h-4 w-24 rounded-xl" />
+        </div>
+
+        <div className="pt-2">
+          <div className="skeleton h-12 w-full rounded-2xl" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [message, setMessage] = useState(
-    "Welcome to BLOXHOP. Secure your Blox Fruits items today."
+    "Welcome to BLOXHOP. Browse trusted digital products and online service packages before checkout."
   );
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOption, setSortOption] = useState("default");
+  const [currencyView, setCurrencyView] = useState<"USD" | "PHP" | "BOTH">("USD");
+  const [usdToPhpRate, setUsdToPhpRate] = useState<number | null>(null);
+  const [rateLoading, setRateLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+
+
+  const PRODUCTS_PER_PAGE = 6;
 
   useEffect(() => {
     const savedCart = localStorage.getItem("real-cart");
@@ -47,47 +78,95 @@ export default function Home() {
     loadProducts();
   }, []);
 
-useEffect(() => {
-  const supabase = createClient();
+  useEffect(() => {
+    const supabase = createClient();
 
-  const channel = supabase
-    .channel("products-realtime")
-    .on(
-      "postgres_changes",
-      {
-        event: "*",
-        schema: "public",
-        table: "products",
-      },
-      () => {
-        loadProducts();
-      }
-    )
-    .subscribe();
+    const channel = supabase
+      .channel("products-realtime")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "products",
+        },
+        () => {
+          loadProducts();
+        }
+      )
+      .subscribe();
 
-  return () => {
-    supabase.removeChannel(channel);
-  };
-}, []);
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+	
+	useEffect(() => {
+  try {
+    const language = navigator.language?.toLowerCase() || "";
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
 
-useEffect(() => {
-  function syncCart(event: StorageEvent) {
-    if (event.key === "real-cart") {
-      const updatedCart = event.newValue ? JSON.parse(event.newValue) : [];
-      setCartItems(updatedCart);
-    }
+    const looksPhilippines =
+      language.includes("ph") ||
+      language.includes("fil") ||
+      timeZone === "Asia/Manila";
+
+    setCurrencyView(looksPhilippines ? "PHP" : "USD");
+  } catch (error) {
+    console.error("Currency auto-detect failed:", error);
+    setCurrencyView("USD");
   }
-
-  window.addEventListener("storage", syncCart);
-
-  return () => {
-    window.removeEventListener("storage", syncCart);
-  };
 }, []);
+
+  useEffect(() => {
+    function syncCart(event: StorageEvent) {
+      if (event.key === "real-cart") {
+        const updatedCart = event.newValue ? JSON.parse(event.newValue) : [];
+        setCartItems(updatedCart);
+      }
+    }
+
+    window.addEventListener("storage", syncCart);
+
+    return () => {
+      window.removeEventListener("storage", syncCart);
+    };
+  }, []);
 
   useEffect(() => {
     localStorage.setItem("real-cart", JSON.stringify(cartItems));
   }, [cartItems]);
+
+  useEffect(() => {
+    async function loadRate() {
+      try {
+        setRateLoading(true);
+        const res = await fetch("/api/exchange-rate", {
+          method: "GET",
+          cache: "no-store",
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          console.error(data.error || "Failed to load exchange rate.");
+          return;
+        }
+
+        setUsdToPhpRate(Number(data.rate));
+      } catch (error) {
+        console.error("Exchange rate fetch failed:", error);
+      } finally {
+        setRateLoading(false);
+      }
+    }
+
+    loadRate();
+  }, []);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedCategory, searchQuery, sortOption]);
 
   async function loadProducts() {
     try {
@@ -119,13 +198,13 @@ useEffect(() => {
   }
 
   function isUnavailable(product: Product) {
-  const quantity = Number(product.stock_quantity ?? 0);
-  return (
-    quantity <= 0 ||
-    product.stock === "Out of Stock" ||
-    product.is_active === false
-  );
-}
+    const quantity = Number(product.stock_quantity ?? 0);
+    return (
+      quantity <= 0 ||
+      product.stock === "Out of Stock" ||
+      product.is_active === false
+    );
+  }
 
   function getDiscountPercent(product: Product) {
     const compareAt = Number(product.compare_at_price ?? 0);
@@ -146,34 +225,34 @@ useEffect(() => {
   }
 
   function handleBuy(product: Product) {
-  if (isUnavailable(product)) {
-    setMessage(`${product.name} is currently unavailable.`);
-    return;
-  }
-
-  const existingItem = cartItems.find((item) => item.id === product.id);
-  const availableStock = Number(product.stock_quantity ?? 0);
-
-  if (existingItem) {
-    if (existingItem.quantity >= availableStock) {
-      setMessage(`Max stock reached for ${product.name}.`);
+    if (isUnavailable(product)) {
+      setMessage(`${product.name} is currently unavailable.`);
       return;
     }
 
-    setCartItems((prev) =>
-      prev.map((item) =>
-        item.id === product.id
-          ? { ...item, quantity: item.quantity + 1 }
-          : item
-      )
-    );
-  } else {
-    setCartItems((prev) => [...prev, { ...product, quantity: 1 }]);
-  }
+    const existingItem = cartItems.find((item) => item.id === product.id);
+    const availableStock = Number(product.stock_quantity ?? 0);
 
-  setMessage(`${product.name} added to cart.`);
-  setIsCartOpen(true);
-}
+    if (existingItem) {
+      if (existingItem.quantity >= availableStock) {
+        setMessage(`Max stock reached for ${product.name}.`);
+        return;
+      }
+
+      setCartItems((prev) =>
+        prev.map((item) =>
+          item.id === product.id
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        )
+      );
+    } else {
+      setCartItems((prev) => [...prev, { ...product, quantity: 1 }]);
+    }
+
+    setMessage(`${product.name} added to cart.`);
+    setIsCartOpen(true);
+  }
 
   function increaseQuantity(id: number) {
     const product = products.find((p) => p.id === id);
@@ -210,6 +289,53 @@ useEffect(() => {
   function clearCart() {
     setCartItems([]);
     setMessage("Cart cleared.");
+  }
+
+  function formatPhp(usdAmount: number) {
+    if (!usdToPhpRate) return null;
+    return usdAmount * usdToPhpRate;
+  }
+
+  function renderPrice(product: Product) {
+    const usd = Number(product.price);
+    const php = formatPhp(usd);
+
+    if (currencyView === "USD") {
+      return (
+        <p className="text-3xl font-extrabold text-sky-300">
+          ${usd.toFixed(2)}
+        </p>
+      );
+    }
+
+    if (currencyView === "PHP") {
+      return (
+        <p className="text-3xl font-extrabold text-sky-300">
+          {php ? `₱${php.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}` : "PHP unavailable"}
+        </p>
+      );
+    }
+
+    return (
+      <div>
+        <p className="text-3xl font-extrabold text-sky-300">
+          ${usd.toFixed(2)}
+        </p>
+        <p className="mt-1 text-sm text-slate-400">
+          {rateLoading
+            ? "Loading PHP estimate..."
+            : php
+            ? `≈ ₱${php.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}`
+            : "PHP estimate unavailable"}
+        </p>
+      </div>
+    );
   }
 
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
@@ -264,325 +390,144 @@ useEffect(() => {
     return sorted;
   }, [products, selectedCategory, searchQuery, sortOption]);
 
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE)
+  );
+
+  const paginatedProducts = useMemo(() => {
+    const start = (currentPage - 1) * PRODUCTS_PER_PAGE;
+    const end = start + PRODUCTS_PER_PAGE;
+    return filteredProducts.slice(start, end);
+  }, [filteredProducts, currentPage]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
   return (
-    <div className="min-h-screen bg-[#070b14] text-white relative overflow-x-hidden">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.12),transparent_25%),radial-gradient(circle_at_bottom_right,rgba(167,139,250,0.14),transparent_30%)] pointer-events-none" />
+    <div className="relative min-h-screen overflow-x-hidden bg-[#07111f] text-white">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(59,130,246,0.10),transparent_25%),radial-gradient(circle_at_bottom_right,rgba(14,165,233,0.08),transparent_30%)]" />
 
-      <div className="flex min-h-screen relative">
-        <aside className="hidden lg:flex lg:fixed lg:top-0 lg:left-0 lg:h-screen lg:w-72 overflow-hidden border-r border-white/10 bg-[#08101d]">
-          <img
-            src="/man_isolated_zoom.gif"
-            alt="Sidebar background"
-            className="absolute inset-0 h-full w-full object-cover object-left opacity-35"
-          />
-
-          <div className="absolute inset-0 bg-[#07101c]/75" />
-
-          <div className="relative z-10 flex h-full w-full flex-col p-6">
-            <div>
-              <p className="text-xs uppercase tracking-[0.3em] text-cyan-300">
-                Premium Store
-              </p>
-              <h1 className="mt-3 text-4xl font-black tracking-tight">BLOXHOP</h1>
-              <p className="mt-3 text-sm leading-6 text-slate-300">
-                Fast and trusted Blox Fruits item shopping with a cleaner experience.
-              </p>
-            </div>
-
-            <div className="mt-8 rounded-3xl border border-cyan-400/20 bg-cyan-400/10 p-4">
-              <p className="text-xs uppercase tracking-[0.2em] text-cyan-200">
-                Quick Stats
-              </p>
-              <div className="mt-4 space-y-3">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-300">Products</span>
-                  <span className="font-bold text-white">{products.length}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-300">Cart Items</span>
-                  <span className="font-bold text-white">{cartCount}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-300">Cart Total</span>
-                  <span className="font-bold text-cyan-300">${totalPrice.toFixed(2)}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-8">
-              <p className="text-sm font-semibold text-slate-300">Categories</p>
-              <div className="mt-4 flex flex-col gap-2">
-                {categories.map((category) => (
-                  <button
-                    key={category}
-                    onClick={() => setSelectedCategory(category)}
-                    className={`rounded-2xl px-4 py-3 text-left text-sm font-semibold transition ${
-                      selectedCategory === category
-                        ? "bg-cyan-400 text-slate-950"
-                        : "bg-white/5 text-white hover:bg-white/10"
-                    }`}
-                  >
-                    {category}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="mt-8">
-              <p className="text-sm font-semibold text-slate-300">Search</p>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search products..."
-                className="mt-4 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none placeholder:text-slate-500"
-              />
-            </div>
-
-            <div className="mt-8">
-              <p className="text-sm font-semibold text-slate-300">Sort</p>
-              <select
-                value={sortOption}
-                onChange={(e) => setSortOption(e.target.value)}
-                className="mt-4 w-full rounded-2xl border border-white/10 bg-black/50 px-4 py-3 outline-none"
-              >
-                <option value="default">Default</option>
-                <option value="price-low-high">Price: Low to High</option>
-                <option value="price-high-low">Price: High to Low</option>
-                <option value="name-a-z">Name: A to Z</option>
-                <option value="name-z-a">Name: Z to A</option>
-              </select>
-            </div>
-
-            <div className="mt-auto rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm">
-              <p className="text-sm text-slate-300">Ready to checkout?</p>
-              <h3 className="mt-2 text-4xl font-extrabold">{cartCount}</h3>
-              <p className="mt-2 text-sm text-slate-300">
-                Total: ${totalPrice.toFixed(2)}
-              </p>
-              <button
-                onClick={() => setIsCartOpen(true)}
-                className="mt-4 w-full rounded-2xl bg-violet-400 py-3 font-bold text-slate-950 transition hover:brightness-110"
-              >
-                Open Cart
-              </button>
-            </div>
-          </div>
-        </aside>
-
-        <main className="lg:ml-72 flex-1 relative">
-          <div className="sticky top-0 z-40 border-b border-white/10 bg-[#0a1020]/85 backdrop-blur-xl">
-            <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
-              <div>
-                <h2 className="text-2xl font-extrabold lg:hidden">BLOXHOP</h2>
-                <p className="text-sm text-slate-400">Premium Blox Fruits shop</p>
-              </div>
-
-              <div className="flex items-center gap-3">
-	
-		
-   <Link
-      href="https://discord.gg/EEpftCnkgv"
-      target="_blank"
-      rel="noopener noreferrer"
-      className="group inline-block"
-    >
-      <div className="flex items-center overflow-hidden rounded-full  px-1 py-2">
-        <span className="flex max-w-0 overflow-hidden whitespace-nowrap group-hover:max-w-[180px] transition-all duration-600 ease-out">
-          {text.split("").map((char, i) => (
-            <span
-              key={i}
-	
-               className={`inline-block
-      opacity-0 translate-y-2
-      group-hover:opacity-100 group-hover:translate-y-0
-      transition-all duration-300
-      ${char === " " ? "mx-1" : ""}
-    `}
-    style={{ transitionDelay: `${i * 60}ms` }}
-	
-		
-     
-            >
-           {char === " " ? "\u00A0" : char}
+      <div className="relative mx-auto max-w-[1700px] px-4 py-4 md:px-6 lg:px-8">
+        <div className="mb-4 flex items-center justify-between rounded-3xl border border-slate-700/60 bg-[#0f1b2d]/95 px-4 py-4 backdrop-blur-xl">
+          <div className="flex items-center gap-3">
+            <p className="text-xl font-black tracking-tight">BLOXHOP</p>
+            <span className="hidden text-sm text-slate-400 sm:inline">
+              Digital products & online services
             </span>
-          ))}
-        </span>
-
-        <Image
-          src="/discord2.png"
-          alt="Discord"
-          width={40}
-          height={40}
-          priority
-          className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 ml-2 translate-x-0 group-hover:-translate-x-1 transition-all  duration-500 ease-out"
-        />
-      </div>
-    </Link>
-
-                <Link
-                  href="/track-order"
-                  className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium hover:bg-white/10"
-                >
-                  Track Order
-                </Link>
-
-                <button
-                  onClick={() => setIsCartOpen(true)}
-                  className="rounded-2xl bg-violet-400 px-4 py-2 text-sm font-bold text-slate-950 transition hover:brightness-110"
-                >
-                  Cart 🛒 ({cartCount})
-                </button>
-              </div>
-            </div>
           </div>
 
-          <div className="mx-auto max-w-7xl px-6 py-8">
-            <section className="grid gap-6 xl:grid-cols-[1.35fr_0.65fr]">
-              <div className="relative overflow-hidden rounded-[2rem] border border-cyan-400/20 bg-gradient-to-br from-cyan-400/10 via-[#0d1528] to-violet-400/10 p-8">
-                <div className="absolute -right-12 -top-12 h-48 w-48 rounded-full bg-cyan-400/10 blur-3xl" />
-                <div className="absolute -bottom-16 left-8 h-48 w-48 rounded-full bg-violet-400/10 blur-3xl" />
-
-                <div className="relative">
-                  <span className="inline-flex rounded-full border border-cyan-300/20 bg-cyan-300/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-cyan-200">
-                    Trusted Item Store
-                  </span>
-
-                  <h1 className="mt-5 max-w-3xl text-4xl font-black leading-tight md:text-5xl">
-                    Buy Blox Fruits items with fast digital delivery and secure checkout.
-                  </h1>
-
-                  <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300 md:text-base">
-                    Browse discounted deals, limited stock items, and secure your order with a smoother shopping experience.
-                  </p>
-
-                  <p className="mt-2 text-sm text-slate-400">
-                    Delivery: 5–30 minutes | Support: bloxhop@bloxhop.site
-                  </p>
-
-                  <div className="mt-6 flex flex-wrap gap-3">
-                    <button
-                      onClick={() => {
-                        const section = document.getElementById("products-section");
-                        section?.scrollIntoView({ behavior: "smooth" });
-                      }}
-                      className="rounded-2xl bg-cyan-400 px-5 py-3 font-bold text-slate-950 transition hover:brightness-110"
-                    >
-                      Browse Products
-                    </button>
-
-                    <Link
-                      href="/track-order"
-                      className="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 font-bold text-white hover:bg-white/10"
-                    >
-                      Track Your Order
-                    </Link>
-                  </div>
-
-                  <div className="mt-8 flex flex-wrap gap-3 text-sm">
-                    <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-slate-200">
-                      ⚡ Fast ordering
-                    </div>
-                    <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-slate-200">
-                      🔒 Secure checkout
-                    </div>
-                    <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-slate-200">
-                      🎁 Limited offers
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid gap-4 sm:grid-cols-3 xl:grid-cols-1">
-                <div className="rounded-[2rem] border border-white/10 bg-white/5 p-6">
-                  <p className="text-sm text-slate-400">Products Loaded</p>
-                  <h3 className="mt-3 text-4xl font-black">{products.length}</h3>
-                  <p className="mt-2 text-sm text-slate-400">Live from your database</p>
-                </div>
-
-                <div className="rounded-[2rem] border border-white/10 bg-white/5 p-6">
-                  <p className="text-sm text-slate-400">Items in Cart</p>
-                  <h3 className="mt-3 text-4xl font-black">{cartCount}</h3>
-                  <p className="mt-2 text-sm text-slate-400">Ready for checkout</p>
-                </div>
-
-                <div className="rounded-[2rem] border border-white/10 bg-white/5 p-6">
-                  <p className="text-sm text-slate-400">Current Total</p>
-                  <h3 className="mt-3 text-4xl font-black text-cyan-300">
-                    ${totalPrice.toFixed(2)}
-                  </h3>
-                  <p className="mt-2 text-sm text-slate-400">Your selected order value</p>
-                </div>
-              </div>
-            </section>
-
-            <section className="mt-8 grid gap-4 md:grid-cols-2">
-              <div className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-5">
-                <h3 className="text-lg font-bold text-cyan-300">
-                  Delivery Information
-                </h3>
-                <p className="mt-2 text-sm text-slate-300">
-                  All items are digitally delivered directly in-game using your Roblox username.
-                </p>
-                <p className="mt-2 text-sm text-slate-300">
-                  Delivery time is usually 5–30 minutes and may take up to 3 hours in rare cases.
-                </p>
-              </div>
-
-              <div className="rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-5">
-                <h3 className="text-lg font-bold text-emerald-300">
-                  Refund & Support
-                </h3>
-                <p className="mt-2 text-sm text-slate-300">
-                  If your order is not delivered within 3 hours, you may be eligible for a refund.
-                </p>
-                <p className="mt-2 text-sm text-slate-300">
-                  Contact us anytime at:
-                </p>
-                <p className="mt-1 font-semibold text-white">
-                  bloxhop@bloxhop.site
-                </p>
-              </div>
-            </section>
-
-            <section className="mt-6 rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-4 text-sm text-cyan-100">
-              {message}
-            </section>
-
-            <section
-              id="products-section"
-              className="mt-10 rounded-[2rem] border border-white/10 bg-white/[0.03] p-5 md:p-6"
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Link
+              href="https://discord.gg/EEpftCnkgv"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group hidden sm:inline-block"
             >
-              <div className="mb-6 flex flex-col gap-5">
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+              <div className="flex items-center overflow-hidden rounded-full px-1 py-2">
+                <span className="flex max-w-0 overflow-hidden whitespace-nowrap transition-all duration-700 ease-out group-hover:max-w-[180px]">
+                  {text.split("").map((char, i) => (
+                    <span
+                      key={i}
+                      className={`inline-block opacity-0 translate-y-2 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 ${
+                        char === " " ? "mx-1" : ""
+                      }`}
+                      style={{ transitionDelay: `${i * 60}ms` }}
+                    >
+                      {char === " " ? "\u00A0" : char}
+                    </span>
+                  ))}
+                </span>
+
+                <Image
+                  src="/discord2.png"
+                  alt="Discord"
+                  width={40}
+                  height={40}
+                  priority
+                  className="ml-2 h-8 w-8 sm:h-10 sm:w-10"
+                />
+              </div>
+            </Link>
+
+            <Link
+              href="/track-order"
+              className="rounded-2xl border border-slate-700/60 bg-[#10213a]/65 px-4 py-2 text-sm font-medium hover:bg-[#142846]/80"
+            >
+              Track Order
+            </Link>
+
+            <button
+              onClick={() => setIsCartOpen(true)}
+              className="rounded-2xl bg-blue-500 px-4 py-2 text-sm font-bold text-white transition hover:bg-blue-400"
+            >
+              Cart ({cartCount})
+            </button>
+          </div>
+        </div>
+
+        <div className="grid gap-6 xl:grid-cols-[1fr_360px]">
+          <main className="min-w-0">
+            <section className="rounded-[2rem] border border-slate-700/60 bg-[#0b1628]/70 p-4 md:p-6">
+              <div className="mb-5 flex flex-col gap-4">
+                <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                   <div>
-                    <h3 className="text-3xl font-extrabold">Featured Products</h3>
+                    <h1 className="text-3xl font-extrabold">Digital Products & Online Services</h1>
                     <p className="mt-1 text-sm text-slate-400">
-                      Discover discounted and limited stock items
+                      Browse secure digital products, service packages, and support options.
                     </p>
                   </div>
 
-                  <button
-                    onClick={loadProducts}
-                    className="rounded-2xl bg-violet-400 px-4 py-3 font-bold text-slate-950 transition hover:brightness-110"
-                  >
-                    Refresh Products
-                  </button>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={() => setCurrencyView("USD")}
+                      className={`rounded-2xl px-4 py-2 text-sm font-bold transition ${
+                        currencyView === "USD"
+                          ? "bg-blue-500 text-white"
+                          : "bg-[#142846]/80 text-white hover:bg-[#1b3558]/90"
+                      }`}
+                    >
+                      USD
+                    </button>
+                    <button
+                      onClick={() => setCurrencyView("PHP")}
+                      className={`rounded-2xl px-4 py-2 text-sm font-bold transition ${
+                        currencyView === "PHP"
+                          ? "bg-blue-500 text-white"
+                          : "bg-[#142846]/80 text-white hover:bg-[#1b3558]/90"
+                      }`}
+                    >
+                      PHP
+                    </button>
+                    <button
+                      onClick={() => setCurrencyView("BOTH")}
+                      className={`rounded-2xl px-4 py-2 text-sm font-bold transition ${
+                        currencyView === "BOTH"
+                          ? "bg-blue-500 text-white"
+                          : "bg-[#142846]/80 text-white hover:bg-[#1b3558]/90"
+                      }`}
+                    >
+                      Both
+                    </button>
+                  </div>
                 </div>
 
-                <div className="grid gap-3 xl:grid-cols-[1fr_220px]">
+                <div className="grid gap-3 lg:grid-cols-[1fr_220px]">
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search by name, description, category, or tag..."
-                    className="w-full rounded-2xl border border-white/10 bg-[#0b1222] px-4 py-3 outline-none placeholder:text-slate-500"
+                    placeholder="Search products..."
+                    className="w-full rounded-2xl border border-slate-700/60 bg-[#0b1628] px-4 py-3 outline-none placeholder:text-slate-500"
                   />
 
                   <select
                     value={sortOption}
                     onChange={(e) => setSortOption(e.target.value)}
-                    className="w-full rounded-2xl border border-white/10 bg-[#0b1222] px-4 py-3 outline-none"
+                    className="w-full rounded-2xl border border-slate-700/60 bg-[#0b1628] px-4 py-3 outline-none"
                   >
                     <option value="default">Sort: Default</option>
                     <option value="price-low-high">Sort: Price Low to High</option>
@@ -599,8 +544,8 @@ useEffect(() => {
                       onClick={() => setSelectedCategory(category)}
                       className={`rounded-2xl px-4 py-2 text-sm font-bold transition ${
                         selectedCategory === category
-                          ? "bg-cyan-400 text-slate-950"
-                          : "bg-white/10 text-white hover:bg-white/20"
+                          ? "bg-blue-500 text-white"
+                          : "bg-[#142846]/80 text-white hover:bg-[#1b3558]/90"
                       }`}
                     >
                       {category}
@@ -609,18 +554,24 @@ useEffect(() => {
                 </div>
               </div>
 
-              <div className="max-h-[900px] overflow-y-auto pr-2">
-                {loadingProducts ? (
-                  <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-slate-300">
-                    Loading products...
-                  </div>
-                ) : filteredProducts.length === 0 ? (
-                  <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-slate-300">
-                    No products found for this filter or search.
-                  </div>
-                ) : (
+              <div className="mb-5 rounded-2xl border border-cyan-400/20 bg-blue-500/10 p-4 text-sm text-sky-100">
+                {message}
+              </div>
+
+              {loadingProducts ? (
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2 2xl:grid-cols-3">
+  {Array.from({ length: PRODUCTS_PER_PAGE }).map((_, index) => (
+    <ProductSkeletonCard key={index} />
+  ))}
+</div>
+              ) : filteredProducts.length === 0 ? (
+                <div className="rounded-2xl border border-slate-700/60 bg-[#10213a]/65 p-6 text-slate-300">
+                  No products found for this filter or search.
+                </div>
+              ) : (
+                <>
                   <div className="grid grid-cols-1 gap-6 md:grid-cols-2 2xl:grid-cols-3">
-                    {filteredProducts.map((product) => {
+                    {paginatedProducts.map((product) => {
                       const stockLabel = getStockLabel(product);
                       const outOfStock = isUnavailable(product);
                       const quantity = Number(product.stock_quantity ?? 0);
@@ -630,19 +581,19 @@ useEffect(() => {
                       return (
                         <div
                           key={product.id}
-                          className="group overflow-hidden rounded-[2rem] border border-white/10 bg-[#0c1324] shadow-[0_10px_50px_rgba(0,0,0,0.25)] transition duration-300 hover:-translate-y-1 hover:border-cyan-300/20"
+                          className="group overflow-hidden rounded-[2rem] border border-slate-700/60 bg-[#0f1b2d]/95 backdrop-blur-md shadow-[0_16px_45px_rgba(2,6,23,0.32)] transition-all duration-300 ease-out hover:-translate-y-1.5 hover:border-blue-400/30 hover:shadow-[0_20px_55px_rgba(2,6,23,0.45)]"
                         >
-                          <div className="relative h-72 overflow-hidden bg-gradient-to-br from-cyan-400/15 via-transparent to-violet-400/15">
-                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.15),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(167,139,250,0.15),transparent_35%)]" />
+                          <div className="relative h-72 overflow-hidden bg-gradient-to-br from-blue-500/10 via-slate-900/20 to-sky-400/10">
+                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(59,130,246,0.12),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(14,165,233,0.10),transparent_35%)]" />
 
                             <div className="absolute left-4 top-4 flex flex-wrap gap-2">
-                              <span className="rounded-full bg-[#09111f] px-3 py-1 text-xs font-bold text-cyan-300">
-                                {product.tag || "Item"}
+                              <span className="rounded-full bg-[#09111f] px-3 py-1 text-xs font-bold text-sky-300">
+                                {product.tag || "Digital Service"}
                               </span>
 
                               {discountPercent ? (
                                 <span className="rounded-full bg-red-500/15 px-3 py-1 text-xs font-bold text-red-300">
-                                  🔥 {discountPercent}% OFF
+                                  {discountPercent}% OFF
                                 </span>
                               ) : null}
                             </div>
@@ -667,46 +618,48 @@ useEffect(() => {
                                   className="max-h-full max-w-full rounded-2xl object-contain transition-transform duration-500 ease-out group-hover:scale-110"
                                 />
                               ) : (
-                                <div className="h-28 w-28 rounded-[2rem] bg-gradient-to-br from-cyan-300 to-violet-400 shadow-[0_0_60px_rgba(103,232,249,0.25)]" />
+                                <div className="h-28 w-28 rounded-[2rem] bg-gradient-to-br from-blue-400 to-sky-300 shadow-[0_0_60px_rgba(59,130,246,0.20)]" />
                               )}
                             </div>
                           </div>
 
                           <div className="p-6">
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="min-w-0">
-                                <h4 className="truncate text-2xl font-bold">{product.name}</h4>
-                                <p className="mt-1 text-xs text-slate-400">
-                                  {product.category || "Uncategorized"}
-                                </p>
-                              </div>
+                            <div className="min-w-0">
+                              <h3 className="truncate text-2xl font-bold">
+                                {product.name}
+                              </h3>
+                              <p className="mt-1 text-xs text-slate-400">
+                                {product.category || "General"}
+                              </p>
                             </div>
 
                             <p className="mt-3 min-h-[48px] text-sm leading-6 text-slate-400">
-                              {product.description || "No description available."}
+                              {product.description || "Digital product or online service fulfilled after order confirmation."}
                             </p>
 
-                            <div className="mt-4 flex flex-wrap gap-2">
-                              <span className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-slate-300">
-                                🔒 Secure checkout
+                            <div className="mt-4 grid gap-2">
+                              <span className="rounded-xl border border-slate-700/60 bg-[#10213a]/65 px-3 py-2 text-xs text-slate-300">
+                                Fulfillment method: Digital delivery or online service fulfillment
                               </span>
-                              <span className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-slate-300">
-                                ⚡ Fast processing
+                              <span className="rounded-xl border border-slate-700/60 bg-[#10213a]/65 px-3 py-2 text-xs text-slate-300">
+                                Estimated fulfillment: 5–30 minutes
                               </span>
                               {quantity > 0 && quantity <= 3 ? (
                                 <span className="rounded-xl border border-yellow-400/10 bg-yellow-500/10 px-3 py-2 text-xs text-yellow-300">
-                                  ⏳ Few left
+                                  Few left in stock
                                 </span>
                               ) : null}
                             </div>
 
                             <div className="mt-4">
                               {quantity > 0 ? (
-                                <p className="text-sm text-slate-400/0">
-                                  {quantity <= 3 && (
-                                    <span className="ml-2 text-yellow-300">
-                                      Only a few left
+                                <p className="text-sm text-slate-400">
+                                  {quantity <= 3 ? (
+                                    <span className="text-yellow-300">
+                                      Limited stock available
                                     </span>
+                                  ) : (
+                                    <span>Available for order</span>
                                   )}
                                 </p>
                               ) : (
@@ -716,68 +669,225 @@ useEffect(() => {
                               )}
                             </div>
 
-                            <div className="mt-5">
-                              <div className="flex items-end justify-between gap-3">
-                                <div>
-                                  <div className="flex flex-wrap items-center gap-2">
-                                    <p className="text-3xl font-extrabold text-cyan-300">
-                                      ${Number(product.price).toFixed(2)}
-                                    </p>
+                            <div className="mt-5 flex items-end justify-between gap-3">
+                              <div>
+                                {renderPrice(product)}
 
-                                    {product.compare_at_price &&
-                                    Number(product.compare_at_price) > Number(product.price) ? (
-                                      <p className="text-lg font-semibold  text-slate-300  line-through decoration-red-400 ">
-                                        ${Number(product.compare_at_price).toFixed(2)}
-                                      </p>
-                                    ) : null}
-                                  </div>
+                               {product.compare_at_price &&
+ Number(product.compare_at_price) > Number(product.price) && (
+  <p className="mt-1 text-sm font-semibold text-slate-300 line-through decoration-red-400">
+    {currencyView === "USD" && (
+      `$${Number(product.compare_at_price).toFixed(2)}`
+    )}
 
-                                  {savingsAmount ? (
-                                    <p className="mt-1 text-xs font-semibold text-emerald-300">
-                                      You save ${savingsAmount.toFixed(2)}
-                                    </p>
-                                  ) : (
-                                    <p className="mt-1 text-xs text-slate-500">
-                                      Premium item pricing
-                                    </p>
-                                  )}
-                                </div>
+    {currencyView === "PHP" && usdToPhpRate && (
+      `₱${(Number(product.compare_at_price) * usdToPhpRate).toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })}`
+    )}
 
-                                <button
-                                  onClick={() => handleBuy(product)}
-                                  className={`rounded-2xl px-5 py-3 font-bold transition ${
-                                    outOfStock
-                                      ? "cursor-not-allowed bg-slate-700 text-slate-300"
-                                      : "bg-violet-400 text-slate-950 hover:brightness-110"
-                                  }`}
-                                  disabled={outOfStock || product.is_active === false}
-                                >
-                                  {outOfStock || product.is_active === false ? "Unavailable" : "Buy Now"}
-                                </button>
+    {currencyView === "BOTH" && usdToPhpRate && (
+      <>
+        ${Number(product.compare_at_price).toFixed(2)}
+        <span className="block text-xs text-slate-500">
+          ≈ ₱{(Number(product.compare_at_price) * usdToPhpRate).toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}
+        </span>
+      </>
+    )}
+  </p>
+)}
                               </div>
+
+                              <button
+                                onClick={() => handleBuy(product)}
+                                className={`rounded-2xl px-5 py-3 font-bold transition ${
+                                  outOfStock
+                                    ? "cursor-not-allowed bg-slate-700 text-slate-300"
+                                    : "bg-blue-500 text-white hover:bg-blue-400"
+                                }`}
+                                disabled={outOfStock || product.is_active === false}
+                              >
+                                {outOfStock ? "Unavailable" : "Add to Cart"}
+                              </button>
                             </div>
                           </div>
                         </div>
                       );
                     })}
                   </div>
-                )}
+
+                  <div className="mt-8 flex flex-wrap items-center justify-center gap-2">
+                    <button
+                      onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
+                      className={`rounded-2xl px-4 py-2 text-sm font-bold transition-all duration-300 ease-out ${
+  			currentPage === 1
+ 			   ? "cursor-not-allowed bg-slate-700 text-slate-400"
+  			  : "border border-slate-700/60 bg-[#10213a]/70 text-white hover:bg-[#142846]/80 hover:border-blue-400/30"
+			}`}
+                    >
+                      Prev
+                    </button>
+
+                    {Array.from({ length: totalPages }, (_, index) => index + 1).map(
+                      (pageNumber) => (
+                        <button
+                          key={pageNumber}
+                          onClick={() => setCurrentPage(pageNumber)}
+                          className={`rounded-2xl px-4 py-2 text-sm font-bold transition ${
+                            currentPage === pageNumber
+                              ? "bg-blue-500 text-white"
+                              : "bg-[#142846]/80 text-white hover:bg-[#1b3558]/90"
+                          }`}
+                        >
+                          {pageNumber}
+                        </button>
+                      )
+                    )}
+
+                    <button
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                      }
+                      disabled={currentPage === totalPages}
+                      className={`rounded-2xl px-4 py-2 text-sm font-bold transition ${
+                        currentPage === totalPages
+                          ? "cursor-not-allowed bg-slate-700 text-slate-400"
+                          : "bg-[#142846]/80 text-white hover:bg-[#1b3558]/90"
+                      }`}
+                    >
+                      Next
+                    </button>
+                  </div>
+                </>
+              )}
+            </section>
+          </main>
+
+          <aside className="xl:sticky xl:top-4 xl:self-start">
+            <div className="space-y-4">
+              <div className="rounded-[2rem] border border-slate-700/60 bg-[#0f1b2d] p-5">
+                <p className="text-xs uppercase tracking-[0.25em] text-sky-300">
+                  Store Info
+                </p>
+                <h2 className="mt-3 text-3xl font-black">BLOXHOP</h2>
+                <p className="mt-3 text-sm leading-6 text-slate-300">
+                  Digital products and online service packages with order tracking,
+                  fulfillment information, and customer support access.
+                </p>
               </div>
-            </section>
 
-            <section className="mt-10 rounded-2xl border border-white/10 bg-white/5 p-5 text-sm text-slate-400">
-              <h3 className="mb-2 text-lg font-bold text-white">
-                Business Information
-              </h3>
+              <div className="rounded-[2rem] border border-slate-700/60 bg-[#10213a]/65 p-5">
+                <p className="text-sm font-semibold text-slate-200">Order Summary</p>
+                <div className="mt-4 space-y-3 text-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-400">Products</span>
+                    <span className="font-bold text-white">{products.length}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-400">Cart Items</span>
+                    <span className="font-bold text-white">{cartCount}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-400">Total</span>
+                    <span className="font-bold text-sky-300">
+                      ${totalPrice.toFixed(2)}
+                    </span>
+                  </div>
+                  {usdToPhpRate ? (
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-400">Est. PHP</span>
+                      <span className="font-bold text-sky-300">
+                        ₱
+                        {(totalPrice * usdToPhpRate).toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+                      </span>
+                    </div>
+                  ) : null}
+                </div>
 
-              <p>Bloxhop</p>
-              <p>Digital goods store for Blox Fruits items</p>
-              <p>Location: Philippines</p>
-              <p>Email: bloxhop@bloxhop.site</p>
-            </section>
-          </div>
-        </main>
+                <button
+                  onClick={() => setIsCartOpen(true)}
+                  className="mt-4 w-full rounded-2xl bg-blue-500 py-3 font-bold text-white transition hover:bg-blue-400"
+                >
+                  Review Order
+                </button>
+              </div>
+
+              <div className="rounded-[2rem] border border-cyan-400/20 bg-blue-500/10 p-5">
+                <h3 className="text-lg font-bold text-sky-300">How it works</h3>
+                <ol className="mt-3 space-y-2 text-sm text-slate-300">
+                  <li>1. Select your preferred product.</li>
+                  <li>2. Review your cart and proceed to checkout.</li>
+                  <li>3. Enter your contact details and service information.</li>
+                  <li>4. Receive digital fulfillment or service fulfillment after payment confirmation.</li>
+                </ol>
+              </div>
+	<div className="rounded-[2rem] border border-emerald-400/20 bg-emerald-500/10 p-5 mt-4">
+  		<h3 className="text-lg font-bold text-emerald-300">
+ 		   Order Fulfillment
+ 		 </h3>
+
+ 	 <div className="mt-3 space-y-2 text-sm text-slate-300">
+  	  <p>• Orders are processed after payment confirmation</p>
+  	  <p>• Fulfillment is completed through digital access, email, or online coordination</p>
+   	 <p>• Service details will be confirmed using the information provided during checkout</p>
+    	<p>• Estimated fulfillment: 5–30 minutes (up to 3 hours in some cases)</p>
+  		</div>
+	</div>
+
+              <div className="rounded-[2rem] border border-slate-700/60 bg-[#10213a]/65 p-5">
+                <h3 className="text-lg font-bold text-white">Important Information</h3>
+                <div className="mt-3 space-y-3 text-sm text-slate-300">
+                  <p>All products and services listed on this website are digital or online-based.</p>
+                  <p>No physical products are shipped.</p>
+                  <p>Prices are shown in USD, with optional PHP estimate display.</p>
+                  <p>Please ensure your contact and order information is accurate during checkout.</p>
+                </div>
+              </div>
+
+              <div className="rounded-[2rem] border border-emerald-400/20 bg-emerald-500/10 p-5">
+                <h3 className="text-lg font-bold text-emerald-300">
+                  Fulfillment & Support
+                </h3>
+                <div className="mt-3 space-y-2 text-sm text-slate-300">
+                  <p>Estimated fulfillment: 5–30 minutes</p>
+                  <p>In rare cases, fulfillment may take up to 3 hours.</p>
+                  <p>Support email: support@bloxhop.site</p>
+                </div>
+              </div>
+
+              <div className="rounded-[2rem] border border-yellow-400/20 bg-yellow-400/10 p-5">
+                <h3 className="text-lg font-bold text-yellow-200">
+                  Refund Notice
+                </h3>
+                <p className="mt-3 text-sm text-slate-300">
+                  Refunds are reviewed for non-delivery or fulfillment issues based on the store refund policy.
+                </p>
+              </div>
+
+              <div className="rounded-[2rem] border border-slate-700/60 bg-[#10213a]/65 p-5">
+                <h3 className="text-lg font-bold text-white">Business Information</h3>
+                <div className="mt-3 space-y-2 text-sm text-slate-300">
+                  <p>Bloxhop Online Store</p>
+                  <p>Digital products and online services store</p>
+                  <p>Location: Philippines</p>
+                  <p>Email: support@bloxhop.site</p>
+                </div>
+              </div>
+
+
+                         </div>
+          </aside>
+        </div>
       </div>
+
 
       <>
         <div
@@ -790,38 +900,38 @@ useEffect(() => {
         />
 
         <div
-          className={`fixed top-0 right-0 z-50 flex h-full w-full max-w-md flex-col border-l border-white/10 bg-[#0d1324] shadow-2xl transition-transform duration-300 ease-in-out ${
+          className={`fixed top-0 right-0 z-50 flex h-full w-full max-w-md flex-col border-l border-slate-700/60 bg-[#0f1b2d] shadow-2xl transition-transform duration-300 ease-in-out ${
             isCartOpen ? "translate-x-0" : "translate-x-full"
           }`}
         >
-          <div className="border-b border-white/10 p-6">
+          <div className="border-b border-slate-700/60 p-6">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <h3 className="text-2xl font-extrabold">Your Cart</h3>
+                <h3 className="text-2xl font-extrabold">Order Review</h3>
                 <p className="text-sm text-slate-400">{cartCount} item(s)</p>
               </div>
 
               <button
                 onClick={() => setIsCartOpen(false)}
-                className="rounded-xl bg-white/10 px-4 py-2 text-sm font-semibold hover:bg-white/15"
+                className="rounded-xl bg-[#142846]/80 px-4 py-2 text-sm font-semibold hover:bg-[#1b3558]/80"
               >
                 Close
               </button>
             </div>
 
             <div className="mt-4 grid grid-cols-2 gap-3">
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+              <div className="rounded-2xl border border-slate-700/60 bg-[#10213a]/65 p-4">
                 <p className="text-xs uppercase tracking-[0.18em] text-slate-400">
                   Items
                 </p>
                 <p className="mt-2 text-2xl font-black">{cartCount}</p>
               </div>
 
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+              <div className="rounded-2xl border border-slate-700/60 bg-[#10213a]/65 p-4">
                 <p className="text-xs uppercase tracking-[0.18em] text-slate-400">
                   Total
                 </p>
-                <p className="mt-2 text-2xl font-black text-cyan-300">
+                <p className="mt-2 text-2xl font-black text-sky-300">
                   ${totalPrice.toFixed(2)}
                 </p>
               </div>
@@ -830,7 +940,7 @@ useEffect(() => {
 
           <div className="flex-1 overflow-y-auto p-6">
             {cartItems.length === 0 ? (
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-5 text-slate-300">
+              <div className="rounded-2xl border border-slate-700/60 bg-[#10213a]/65 p-5 text-slate-300">
                 Your cart is empty.
               </div>
             ) : (
@@ -838,18 +948,18 @@ useEffect(() => {
                 {cartItems.map((item) => (
                   <div
                     key={item.id}
-                    className="rounded-2xl border border-white/10 bg-white/5 p-4"
+                    className="rounded-2xl border border-slate-700/60 bg-[#10213a]/65 p-4"
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0">
                         <h4 className="truncate text-lg font-bold">{item.name}</h4>
                         <p className="mt-1 text-sm text-slate-400">
-                          {item.tag || "Item"}
+                          {item.tag || "Digital Service"}
                         </p>
                         <p className="mt-1 text-sm text-slate-400">
                           ${Number(item.price).toFixed(2)} × {item.quantity}
                         </p>
-                        <p className="mt-2 font-bold text-cyan-300">
+                        <p className="mt-2 font-bold text-sky-300">
                           ${(Number(item.price) * item.quantity).toFixed(2)}
                         </p>
                       </div>
@@ -858,7 +968,7 @@ useEffect(() => {
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => decreaseQuantity(item.id)}
-                            className="rounded-lg bg-white/10 px-3 py-1 font-bold hover:bg-white/15"
+                            className="rounded-lg bg-[#142846]/80 px-3 py-1 font-bold hover:bg-[#1b3558]/80"
                           >
                             -
                           </button>
@@ -867,7 +977,7 @@ useEffect(() => {
                           </span>
                           <button
                             onClick={() => increaseQuantity(item.id)}
-                            className="rounded-lg bg-white/10 px-3 py-1 font-bold hover:bg-white/15"
+                            className="rounded-lg bg-[#142846]/80 px-3 py-1 font-bold hover:bg-[#1b3558]/80"
                           >
                             +
                           </button>
@@ -887,32 +997,34 @@ useEffect(() => {
             )}
           </div>
 
-          <div className="border-t border-white/10 p-6">
+          <div className="border-t border-slate-700/60 p-6">
             <div className="mb-4 rounded-2xl border border-emerald-400/10 bg-emerald-500/10 p-4 text-sm text-emerald-200">
-              Secure checkout ready. Review your items before proceeding.
+              Review your selected products and service details before checkout.
             </div>
 
             <div className="flex items-center justify-between text-lg font-bold">
               <span>Total</span>
-              <span className="text-cyan-300">${totalPrice.toFixed(2)}</span>
+              <span className="text-sky-300">${totalPrice.toFixed(2)}</span>
             </div>
 
             <div className="mt-4 grid grid-cols-2 gap-3">
               <button
                 onClick={clearCart}
-                className="rounded-2xl bg-white/10 py-3 font-semibold hover:bg-white/15"
+                className="rounded-2xl bg-[#142846]/80 py-3 font-semibold hover:bg-[#1b3558]/80"
               >
                 Clear
               </button>
 
               <Link
-                href="/checkout"
+                href="/checkout" 
                 className={`rounded-2xl py-3 text-center font-bold transition ${
                   cartItems.length === 0
                     ? "pointer-events-none bg-slate-700 text-slate-300"
-                    : "bg-cyan-400 text-slate-950 hover:brightness-110"
+                    : "bg-blue-500 text-white hover:bg-blue-400"
                 }`}
-              >
+		
+              > 
+	
                 Checkout
               </Link>
             </div>

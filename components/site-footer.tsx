@@ -122,7 +122,8 @@ export default function SiteFooter() {
 
           <div className="mt-6 border-t border-white/10 pt-6 space-y-2">
             <p className="text-xs text-slate-400">
-              Bloxhop is an independent digital products and online services store.
+             Bloxhop is an independent digital services platform and is not affiliated with,
+  endorsed by, or sponsored by Roblox Corporation or Blox Fruits.
             </p>
 
             <p className="text-xs text-slate-500">

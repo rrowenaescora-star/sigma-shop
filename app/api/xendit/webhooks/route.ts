@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import { sendEmail } from "@/lib/email";
+import { sendDiscordOrderNotification } from "@/lib/discord";
 
 type XenditWebhookBody = {
   event?: string;
@@ -76,16 +77,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Order not found." }, { status: 404 });
     }
 
-   const isCompleted =
-  event === "payment_session.completed" ||
-  event === "invoice.paid" ||
-  sessionStatus === "COMPLETED" ||
-  sessionStatus === "PAID";
+    const isCompleted =
+      event === "payment_session.completed" ||
+      event === "invoice.paid" ||
+      sessionStatus === "COMPLETED" ||
+      sessionStatus === "PAID";
 
-const isExpired =
-  event === "payment_session.expired" ||
-  event === "invoice.expired" ||
-  sessionStatus === "EXPIRED";
+    const isExpired =
+      event === "payment_session.expired" ||
+      event === "invoice.expired" ||
+      sessionStatus === "EXPIRED";
 
     if (isCompleted) {
       if (existingOrder.payment_status === "Paid") {
@@ -104,6 +105,23 @@ const isExpired =
       if (updateError) {
         console.error("Failed to mark order paid:", updateError);
         return NextResponse.json({ error: "Failed to update order." }, { status: 500 });
+      }
+
+      try {
+        await sendDiscordOrderNotification({
+          orderId: existingOrder.id,
+          robloxUsername: existingOrder.roblox_username,
+          contactInfo: existingOrder.contact_info,
+          totalPrice: Number(existingOrder.total_price),
+          paymentStatus: "Paid",
+          deliveryStatus: existingOrder.delivery_status || "Pending",
+          paypalOrderId:
+            existingOrder.paypal_order_id ||
+            existingOrder.xendit_reference_id ||
+            null,
+        });
+      } catch (discordError) {
+        console.error("Discord paid order notification failed:", discordError);
       }
 
       const { data: settings, error: settingsError } = await supabase

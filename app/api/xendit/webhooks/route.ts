@@ -76,11 +76,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Order not found." }, { status: 404 });
     }
 
-    const isCompleted =
-      event === "payment_session.completed" || sessionStatus === "COMPLETED";
+   const isCompleted =
+  event === "payment_session.completed" ||
+  event === "invoice.paid" ||
+  sessionStatus === "COMPLETED" ||
+  sessionStatus === "PAID";
 
-    const isExpired =
-      event === "payment_session.expired" || sessionStatus === "EXPIRED";
+const isExpired =
+  event === "payment_session.expired" ||
+  event === "invoice.expired" ||
+  sessionStatus === "EXPIRED";
 
     if (isCompleted) {
       if (existingOrder.payment_status === "Paid") {

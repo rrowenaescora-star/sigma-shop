@@ -4,6 +4,10 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
+import TrustBadges from "@/components/TrustBadges";
+import SupportChat from "@/components/SupportChat";
+
+
 
 const text = "Support Center";
 
@@ -54,7 +58,7 @@ export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [message, setMessage] = useState(
-    "Welcome to BLOXHOP. Browse trusted digital products and online service packages before checkout."
+    "Secure digital fulfillment with verified processing, fast support, and protected checkout."
   );
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [loadingProducts, setLoadingProducts] = useState(true);
@@ -475,11 +479,31 @@ export default function Home() {
               <div className="mb-5 flex flex-col gap-4">
                 <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                   <div>
-                    <h1 className="text-3xl font-extrabold">Digital Products & Online Services</h1>
-                    <p className="mt-1 text-sm text-slate-400">
-                      Browse secure digital products, service packages, and support options.
-                    </p>
-                  </div>
+  <p className="mb-2 text-xs font-bold uppercase tracking-[0.25em] text-sky-300">
+    Trusted Digital Game Services
+  </p>
+
+  <h1 className="text-3xl font-black tracking-tight text-white md:text-5xl">
+    Fast, Safe & Reliable Digital Fulfillment
+  </h1>
+
+  <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-400 md:text-base">
+    Browse secure digital products and online service packages with fast processing,
+    order tracking, and reliable customer support.
+  </p>
+
+  <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold text-slate-300">
+    <span className="rounded-full border border-sky-400/20 bg-sky-400/10 px-3 py-2">
+      Secure Checkout
+    </span>
+    <span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-2">
+      Fast Fulfillment
+    </span>
+    <span className="rounded-full border border-blue-400/20 bg-blue-400/10 px-3 py-2">
+      Order Tracking
+    </span>
+  </div>
+</div>
 
                   <div className="flex flex-wrap gap-2">
                     <button
@@ -553,6 +577,7 @@ export default function Home() {
                   ))}
                 </div>
               </div>
+		<TrustBadges />	
 
               <div className="mb-5 rounded-2xl border border-cyan-400/20 bg-blue-500/10 p-4 text-sm text-sky-100">
                 {message}
@@ -651,23 +676,29 @@ export default function Home() {
                               ) : null}
                             </div>
 
-                            <div className="mt-4">
-                              {quantity > 0 ? (
-                                <p className="text-sm text-slate-400">
-                                  {quantity <= 3 ? (
-                                    <span className="text-yellow-300">
-                                      Limited stock available
-                                    </span>
-                                  ) : (
-                                    <span>Available for order</span>
-                                  )}
-                                </p>
-                              ) : (
-                                <p className="text-sm font-semibold text-red-300">
-                                  Currently unavailable
-                                </p>
-                              )}
-                            </div>
+                          <div className="mt-4">
+  {quantity > 0 ? (
+    <div className="space-y-2">
+      {quantity <= 3 ? (
+        <p className="text-sm font-semibold text-yellow-300">
+          Only a few left — high demand
+        </p>
+      ) : (
+        <p className="text-sm font-medium text-emerald-300">
+          Ready for fast fulfillment
+        </p>
+      )}
+
+      <p className="text-xs text-slate-400">
+        Secure processing after checkout confirmation
+      </p>
+    </div>
+  ) : (
+    <p className="text-sm font-semibold text-red-300">
+      Currently unavailable
+    </p>
+  )}
+</div>
 
                             <div className="mt-5 flex items-end justify-between gap-3">
                               <div>
@@ -1030,6 +1061,7 @@ export default function Home() {
             </div>
           </div>
         </div>
+	{!isCartOpen && <SupportChat />}
       </>
     </div>
   );

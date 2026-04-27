@@ -55,7 +55,7 @@ export default function SiteFooter() {
                   <a href="https://www.youtube.com/" target="_blank" rel="noopener noreferrer" className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-slate-300 hover:bg-white/10 hover:text-white">▶ YouTube</a>
                   <a href="https://www.tiktok.com/" target="_blank" rel="noopener noreferrer" className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-slate-300 hover:bg-white/10 hover:text-white">♫ TikTok</a>
                   <a href="https://discord.gg/evM2G5c9Vr" target="_blank" rel="noopener noreferrer" className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-slate-300 hover:bg-white/10 hover:text-white">💬 Discord</a>
-		  <a href="https://twitter.com/" target="_blank" rel="noopener noreferrer" className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-slate-300 hover:bg-white/10 hover:text-white">𝕏 Twitter</a>
+		  <a href="https://x.com/bloxhop_" target="_blank" rel="noopener noreferrer" className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-slate-300 hover:bg-white/10 hover:text-white">𝕏 Twitter</a>
                 </div>
               </div>
             </div>

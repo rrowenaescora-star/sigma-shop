@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import LogoutButton from "../logout-button";
+import Link from "next/link";
+
 
 type Product = {
   id: number;
@@ -325,13 +327,24 @@ export default function AdminProductsPage() {
   }
 
   return (
+
+
     <div className="min-h-screen bg-[#070b14] px-6 py-10 text-white">
       <div className="mx-auto max-w-7xl">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="text-sm uppercase tracking-[0.25em] text-cyan-300">
-              Admin
-            </p>
+            <div className="mb-6 flex items-center justify-between">
+  <h1 className="text-3xl font-bold text-white">
+    Admin Products
+  </h1>
+
+  <Link
+    href="/admin/orders"
+    className="rounded-2xl bg-cyan-400 px-5 py-3 font-bold text-slate-950 transition hover:opacity-90"
+  >
+    View Orders
+  </Link>
+</div>
             <h1 className="mt-2 text-4xl font-extrabold">Products Dashboard</h1>
             <p className="mt-2 text-slate-400">
               Add, edit, archive, and manage your store products

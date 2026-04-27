@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+
 
 type Order = {
   id: string;
@@ -99,8 +101,20 @@ export default function AdminOrdersPage() {
   }
 
   return (
+	
     <div className="min-h-screen bg-[#070b14] text-white p-10">
-      <h1 className="text-3xl font-bold mb-6">Admin Orders</h1>
+     <div className="mb-6 flex items-center justify-between">
+  <h1 className="text-3xl font-bold text-white">
+    Admin Orders
+  </h1>
+
+  <Link
+    href="/admin/products"
+    className="rounded-2xl bg-cyan-400 px-5 py-3 font-bold text-slate-950 transition hover:opacity-90"
+  >
+    Add products
+  </Link>
+</div>
 
       <div className="space-y-4">
         {orders.map((order) => (

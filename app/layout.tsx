@@ -23,6 +23,7 @@ export const metadata: Metadata = {
     icon: "/logo.png",
   },
 };
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -33,6 +34,32 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        <title>Bloxhop | Fast & Safe Blox Fruits Store</title>
+
+        <meta
+          name="description"
+          content="Shop Blox Fruits digital products with fast fulfillment, secure checkout, order tracking, and reliable customer support."
+        />
+
+        <meta
+          property="og:title"
+          content="Bloxhop | Fast & Safe Blox Fruits Store"
+        />
+
+        <meta
+          property="og:description"
+          content="Shop Blox Fruits digital products with fast fulfillment, secure checkout, order tracking, and reliable customer support."
+        />
+
+        <meta
+          name="keywords"
+          content="Blox Fruits, Roblox Store, Permanent Fruits, Digital Products, Blox Fruits Shop, Bloxhop"
+        />
+
+        <meta name="robots" content="index, follow" />
+      </head>
+
       <body className="flex min-h-screen flex-col bg-[#070b14] text-white">
         <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-[#0b1220]/70 backdrop-blur-xl">
           <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 md:px-6 lg:px-8">
@@ -79,7 +106,6 @@ export default function RootLayout({
         <main className="flex-1">{children}</main>
 
         <SiteFooter />
-
       </body>
     </html>
   );

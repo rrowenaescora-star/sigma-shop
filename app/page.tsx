@@ -420,8 +420,8 @@ export default function Home() {
           <div className="flex items-center gap-3">
             <p className="text-xl font-black tracking-tight">BLOXHOP</p>
             <span className="hidden text-sm text-slate-400 sm:inline">
-              Digital products & online services
-            </span>
+  Fast Blox Fruits digital products
+</span>
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
@@ -483,14 +483,14 @@ export default function Home() {
     Trusted Digital Game Services
   </p>
 
-  <h1 className="text-3xl font-black tracking-tight text-white md:text-5xl">
-    Fast, Safe & Reliable Digital Fulfillment
-  </h1>
+ <h1 className="text-3xl font-black tracking-tight text-white md:text-5xl">
+  Bloxhop | Fast & Safe Blox Fruits Store
+</h1>
 
-  <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-400 md:text-base">
-    Browse secure digital products and online service packages with fast processing,
-    order tracking, and reliable customer support.
-  </p>
+<p className="mt-3 max-w-2xl text-sm leading-6 text-slate-400 md:text-base">
+  Shop Blox Fruits digital products with fast fulfillment, secure checkout,
+  order tracking, and reliable customer support.
+</p>
 
   <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold text-slate-300">
     <span className="rounded-full border border-sky-400/20 bg-sky-400/10 px-3 py-2">

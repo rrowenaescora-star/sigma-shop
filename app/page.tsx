@@ -957,14 +957,28 @@ export default function Home() {
                 </p>
                 <p className="mt-2 text-2xl font-black">{cartCount}</p>
               </div>
+	
+
+
+
 
               <div className="rounded-2xl border border-slate-700/60 bg-[#10213a]/65 p-4">
                 <p className="text-xs uppercase tracking-[0.18em] text-slate-400">
                   Total
                 </p>
-                <p className="mt-2 text-2xl font-black text-sky-300">
-                  ${totalPrice.toFixed(2)}
-                </p>
+               <p className="mt-2 text-2xl font-black text-sky-300">
+  ${totalPrice.toFixed(2)}
+</p>
+
+{usdToPhpRate && (
+  <p className="mt-1 text-sm font-semibold text-sky-200">
+    ≈ ₱{(totalPrice * usdToPhpRate).toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}
+  </p>
+)}
+		
               </div>
             </div>
           </div>
@@ -987,12 +1001,32 @@ export default function Home() {
                         <p className="mt-1 text-sm text-slate-400">
                           {item.tag || "Digital Service"}
                         </p>
-                        <p className="mt-1 text-sm text-slate-400">
-                          ${Number(item.price).toFixed(2)} × {item.quantity}
-                        </p>
-                        <p className="mt-2 font-bold text-sky-300">
-                          ${(Number(item.price) * item.quantity).toFixed(2)}
-                        </p>
+			
+<p className="mt-1 text-sm text-slate-400">
+  ${Number(item.price).toFixed(2)} × {item.quantity}
+</p>
+
+{usdToPhpRate && (
+  <p className="text-sm text-slate-400">
+    ≈ ₱{(Number(item.price) * usdToPhpRate).toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })} each
+  </p>
+)}
+
+<p className="mt-2 font-bold text-sky-300">
+  ${(Number(item.price) * item.quantity).toFixed(2)}
+</p>
+
+{usdToPhpRate && (
+  <p className="text-sm font-semibold text-sky-200">
+    ≈ ₱{((Number(item.price) * item.quantity) * usdToPhpRate).toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}
+  </p>
+)}				
                       </div>
 
                       <div className="flex flex-col items-end gap-2">
@@ -1037,6 +1071,19 @@ export default function Home() {
               <span>Total</span>
               <span className="text-sky-300">${totalPrice.toFixed(2)}</span>
             </div>
+		 {usdToPhpRate ? (
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-400">Est. PHP</span>
+                      <span className="font-bold text-sky-300">
+                        ₱
+                        {(totalPrice * usdToPhpRate).toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+                      </span>
+                    </div>
+                  ) : null}
+
 
             <div className="mt-4 grid grid-cols-2 gap-3">
               <button

@@ -16,14 +16,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Bloxhop",
+  title: "Bloxhop | Fast & Safe Blox Fruits Store",
   description:
-    "Digital storefront for in-game products, order tracking, and customer support.",
+    "Shop Blox Fruits digital products with fast fulfillment, secure checkout, order tracking, and reliable customer support.",
   icons: {
     icon: "/logo.png",
   },
 };
-
 export default function RootLayout({
   children,
 }: Readonly<{

@@ -16,9 +16,63 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Bloxhop | Fast & Safe Blox Fruits Store",
+  metadataBase: new URL("https://bloxhop.site"),
+
+  title: {
+    default: "Bloxhop | Fast & Safe Blox Fruits Store",
+    template: "%s | Bloxhop",
+  },
+
   description:
     "Shop Blox Fruits digital products with fast fulfillment, secure checkout, order tracking, and reliable customer support.",
+
+  keywords: [
+    "Bloxhop",
+    "Blox Fruits store",
+    "Blox Fruits digital products",
+    "Roblox digital store",
+    "Blox Fruits shop",
+    "Permanent fruits",
+    "Fast fulfillment",
+    "Secure checkout",
+    "Order tracking",
+  ],
+
+  alternates: {
+    canonical: "https://bloxhop.site",
+  },
+
+  openGraph: {
+    title: "Bloxhop | Fast & Safe Blox Fruits Store",
+    description:
+      "Shop Blox Fruits digital products with fast fulfillment, secure checkout, order tracking, and reliable customer support.",
+    url: "https://bloxhop.site",
+    siteName: "Bloxhop",
+    images: [
+      {
+        url: "/logo.png",
+        width: 512,
+        height: 512,
+        alt: "Bloxhop Logo",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+
+  twitter: {
+    card: "summary_large_image",
+    title: "Bloxhop | Fast & Safe Blox Fruits Store",
+    description:
+      "Shop Blox Fruits digital products with fast fulfillment, secure checkout, order tracking, and reliable customer support.",
+    images: ["/logo.png"],
+  },
+
+  robots: {
+    index: true,
+    follow: true,
+  },
+
   icons: {
     icon: "/logo.png",
   },
@@ -34,32 +88,6 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <head>
-        <title>Bloxhop | Fast & Safe Blox Fruits Store</title>
-
-        <meta
-          name="description"
-          content="Shop Blox Fruits digital products with fast fulfillment, secure checkout, order tracking, and reliable customer support."
-        />
-
-        <meta
-          property="og:title"
-          content="Bloxhop | Fast & Safe Blox Fruits Store"
-        />
-
-        <meta
-          property="og:description"
-          content="Shop Blox Fruits digital products with fast fulfillment, secure checkout, order tracking, and reliable customer support."
-        />
-
-        <meta
-          name="keywords"
-          content="Blox Fruits, Roblox Store, Permanent Fruits, Digital Products, Blox Fruits Shop, Bloxhop"
-        />
-
-        <meta name="robots" content="index, follow" />
-      </head>
-
       <body className="flex min-h-screen flex-col bg-[#070b14] text-white">
         <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-[#0b1220]/70 backdrop-blur-xl">
           <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 md:px-6 lg:px-8">
@@ -80,7 +108,7 @@ export default function RootLayout({
                   BLOXHOP
                 </span>
                 <span className="block text-xs text-slate-400">
-                  Digital Item Storefront
+                  Fast Blox Fruits digital products
                 </span>
               </div>
             </Link>

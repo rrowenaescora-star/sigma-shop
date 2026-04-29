@@ -383,7 +383,7 @@ if (
               </Link>
 
               <a
-                href="https://discord.gg/EEpftCnkgv"
+                href="https://discord.gg/evM2G5c9Vr"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="rounded-2xl border border-indigo-400/20 bg-indigo-500/10 px-3 py-3 text-center text-sm font-bold text-indigo-100 transition hover:bg-indigo-500/20"

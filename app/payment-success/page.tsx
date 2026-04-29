@@ -91,7 +91,7 @@ export default function PaymentSuccessPage() {
             </Link>
 
             <a
-              href="https://discord.gg/EEpftCnkgv"
+              href="https://discord.gg/evM2G5c9Vr"
               target="_blank"
               rel="noopener noreferrer"
               className="rounded-2xl border border-cyan-300/20 bg-cyan-400/10 px-8 py-4 font-bold text-cyan-200 transition hover:-translate-y-1 hover:bg-cyan-400/20"

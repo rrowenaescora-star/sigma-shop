@@ -182,6 +182,14 @@ export default function TrackOrderPage() {
               <div className="mt-6 rounded-2xl border border-blue-400/20 bg-blue-400/10 p-4 text-sm text-blue-100">
                 {message}
               </div>
+<div className="mt-4 rounded-2xl border border-yellow-400/20 bg-yellow-400/10 p-4 text-sm text-yellow-100">
+  <p className="font-semibold text-yellow-200">
+    Important Reminder
+  </p>
+  <p className="mt-1 text-slate-300">
+    If your payment is already pending or confirmed, please do not submit another payment for the same order. Duplicate payments may require manual refund review.
+  </p>
+</div>
             </div>
 
             <div className="border-t border-white/10 bg-[#08111f]/80 p-6 md:p-8 lg:border-l lg:border-t-0">

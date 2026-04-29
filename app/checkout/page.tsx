@@ -831,7 +831,8 @@ export default function CheckoutPage() {
                 <div className="rounded-2xl border border-blue-400/20 bg-blue-500/5 p-3 text-sm text-slate-200">
                   <p className="font-semibold text-blue-300">Delivery</p>
                   <p className="mt-1 text-xs text-slate-300">
-                    Digital delivery or online service fulfillment begins after payment confirmation. Timing may vary depending on the selected product or service.
+                    Digital delivery or online service fulfillment begins after payment confirmation. Most orders are completed within 5–30 minutes after payment confirmation.
+Rare cases may take up to 3 hours depending on stock, verification, or order volume.
                   </p>
                 </div>
 
@@ -882,6 +883,16 @@ export default function CheckoutPage() {
                 </>
               ) : (
                 <>
+		<div className="mb-4 rounded-2xl border border-yellow-400/20 bg-yellow-400/10 p-4 text-sm text-yellow-100">
+  <p className="font-semibold text-yellow-300">
+    Important Reminder
+  </p>
+
+  <p className="mt-2 text-xs leading-6 text-slate-300">
+    Please do not submit another payment if your order is already pending or confirmed.
+    Duplicate payments may delay fulfillment and require manual refund review.
+  </p>
+</div>
                   <p className="mb-2 text-sm font-semibold text-slate-300">
                     Secure Checkout
                   </p>

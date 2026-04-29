@@ -91,7 +91,7 @@ export async function POST(req: Request) {
         amount: phpAmount,
         country: "PH",
         capture_method: "AUTOMATIC",
-        success_return_url: `${process.env.NEXT_PUBLIC_APP_URL}/track-order?reference=${referenceId}`,
+        success_return_url: `${process.env.NEXT_PUBLIC_APP_URL}/payment-success?reference=${referenceId}`,
         cancel_return_url: `${process.env.NEXT_PUBLIC_APP_URL}/checkout`,
         customer: {
           type: "INDIVIDUAL",

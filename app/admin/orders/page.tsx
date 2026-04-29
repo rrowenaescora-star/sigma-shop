@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-
 type Order = {
   id: string;
   roblox_username: string;
@@ -39,7 +38,18 @@ export default function AdminOrdersPage() {
         return;
       }
 
-      setOrders(data.orders || []);
+      const activeOrders = (data.orders || []).filter((order: Order) => {
+  const status = (order.status || "").toLowerCase();
+  const delivery = (order.delivery_status || "").toLowerCase();
+
+  return !(
+    status.includes("completed") ||
+    status.includes("cancelled") ||
+    delivery.includes("delivered")
+  );
+});
+
+setOrders(activeOrders);
     } catch (error) {
       console.error(error);
       alert("Error fetching orders");
@@ -85,7 +95,8 @@ export default function AdminOrdersPage() {
         return;
       }
 
-      fetchOrders(); // refresh
+      alert("Order updated successfully");
+      fetchOrders();
     } catch (error) {
       console.error(error);
       alert("Update error");
@@ -94,120 +105,190 @@ export default function AdminOrdersPage() {
 
   if (loading) {
     return (
-      <div className="p-10 text-white bg-[#070b14] min-h-screen">
+      <div className="min-h-screen bg-[#070b14] p-10 text-white">
         Loading orders...
       </div>
     );
   }
 
   return (
-	
-    <div className="min-h-screen bg-[#070b14] text-white p-10">
-     <div className="mb-6 flex items-center justify-between">
-  <h1 className="text-3xl font-bold text-white">
-    Admin Orders
-  </h1>
+    <div className="min-h-screen bg-[#070b14] p-10 text-white">
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-3xl font-bold text-white">
+          Admin Orders
+        </h1>
+	<Link
+      href="/admin/order-history"
+      className="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 font-bold text-white transition hover:bg-white/10"
+    >
+      Order History
+    </Link>
 
-  <Link
-    href="/admin/products"
-    className="rounded-2xl bg-cyan-400 px-5 py-3 font-bold text-slate-950 transition hover:opacity-90"
-  >
-    Add products
-  </Link>
-</div>
+        <Link
+          href="/admin/products"
+          className="rounded-2xl bg-cyan-400 px-5 py-3 font-bold text-slate-950 transition hover:opacity-90"
+        >
+          Add Products
+        </Link>
+      </div>
 
       <div className="space-y-4">
         {orders.map((order) => (
           <div
             key={order.id}
-            className="bg-[#101729] border border-white/10 p-6 rounded-2xl"
+            className="rounded-2xl border border-white/10 bg-[#101729] p-6"
           >
-            <div className="flex justify-between">
+            <div className="flex justify-between gap-6">
               <div>
-                <p className="font-bold text-lg">#{order.id}</p>
+                <p className="text-lg font-bold">
+                  #{order.id}
+                </p>
+
                 <p>👤 {order.roblox_username}</p>
                 <p>📧 {order.contact_info}</p>
-                <p className="text-cyan-300 font-bold">
+
+                <p className="font-bold text-cyan-300">
                   ${Number(order.total_price).toFixed(2)}
                 </p>
+
                 <p className="text-sm text-gray-400">
                   {new Date(order.created_at).toLocaleString()}
                 </p>
               </div>
 
-              <div className="flex flex-col gap-2 text-right">
-                <span className="text-sm">
+              <div className="text-right">
+                <p className="text-sm">
                   Payment: {order.payment_status}
-                </span>
-                <span className="text-sm">
+                </p>
+
+                <p className="text-sm">
                   Delivery: {order.delivery_status || "Pending"}
-                </span>
-                <span className="text-sm">
+                </p>
+
+                <p className="text-sm">
                   Status: {order.status}
-                </span>
+                </p>
               </div>
             </div>
 
             {/* CONTROLS */}
-            <div className="mt-4 grid gap-2 md:grid-cols-4">
+            <div className="mt-5 grid gap-3 md:grid-cols-5">
               {/* STATUS */}
               <select
-                className="bg-white/10 p-2 rounded"
+                className="rounded-2xl border border-white/10 bg-[#0b1220] px-4 py-3 text-white outline-none"
                 value={order.status || "Pending"}
                 onChange={(e) =>
-                  updateOrder(order.id, { status: e.target.value })
+                  setOrders((prev) =>
+                    prev.map((item) =>
+                      item.id === order.id
+                        ? { ...item, status: e.target.value }
+                        : item
+                    )
+                  )
                 }
               >
-                <option>Pending</option>
-                <option>Processing</option>
-                <option>Completed</option>
-                <option>Cancelled</option>
+                <option className="bg-[#0b1220] text-white">
+                  Pending
+                </option>
+                <option className="bg-[#0b1220] text-white">
+                  Processing
+                </option>
+                <option className="bg-[#0b1220] text-white">
+                  Completed
+                </option>
+                <option className="bg-[#0b1220] text-white">
+                  Cancelled
+                </option>
               </select>
 
               {/* DELIVERY */}
               <select
-                className="bg-white/10 p-2 rounded"
+                className="rounded-2xl border border-white/10 bg-[#0b1220] px-4 py-3 text-white outline-none"
                 value={order.delivery_status || "Pending"}
                 onChange={(e) =>
-                  updateOrder(order.id, {
-                    deliveryStatus: e.target.value,
-                  })
+                  setOrders((prev) =>
+                    prev.map((item) =>
+                      item.id === order.id
+                        ? {
+                            ...item,
+                            delivery_status: e.target.value,
+                          }
+                        : item
+                    )
+                  )
                 }
               >
-                <option>Pending</option>
-                <option>Processing</option>
-                <option>Delivered</option>
+                <option className="bg-[#0b1220] text-white">
+                  Pending
+                </option>
+                <option className="bg-[#0b1220] text-white">
+                  Processing
+                </option>
+                <option className="bg-[#0b1220] text-white">
+                  Delivered
+                </option>
               </select>
 
               {/* HANDLED BY */}
               <input
                 placeholder="Handled by"
-                defaultValue={order.handled_by || ""}
-                className="bg-white/10 p-2 rounded"
-                onBlur={(e) =>
-                  updateOrder(order.id, {
-                    handledBy: e.target.value,
-                  })
+                value={order.handled_by || ""}
+                className="rounded-2xl border border-white/10 bg-[#0b1220] px-4 py-3 text-white outline-none"
+                onChange={(e) =>
+                  setOrders((prev) =>
+                    prev.map((item) =>
+                      item.id === order.id
+                        ? {
+                            ...item,
+                            handled_by: e.target.value,
+                          }
+                        : item
+                    )
+                  )
                 }
               />
 
-              {/* NOTES */}
+              {/* DELIVERY NOTES */}
               <input
                 placeholder="Delivery notes"
-                defaultValue={order.delivery_notes || ""}
-                className="bg-white/10 p-2 rounded"
-                onBlur={(e) =>
-                  updateOrder(order.id, {
-                    deliveryNotes: e.target.value,
-                  })
+                value={order.delivery_notes || ""}
+                className="rounded-2xl border border-white/10 bg-[#0b1220] px-4 py-3 text-white outline-none"
+                onChange={(e) =>
+                  setOrders((prev) =>
+                    prev.map((item) =>
+                      item.id === order.id
+                        ? {
+                            ...item,
+                            delivery_notes: e.target.value,
+                          }
+                        : item
+                    )
+                  )
                 }
               />
+
+              {/* SAVE BUTTON */}
+              <button
+                onClick={() =>
+                  updateOrder(order.id, {
+                    status: order.status,
+                    deliveryStatus: order.delivery_status,
+                    deliveryNotes: order.delivery_notes,
+                    handledBy: order.handled_by,
+                  })
+                }
+                className="rounded-2xl bg-blue-500 px-4 py-3 font-bold text-white transition hover:bg-blue-400"
+              >
+                Save Changes
+              </button>
             </div>
           </div>
         ))}
 
         {orders.length === 0 && (
-          <p className="text-gray-400">No orders found.</p>
+          <p className="text-gray-400">
+            No orders found.
+          </p>
         )}
       </div>
     </div>

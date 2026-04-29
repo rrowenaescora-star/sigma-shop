@@ -54,7 +54,7 @@ export default function TrackOrderPage() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const id = params.get("orderId");
+    const id = params.get("orderId") || params.get("reference");
 
     if (id) {
       setOrderId(id);

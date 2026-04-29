@@ -107,13 +107,13 @@ export default function LandingPage() {
             </p>
 
             <h1 className="mt-4 text-4xl font-black leading-tight md:text-6xl">
-              Bloxhop | Fast & Safe Blox Fruits Digital Store
+              Bloxhop | Secure Digital Products & Game Services
             </h1>
 
             <p className="mt-5 max-w-3xl text-base leading-7 text-slate-300 md:text-lg">
-              Shop Blox Fruits digital products with secure checkout, fast
-              fulfillment, order tracking, refund protection, and reliable
-              customer support.
+              Shop premium digital products and game services with secure
+              checkout, fast fulfillment, order tracking, refund protection, and
+              reliable customer support.
             </p>
 
             <div className="mt-6 flex flex-wrap gap-2 text-xs font-semibold text-slate-300">
@@ -189,7 +189,7 @@ export default function LandingPage() {
             </h2>
 
             <p className="mt-3 text-sm leading-6 text-slate-400">
-              Browse Blox Fruits digital products, service packages, and limited
+              Browse premium digital products, service packages, and limited
               offers with secure checkout and order tracking.
             </p>
 
@@ -299,6 +299,35 @@ export default function LandingPage() {
               Need help? Use Track Order, email support@bloxhop.site, or join
               Discord for faster assistance.
             </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="relative mx-auto max-w-7xl px-6 py-10">
+        <div className="rounded-[2rem] border border-white/10 bg-[#0f1728]/90 p-6">
+          <h2 className="text-3xl font-black">Business & Support Info</h2>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-3">
+            <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+              <p className="text-sm font-bold text-cyan-300">Business Location</p>
+              <p className="mt-2 text-sm text-slate-300">
+                Cebu City, Cebu, Philippines
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+              <p className="text-sm font-bold text-cyan-300">Support Hours</p>
+              <p className="mt-2 text-sm text-slate-300">
+                Daily, 9:00 AM – 11:00 PM PHT
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+              <p className="text-sm font-bold text-cyan-300">Average Response</p>
+              <p className="mt-2 text-sm text-slate-300">
+                Usually within 5–30 minutes
+              </p>
+            </div>
           </div>
         </div>
       </section>

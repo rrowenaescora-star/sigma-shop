@@ -92,7 +92,20 @@ export default function PrivacyPage() {
           <h2 className="text-xl font-semibold mb-2">8. Contact</h2>
           <p>
             For privacy concerns, data requests, or support regarding customer information,
-            contact: support@bloxhop.site
+            contact:contact:
+<a
+  href="mailto:support@bloxhop.site"
+  className="text-sky-300 hover:text-white hover:underline"
+>
+  support@bloxhop.site
+</a> 
+</p>
+
+<p>
+  Business Location:
+  <br />
+  Cebu City, Cebu, Philippines
+
           </p>
         </section>
       </div>

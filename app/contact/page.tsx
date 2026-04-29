@@ -69,7 +69,26 @@ export default function ContactPage() {
             For payment verification delays, duplicate charges,
             or transaction concerns, our support team will assist after payment review.
           </p>
-        </section>
+	</section>
+	
+<p>
+   contact:<a
+  href="mailto:support@bloxhop.site"
+  className="text-sky-300 hover:text-white hover:underline"
+>
+  support@bloxhop.site
+</a> 
+</p>
+
+<p>
+  Business Location:
+  <br />
+  Cebu City, Cebu, Philippines,
+
+ Support Contact:
++63 945 339 2304
+</p>
+       
       </div>
     </LegalPageShell>
   );

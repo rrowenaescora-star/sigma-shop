@@ -112,7 +112,7 @@ export default function TrackOrderPage() {
 
           <div className="flex flex-wrap gap-2">
             <Link
-              href="/"
+              href="home"
               className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-semibold text-slate-200 transition hover:bg-white/[0.08]"
             >
               Back to Store

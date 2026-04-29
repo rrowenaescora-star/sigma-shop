@@ -113,6 +113,11 @@ export default function TermsPage() {
             For questions regarding these Terms of Service, contact:
             support@bloxhop.site
           </p>
+<p>
+	Business Location:
+  <br />
+  Cebu City, Cebu, Philippines
+</p>
         </section>
       </div>
     </LegalPageShell>

@@ -584,7 +584,7 @@ export default function CheckoutPage() {
 
           <div className="flex flex-wrap gap-2">
             <Link
-              href="/"
+              href="home"
               className="rounded-2xl border border-slate-700/60 bg-slate-900/40 px-4 py-2 text-sm font-semibold hover:bg-slate-800/70"
             >
               Back to Store

@@ -25,7 +25,7 @@ export default function SiteFooter() {
               </p>
 
               <p className="mt-3 text-xs text-slate-500">
-                Operated in the Philippines
+               Business Location: Cebu City, Cebu, Philippines
               </p>
             </div>
 
@@ -487,7 +487,7 @@ export default function SiteFooter() {
           <h2 className="text-xl font-semibold mb-2">Business Information</h2>
           <p>Bloxhop Online Store</p>
           <p>Digital Products and Online Services</p>
-          <p>Philippines</p>
+          <p>Cebu City, Cebu, Philippines</p>
         </section>
 
         <section>
@@ -513,7 +513,17 @@ export default function SiteFooter() {
             For payment verification delays, duplicate charges,
             or transaction concerns, our support team will assist after payment review.
           </p>
+
+
         </section>
+	<p>
+   contact: <a
+  href="mailto:support@bloxhop.site"
+  className="text-sky-300 hover:text-white hover:underline"
+>
+  support@bloxhop.site
+</a> </p> Business Location:Cebu City, Cebu, Philippines <p>  Support Contact:+63 945 339 2304
+</p>
             </>
           )}
   {openPolicy === "delivery" && (
@@ -574,7 +584,12 @@ export default function SiteFooter() {
 >
   support@bloxhop.site
 </a>
+	
         </p>
+<p> Business Location:
+  <br />
+  Cebu City, Cebu, Philippines
+</p>
 
             </>
           )}
@@ -599,7 +614,8 @@ export default function SiteFooter() {
 </a> as soon as possible. Incorrect customer information may cause fulfillment delays.</p>
 
               <p className="font-semibold text-white">What if I do not receive my order?</p>
-              <p>If your order is not completed within the stated delivery window, please check your email first, including spam or promotions folders. If you still have not received your order, contact<a
+              <p>If your order is not completed within the stated delivery window, please check your email first, including spam or promotions folders. If you still have not received your order, contact
+<a
   href="mailto:support@bloxhop.site"
   className="text-sky-300 hover:text-white hover:underline"
 >

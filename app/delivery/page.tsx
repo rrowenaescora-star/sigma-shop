@@ -51,8 +51,14 @@ export default function DeliveryPage() {
         </p>
 
         <p>
-          For delivery assistance, contact: support@bloxhop.site
-        </p>
+  For delivery assistance, contact: support@bloxhop.site
+</p>
+
+<p>
+  Business Location:
+  <br />
+  Cebu City, Cebu, Philippines
+</p>
       </div>
     </LegalPageShell>
   );

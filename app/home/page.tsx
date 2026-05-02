@@ -431,10 +431,10 @@ useEffect(() => {
   <div className="fixed inset-0 z-40 backdrop-blur-md transition-all duration-1000" />
 )}
 	<div
-  className={`fixed z-50 transition-all duration-1000 ease-in-out  ease-out hover:scale-170 ${
+  className={`fixed z-50 transition-all duration-1000 ease-in-out  ease-out hover:scale-110 ${
     showPromoPopup
       ? "left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 scale-100"
-     : "-bottom-13 left-15 scale-150"
+     : "-bottom-18 left-4 scale-100"
   
   }`}
 >

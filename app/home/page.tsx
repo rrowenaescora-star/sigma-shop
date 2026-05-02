@@ -488,7 +488,7 @@ useEffect(() => {
           <div className="flex items-center gap-3">
             <p className="text-xl font-black tracking-tight">BLOXHOP</p>
             <span className="hidden text-sm text-slate-400 sm:inline">
-  Fast Blox Fruits digital products
+  Fast & Reliable Gaming Services
 </span>
           </div>
 

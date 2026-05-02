@@ -108,7 +108,7 @@ export default function RootLayout({
                   BLOXHOP
                 </span>
                 <span className="block text-xs text-slate-400">
-                  Fast Blox Fruits digital products
+                   Fast & Reliable Gaming Services
                 </span>
               </div>
             </Link>

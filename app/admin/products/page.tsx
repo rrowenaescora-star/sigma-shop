@@ -40,6 +40,7 @@ const emptyForm = {
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
   const [message, setMessage] = useState("Loading products...");
   const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState(emptyForm);
@@ -220,6 +221,8 @@ export default function AdminProductsPage() {
   }
 
   function startEdit(product: Product) {
+
+	
     setEditingId(product.id);
     setForm({
       name: product.name || "",
@@ -372,7 +375,7 @@ export default function AdminProductsPage() {
               Global Capital
             </p>
             <h2 className="mt-2 text-3xl font-extrabold">
-              $
+              Rs.
               {globalCapital === null
                 ? "Loading..."
                 : Number(globalCapital).toFixed(2)}
@@ -420,7 +423,7 @@ export default function AdminProductsPage() {
         </div>
 
         <div className="mt-8 grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
-          <div className="rounded-[2rem] border border-white/10 bg-[#101729] p-6 shadow-xl">
+          <div className="rounded-[2rem] border border-white/10 bg-[#101729] p-6 shadow-xl lg:sticky lg:top-6 lg:self-start">
             <h2 className="text-2xl font-bold">
               {editingId ? `Edit Product #${editingId}` : "Add New Product"}
             </h2>
@@ -612,8 +615,18 @@ export default function AdminProductsPage() {
             </div>
           </div>
 
-          <div className="rounded-[2rem] border border-white/10 bg-[#101729] p-6 shadow-xl">
-            <h2 className="text-2xl font-bold">All Products</h2>
+          <div className="rounded-[2rem] c min-h-screen  border border-white/10 bg-[#101729] p-6 shadow-xl">
+            <h2 className="text-2xl font-bold">All Products</h2> 
+	<div className="mt-4 mb-6">
+  <input
+    type="text"
+    placeholder="Search by Product Name, ID, Category, Tag..."
+    value={searchQuery}
+    onChange={(e) => setSearchQuery(e.target.value)}
+    className="w-full rounded-2xl border border-white/10 bg-[#0b1220] px-5 py-4 text-white outline-none placeholder:text-gray-500"
+  />
+</div>
+
 
             <div className="mt-6 grid gap-4">
               {loading ? (
@@ -625,7 +638,18 @@ export default function AdminProductsPage() {
                   No products found.
                 </div>
               ) : (
-                products.map((product) => {
+                products
+  .filter((product) => {
+    const query = searchQuery.toLowerCase();
+
+    return (
+      product.name.toLowerCase().includes(query) ||
+      String(product.id).includes(query) ||
+      (product.category || "").toLowerCase().includes(query) ||
+      (product.tag || "").toLowerCase().includes(query)
+    );
+  })
+  .map((product) => {
                   const blockedByCapital =
                     globalCapital !== null &&
                     Number(product.cost_value || 0) > globalCapital;

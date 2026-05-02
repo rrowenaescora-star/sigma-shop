@@ -21,6 +21,7 @@ export default function AdminOrdersPage() {
   const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
 
   async function fetchOrders() {
     try {
@@ -131,9 +132,28 @@ setOrders(activeOrders);
           Add Products
         </Link>
       </div>
+	<div className="mb-6">
+  <input
+    type="text"
+    placeholder="Search Order ID, Username, Email..."
+    value={searchQuery}
+    onChange={(e) => setSearchQuery(e.target.value)}
+    className="w-full rounded-2xl border border-white/10 bg-[#101729] px-5 py-4 text-white outline-none placeholder:text-gray-500"
+  />
+</div>
 
       <div className="space-y-4">
-        {orders.map((order) => (
+        {orders
+  .filter((order) => {
+    const query = searchQuery.toLowerCase();
+
+    return (
+     String(order.id).toLowerCase().includes(query) ||
+      order.roblox_username.toLowerCase().includes(query) ||
+      order.contact_info.toLowerCase().includes(query)
+    );
+  })
+  .map((order) => (
           <div
             key={order.id}
             className="rounded-2xl border border-white/10 bg-[#101729] p-6"

@@ -882,9 +882,21 @@ export default function Home() {
                   <p>Please ensure your contact and order information is accurate during checkout.</p>
                 </div>
               </div>
+<div className="rounded-[2rem] border border-red-400/20 bg-red-500/10 p-5">
+  <h3 className="text-lg font-bold text-red-300">
+    Limited Product Availability
+  </h3>
 
+  <div className="mt-3 space-y-2 text-sm text-slate-300">
+    <p>• Some products have limited stock availability</p>
+    <p>• High-demand items may become unavailable quickly</p>
+    <p>• Availability updates automatically in real time</p>
+    <p>• We recommend completing checkout immediately once available</p>
+  </div>
+</div>
               <div className="rounded-[2rem] border border-emerald-400/20 bg-emerald-500/10 p-5">
-                <h3 className="text-lg font-bold text-emerald-300">
+                	
+		<h3 className="text-lg font-bold text-emerald-300">
                   Fulfillment & Support
                 </h3>
                 <div className="mt-3 space-y-2 text-sm text-slate-300">

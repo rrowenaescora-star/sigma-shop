@@ -69,9 +69,23 @@ export default function Home() {
   const [usdToPhpRate, setUsdToPhpRate] = useState<number | null>(null);
   const [rateLoading, setRateLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [showPromoPopup, setShowPromoPopup] = useState(true);
+
+const promoTitle = "Limited Time Promo";
+const promoDiscount = "10% OFF";
+const promoMessage = "Use your promo before the sale ends!";
 
 
   const PRODUCTS_PER_PAGE = 6;
+
+useEffect(() => {
+  const timer = setTimeout(() => {
+    setShowPromoPopup(false);
+  }, 4000);
+
+  return () => clearTimeout(timer);
+}, []);
+
 
   useEffect(() => {
     const savedCart = localStorage.getItem("real-cart");
@@ -413,6 +427,60 @@ export default function Home() {
 
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-[#07111f] text-white">
+	{showPromoPopup && (
+  <div className="fixed inset-0 z-40 backdrop-blur-md transition-all duration-1000" />
+)}
+	<div
+  className={`fixed z-50 transition-all duration-1000 ease-in-out  ease-out hover:scale-170 ${
+    showPromoPopup
+      ? "left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 scale-100"
+     : "-bottom-13 left-15 scale-150"
+  
+  }`}
+>
+  <div className="relative text-center">
+ 
+
+    <img
+      src="/bloxbot.png"
+      alt="Bloxhop Promo"
+      className={`relative z-20 mx-auto   object-contain drop-shadow-2xl transition-all duration-1000 ease-in-out animate-[bloxbotLife_5s_ease-in-out_infinite] ${
+        showPromoPopup ? "w-[380px]" : "w-[170px]"
+      }`}
+    />
+
+    {showPromoPopup && (<div
+  className={`relative z-10 -mt-32 rounded-[2rem] border border-cyan-400/20 bg-[#0f1b2d]/95 px-6 pb-6 pt-32 shadow-2xl backdrop-blur-md transition-all duration-700 ${
+    showPromoPopup
+      ? "opacity-100"
+      : "pointer-events-none opacity-0"
+  }`}
+>
+        <p className="text-xs font-bold uppercase tracking-[0.25em] text-cyan-300">
+          {promoTitle}
+        </p>
+
+        <h2 className="mt-2 text-4xl font-black text-white">
+          {promoDiscount}
+        </h2>
+
+        <p className="mt-3 text-sm text-slate-300">
+          {promoMessage}
+        </p>
+
+        <button
+          onClick={() => setShowPromoPopup(false)}
+          className="mt-5 w-full rounded-2xl bg-cyan-400 px-5 py-3 font-bold text-slate-950 transition hover:opacity-90"
+        >
+          Shop Now
+        </button>
+      </div>
+    )}
+  </div>
+</div>
+		
+		
+  
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(59,130,246,0.10),transparent_25%),radial-gradient(circle_at_bottom_right,rgba(14,165,233,0.08),transparent_30%)]" />
 
       <div className="relative mx-auto max-w-[1700px] px-4 py-4 md:px-6 lg:px-8">
@@ -432,7 +500,7 @@ export default function Home() {
               className="group hidden sm:inline-block"
             >
               <div className="flex items-center overflow-hidden rounded-full px-1 py-2">
-                <span className="flex max-w-0 overflow-hidden whitespace-nowrap transition-all duration-700 ease-out group-hover:max-w-[180px]">
+                <span className="flex max-w-0 overflow-hidden whitespace-nowrap transition-all duration-1000 ease-out group-hover:max-w-[180px]">
                   {text.split("").map((char, i) => (
                     <span
                       key={i}

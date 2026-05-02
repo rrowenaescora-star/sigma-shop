@@ -43,3 +43,41 @@ body {
   background-size: 400px 100%;
   animation: shimmer 1.25s infinite linear;
 }
+@keyframes bloxbotLife {
+  0%, 100% {
+    transform: rotate(0deg) scaleY(1);
+  }
+
+  10% {
+    transform: rotate(-3deg) scaleY(1);
+  }
+
+  20% {
+    transform: rotate(3deg) scaleY(1);
+  }
+
+  30% {
+    transform: rotate(-2deg) scaleY(1);
+  }
+
+  40% {
+    transform: rotate(0deg) scaleY(1);
+  }
+
+  /* fake blink */
+  45% {
+    transform: rotate(0deg) scaleY(0.96);
+  }
+
+  47% {
+    transform: rotate(0deg) scaleY(1);
+  }
+
+  49% {
+    transform: rotate(0deg) scaleY(0.96);
+  }
+
+  51% {
+    transform: rotate(0deg) scaleY(1);
+  }
+}

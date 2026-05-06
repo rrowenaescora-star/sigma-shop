@@ -443,7 +443,11 @@ export default function CheckoutPage() {
     }
   }
 
-  async function saveOrder(paymentStatus: string) {
+  async function saveOrder(
+  paymentStatus: string,
+  paymentMethodOverride?: string,
+  redirectPath = "/track-order"
+) {
     if (cartItems.length === 0) return;
 
     if (!robloxUsername.trim() || !contactInfo.trim()) {
@@ -477,11 +481,13 @@ export default function CheckoutPage() {
           totalPrice: Number(finalPrice.toFixed(2)),
           xenditSessionId: null,
           xenditReferenceId: null,
-          paymentMethod: finalPrice <= 0 ? "Free" : "Xendit",
+          paymentMethod: paymentMethodOverride || (finalPrice <= 0 ? "Free" : "Xendit"),
           paymentStatus,
           payerEmail: null,
           paidAmount: paymentStatus === "Free" ? 0 : null,
           couponCode: appliedCoupon || undefined,
+	  couponDiscount: Number(discount.toFixed(2)),
+	  originalTotal: Number(totalPrice.toFixed(2)),
         }),
       });
 
@@ -496,7 +502,7 @@ export default function CheckoutPage() {
       localStorage.removeItem("real-cart");
       setCartItems([]);
 
-      window.location.href = `/track-order?orderId=${orderResult.order.id}`;
+      window.location.href = `${redirectPath}?orderId=${orderResult.order.id}`;
     } catch (error) {
       console.error(error);
       alert("Something went wrong while saving your order.");
@@ -507,7 +513,11 @@ export default function CheckoutPage() {
 
   async function handleFreeCheckout() {
     await saveOrder("Free");
+    
   }
+	async function handlePlaceOrder() {
+  await saveOrder("Pending", "Manual Order", "/manual-payment");
+}
 
   async function handleXenditCheckout() {
     if (cartItems.length === 0) return;
@@ -945,6 +955,21 @@ Rare cases may take up to 3 hours depending on stock, verification, or order vol
   </label>
 </div>
 
+<button
+  type="button"
+  onClick={handlePlaceOrder}
+  disabled={!confirmChecked || isCheckoutDisabled}
+  className={`mt-4 w-full rounded-2xl py-3 font-bold transition ${
+    !confirmChecked || isCheckoutDisabled
+      ? "cursor-not-allowed bg-slate-700 text-slate-300"
+      : "bg-emerald-400 text-black hover:bg-emerald-300"
+  }`}
+>
+  {isSubmitting ? "Placing Order..." : "Place Order"}
+</button>
+<p className="mb-2 text-xs text-yellow-300">
+  Manual order option available while online payments are under verification.
+</p>
 <button
   type="button"
   onClick={handleXenditCheckout}

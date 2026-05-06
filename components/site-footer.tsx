@@ -27,6 +27,19 @@ export default function SiteFooter() {
               <p className="mt-3 text-xs text-slate-500">
                Business Location: Cebu City, Cebu, Philippines
               </p>
+<div className="mt-4 flex flex-wrap gap-2">
+  <div className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1.5 text-xs font-semibold text-emerald-300">
+    ✓ DTI Registered
+  </div>
+
+  <div className="rounded-full border border-blue-400/20 bg-blue-500/10 px-3 py-1.5 text-xs font-semibold text-blue-300">
+    ✓ BIR Registered
+  </div>
+</div>
+
+<p className="mt-3 text-xs leading-5 text-slate-500">
+  Registered Philippine online business with supporting business documentation and certificates.
+</p>
             </div>
 
             <div>

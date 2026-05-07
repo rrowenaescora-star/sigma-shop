@@ -1,9 +1,12 @@
+
+
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Image from "next/image";
 import Link from "next/link";
 import "./globals.css";
 import SiteFooter from "@/components/site-footer";
+
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,7 +22,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://bloxhop.site"),
 
   title: {
-    default: "Bloxhop | Fast & Safe Blox Fruits Store",
+    default: "BLOXHOP ONLINE STORE| Fast & Safe Blox Fruits Store",
     template: "%s | Bloxhop",
   },
 
@@ -27,7 +30,7 @@ export const metadata: Metadata = {
     "Shop Blox Fruits digital products with fast fulfillment, secure checkout, order tracking, and reliable customer support.",
 
   keywords: [
-    "Bloxhop",
+    "BLOXHOP ONLINE STORE",
     "Blox Fruits store",
     "Blox Fruits digital products",
     "Roblox digital store",
@@ -43,7 +46,7 @@ export const metadata: Metadata = {
   },
 
   openGraph: {
-    title: "Bloxhop | Fast & Safe Blox Fruits Store",
+    title: "BLOXHOP ONLINE STORE | Fast & Safe Blox Fruits Store",
     description:
       "Shop Blox Fruits digital products with fast fulfillment, secure checkout, order tracking, and reliable customer support.",
     url: "https://bloxhop.site",
@@ -105,7 +108,7 @@ export default function RootLayout({
 
               <div className="leading-tight">
                 <span className="block text-lg font-black tracking-wide text-white">
-                  BLOXHOP
+                  BLOXHOP ONLINE STORE
                 </span>
                 <span className="block text-xs text-slate-400">
                    Fast & Reliable Gaming Services

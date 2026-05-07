@@ -839,12 +839,27 @@ export default function CheckoutPage() {
 
               <div className="mt-4 grid gap-3">
                 <div className="rounded-2xl border border-blue-400/20 bg-blue-500/5 p-3 text-sm text-slate-200">
-                  <p className="font-semibold text-blue-300">Delivery</p>
-                  <p className="mt-1 text-xs text-slate-300">
-                    Digital delivery or online service fulfillment begins after payment confirmation. Most orders are completed within 5–30 minutes after payment confirmation.
-Rare cases may take up to 3 hours depending on stock, verification, or order volume.
-                  </p>
-                </div>
+  <p className="font-semibold text-blue-300">
+    Delivery Process
+  </p>
+
+  <div className="mt-2 space-y-2 text-xs leading-6 text-slate-300">
+    <p>• Complete checkout and payment confirmation</p>
+
+    <p>• Enter your Roblox username and contact details correctly</p>
+
+    <p>• Our team prepares and verifies your order</p>
+
+    <p>
+      • Items are delivered after payment confirmation through Roblox gifting
+      or in-game delivery
+    </p>
+
+    <p>
+      • Estimated delivery time: 5–30 minutes (up to 3 hours during high demand)
+    </p>
+  </div>
+</div>
 
                 <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/5 p-3 text-sm text-emerald-100">
                   <p className="font-semibold text-emerald-300">Payment</p>

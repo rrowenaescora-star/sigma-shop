@@ -17,7 +17,7 @@ const badges = [
     text: "Get help with orders, delivery, and checkout.",
   },
   {
-    icon: RotateCcw,
+    icon: ShieldCheck,
     title: "Refund Protection",
     text: "Clear refund process for eligible issues.",
   },

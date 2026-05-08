@@ -152,6 +152,8 @@ export async function POST(req: Request) {
   padding:32px 24px 28px 24px;
   text-align:center;
   border-bottom:5px solid #f59e0b;
+  position:relative;
+  overflow:hidden;
 ">
 
   <img

@@ -108,9 +108,9 @@ export async function POST(req: Request) {
               <!-- BACKGROUND WATERMARK LOGO -->
               <img
                 src="${logoUrl}"
-                width="360"
+                width="300"
                 alt=""
-                style="position:absolute; right:-40px; top:-25px; opacity:0.18; z-index:1; border:0;"
+                style="position:absolute; right:-70px; top:-35px; opacity:0.10; z-index:1; border:0;"
               />
 
               <!-- MAIN LOGO -->

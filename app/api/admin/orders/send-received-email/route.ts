@@ -110,7 +110,7 @@ export async function POST(req: Request) {
                 src="${logoUrl}"
                 width="300"
                 alt=""
-                style="position:absolute; right:-70px; top:-35px; opacity:0.10; z-index:1; border:0;"
+                style="position:absolute; right:-140px; top:10px; opacity:0.12; z-index:1; border:0;"
               />
 
               <!-- MAIN LOGO -->

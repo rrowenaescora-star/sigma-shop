@@ -240,7 +240,7 @@ export default function TrackOrderPage() {
 
                 <div className="rounded-3xl border border-blue-400/20 bg-blue-400/10 p-5 text-right">
                   <p className="text-xs uppercase tracking-[0.18em] text-blue-200">
-                    Total Paid
+                    Total Amount 
                   </p>
                   <p className="mt-2 text-3xl font-black text-blue-200">
                     ${Number(order.total_price).toFixed(2)}

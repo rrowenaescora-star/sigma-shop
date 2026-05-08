@@ -149,11 +149,11 @@ export async function POST(req: Request) {
             <!-- HEADER -->
             <div style="
               background:
-                linear-gradient(135deg, rgba(2,6,23,0.94), rgba(15,23,42,0.95)),
+                linear-gradient(135deg, rgba(2,6,23,0.98), rgba(15,23,42,0.98)),
                 url('${logoUrl}');
               background-repeat:no-repeat;
-              background-position:right center;
-              background-size:260px;
+              background-position:95% center;
+              background-size:180px;
               padding:30px 24px 26px 24px;
               text-align:center;
               border-bottom:5px solid #f59e0b;

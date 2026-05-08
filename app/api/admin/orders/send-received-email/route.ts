@@ -147,47 +147,46 @@ export async function POST(req: Request) {
           ">
 
             <!-- HEADER -->
-            <div style="
-              background:
-                linear-gradient(135deg, rgba(2,6,23,0.98), rgba(15,23,42,0.98)),
-                url('${logoUrl}');
-              background-repeat:no-repeat;
-              background-position:95% center;
-              background-size:180px;
-              padding:30px 24px 26px 24px;
-              text-align:center;
-              border-bottom:5px solid #f59e0b;
-            ">
-              <img
-                src="${logoUrl}"
-                alt="Blox Shop"
-                width="105"
-                style="
-                  display:block;
-                  margin:0 auto 10px auto;
-                  filter:drop-shadow(0 8px 14px rgba(245,158,11,0.45));
-                "
-              />
+<div style="
+  background:#050b16;
+  padding:32px 24px 28px 24px;
+  text-align:center;
+  border-bottom:5px solid #f59e0b;
+">
 
-              <div style="
-                font-size:30px;
-                font-weight:900;
-                letter-spacing:1px;
-                line-height:1;
-              ">
-                <span style="color:#ffffff;">BLOX</span>
-                <span style="color:#f59e0b;">SHOP</span>
-              </div>
+  <img
+    src="${logoUrl}"
+    alt="Blox Shop"
+    width="120"
+    style="
+      display:block;
+      margin:0 auto 12px auto;
+      border:0;
+      outline:none;
+      text-decoration:none;
+    "
+  />
 
-              <p style="
-                margin:8px 0 0 0;
-                color:#e5e7eb;
-                font-size:12px;
-                font-weight:600;
-              ">
-                Trusted Roblox Marketplace
-              </p>
-            </div>
+  <div style="
+    font-size:30px;
+    font-weight:900;
+    letter-spacing:1px;
+    line-height:1;
+    font-family:Arial, Helvetica, sans-serif;
+  ">
+    <span style="color:#ffffff;">BLOX</span>
+    <span style="color:#f59e0b;">SHOP</span>
+  </div>
+
+  <p style="
+    margin:8px 0 0 0;
+    color:#cbd5e1;
+    font-size:12px;
+    font-weight:600;
+  ">
+    Trusted Roblox Marketplace
+  </p>
+</div>
 
             <!-- BODY -->
             <div style="padding:34px 38px 28px 38px;">

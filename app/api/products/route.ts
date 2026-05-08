@@ -12,6 +12,7 @@ export async function GET() {
           slug,
           price,
           compare_at_price,
+          cost_value,
           tag,
           stock,
           stock_quantity,

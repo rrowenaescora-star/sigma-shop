@@ -44,7 +44,9 @@ export async function POST(req: Request) {
       );
     }
 
-    const logoUrl = `${process.env.NEXT_PUBLIC_APP_URL}/logo.png`;
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+    const headerUrl = `${appUrl}/header-email.png`;
+    const fallbackImage = `${appUrl}/logo.png`;
     const discordLink = "https://discord.gg/evM2G5c9Vr";
 
     const orderDate = order.created_at
@@ -58,10 +60,7 @@ export async function POST(req: Request) {
     const itemsHtml = (order.items || [])
       .map((item: any) => {
         const itemImage =
-          item.image_url ||
-          item.imageUrl ||
-          item.image ||
-          `${process.env.NEXT_PUBLIC_APP_URL}/logo.png`;
+          item.image_url || item.imageUrl || item.image || fallbackImage;
 
         const itemName = item.name || item.title || "Purchased Item";
         const itemQty = item.quantity || item.qty || 1;
@@ -72,13 +71,20 @@ export async function POST(req: Request) {
             <table width="100%" cellpadding="0" cellspacing="0">
               <tr>
                 <td width="62" valign="middle">
-                  <img src="${itemImage}" alt="${itemName}" width="52" height="52" style="display:block; border-radius:10px; object-fit:cover; background:#0f172a;" />
+                  <img
+                    src="${itemImage}"
+                    alt="${itemName}"
+                    width="52"
+                    height="52"
+                    style="display:block; border-radius:10px; object-fit:cover; background:#0f172a; border:0;"
+                  />
                 </td>
 
                 <td valign="middle" style="padding-left:12px;">
                   <p style="margin:0; font-size:14px; font-weight:800; color:#111827;">
                     ${itemName}
                   </p>
+
                   <p style="margin:6px 0 0 0; font-size:12px; color:#64748b;">
                     Quantity: ${itemQty}
                   </p>
@@ -102,34 +108,13 @@ export async function POST(req: Request) {
         <div style="margin:0; padding:0; background:#eaf0ff; font-family:Arial, Helvetica, sans-serif; color:#111827;">
           <div style="max-width:720px; margin:0 auto; padding:0; background:#ffffff; overflow:hidden;">
 
-            <!-- HEADER -->
-            <div style="background:#050b16; padding:32px 24px 28px 24px; text-align:center; border-bottom:5px solid #f59e0b; position:relative; overflow:hidden;">
-
-              <!-- BACKGROUND WATERMARK LOGO -->
-              <img
-                src="${logoUrl}"
-                width="300"
-                alt=""
-                style="position:absolute; right:-140px; top:10px; opacity:0.12; z-index:1; border:0;"
-              />
-
-              <!-- MAIN LOGO -->
-              <img
-                src="${logoUrl}"
-                alt="Blox Shop"
-                width="120"
-                style="display:block; margin:0 auto 12px auto; border:0; outline:none; text-decoration:none; position:relative; z-index:2;"
-              />
-
-              <div style="font-size:30px; font-weight:900; letter-spacing:1px; line-height:1; font-family:Arial, Helvetica, sans-serif; position:relative; z-index:2;">
-                <span style="color:#ffffff;">BLOX</span>
-                <span style="color:#f59e0b;">SHOP</span>
-              </div>
-
-              <p style="margin:8px 0 0 0; color:#cbd5e1; font-size:12px; font-weight:600; position:relative; z-index:2;">
-                Trusted Roblox Marketplace
-              </p>
-            </div>
+            <!-- HEADER IMAGE -->
+            <img
+              src="${headerUrl}"
+              alt="Blox Shop"
+              width="720"
+              style="display:block; width:100%; max-width:720px; border:0; outline:none; text-decoration:none;"
+            />
 
             <!-- BODY -->
             <div style="padding:34px 38px 28px 38px;">
@@ -151,7 +136,10 @@ export async function POST(req: Request) {
                   </td>
 
                   <td align="right" valign="top" width="190">
-                    <a href="${discordLink}" style="display:inline-block; background:#fb923c; color:#ffffff; padding:15px 22px; border-radius:10px; text-decoration:none; font-weight:900; font-size:15px;">
+                    <a
+                      href="${discordLink}"
+                      style="display:inline-block; background:#fb923c; color:#ffffff; padding:15px 22px; border-radius:10px; text-decoration:none; font-weight:900; font-size:15px;"
+                    >
                       Finish My Order
                     </a>
                   </td>

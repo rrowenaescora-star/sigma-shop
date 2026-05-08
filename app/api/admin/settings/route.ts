@@ -18,13 +18,18 @@ export async function GET() {
     return NextResponse.json(data);
   } catch (error) {
     console.error("GET /api/admin/settings error:", error);
-    return NextResponse.json({ error: "Server error." }, { status: 500 });
+
+    return NextResponse.json(
+      { error: "Server error." },
+      { status: 500 }
+    );
   }
 }
 
 export async function PATCH(req: Request) {
   try {
     const body = await req.json();
+
     const globalCapital = Number(body.global_capital);
 
     if (!Number.isFinite(globalCapital) || globalCapital < 0) {
@@ -61,39 +66,16 @@ export async function PATCH(req: Request) {
       );
     }
 
-    const { data: products, error: productsError } = await supabase
-      .from("products")
-      .select("id, cost_value");
-
-    if (productsError) {
-      return NextResponse.json(
-        { error: "Failed to load products for availability refresh." },
-        { status: 500 }
-      );
-    }
-
-    for (const product of products ?? []) {
-      const isAvailable = Number(product.cost_value || 0) <= globalCapital;
-
-      const { error: productUpdateError } = await supabase
-        .from("products")
-        .update({
-          is_active: isAvailable,
-        })
-        .eq("id", product.id);
-
-      if (productUpdateError) {
-        console.error(
-          "Failed to update product availability:",
-          product.id,
-          productUpdateError
-        );
-      }
-    }
-
-    return NextResponse.json({ success: true, global_capital: globalCapital });
+    return NextResponse.json({
+      success: true,
+      global_capital: globalCapital,
+    });
   } catch (error) {
     console.error("PATCH /api/admin/settings error:", error);
-    return NextResponse.json({ error: "Server error." }, { status: 500 });
+
+    return NextResponse.json(
+      { error: "Server error." },
+      { status: 500 }
+    );
   }
 }

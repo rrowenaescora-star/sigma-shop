@@ -15,6 +15,12 @@ type Order = {
   delivery_notes: string;
   handled_by: string;
   created_at: string;
+
+  items?: {
+    name: string;
+    quantity?: number;
+    price?: number;
+  }[];
 };
 
 export default function AdminOrdersPage() {
@@ -23,6 +29,7 @@ export default function AdminOrdersPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [savingId, setSavingId] = useState<string | null>(null);
+  const [sendingEmailId, setSendingEmailId] = useState<string | null>(null);
   const [message, setMessage] = useState("");
 
   async function fetchOrders() {
@@ -86,7 +93,7 @@ export default function AdminOrdersPage() {
       pending: orders.filter(
         (order) => (order.status || "").toLowerCase() === "pending"
       ).length,
-           forRefund: orders.filter((order) =>
+      forRefund: orders.filter((order) =>
         (order.status || "").toLowerCase().includes("refund")
       ).length,
       total: orders.length,
@@ -143,6 +150,46 @@ export default function AdminOrdersPage() {
     }
   }
 
+  async function sendOrderReceivedEmail(order: Order) {
+    try {
+      setSendingEmailId(order.id);
+      setMessage("");
+
+      const res = await fetch("/api/admin/orders/send-received-email", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          orderId: order.id,
+        }),
+      });
+
+      if (res.status === 401) {
+        router.replace("/admin/login");
+        return;
+      }
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.error || "Failed to send email");
+        return;
+      }
+
+      setMessage(`Order received email sent for Order #${order.id}.`);
+
+      setTimeout(() => {
+        setMessage("");
+      }, 2500);
+    } catch (error) {
+      console.error(error);
+      alert("Email send error");
+    } finally {
+      setSendingEmailId(null);
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#070b14] p-10 text-white">
@@ -194,7 +241,6 @@ export default function AdminOrdersPage() {
             <p className="mt-2 text-3xl font-black">{stats.pending}</p>
           </div>
 
-         
           <div className="rounded-2xl border border-red-400/20 bg-red-500/10 p-4">
             <p className="text-xs uppercase tracking-[0.2em] text-red-300">
               For Refund
@@ -237,6 +283,34 @@ export default function AdminOrdersPage() {
                   <p className="mt-2 font-bold text-cyan-300">
                     ${Number(order.total_price).toFixed(2)}
                   </p>
+				
+			<div className="mt-3 space-y-2">
+  <p className="text-xs uppercase tracking-[0.2em] text-slate-500">
+    Purchased Items
+  </p>
+
+  {(order as any).items?.map((item: any, index: number) => (
+    <div
+      key={index}
+      className="rounded-xl border border-white/10 bg-[#0b1220] px-3 py-2"
+    >
+      <p className="text-sm font-semibold text-white">
+        {item.name}
+      </p>
+
+      <div className="mt-1 flex items-center gap-3 text-xs text-slate-400">
+        <span>Qty: {item.quantity || 1}</span>
+
+        {item.price && (
+          <span>
+            ${Number(item.price).toFixed(2)}
+          </span>
+        )}
+      </div>
+    </div>
+  ))}
+</div>
+			
                   <p className="mt-1 text-xs text-gray-400">
                     {new Date(order.created_at).toLocaleString()}
                   </p>
@@ -255,7 +329,7 @@ export default function AdminOrdersPage() {
                 </div>
               </div>
 
-              <div className="mt-5 grid gap-3 md:grid-cols-5">
+              <div className="mt-5 grid gap-3 md:grid-cols-6">
                 <select
                   className="rounded-2xl border border-white/10 bg-[#0b1220] px-4 py-3 text-white outline-none"
                   value={order.status || "Pending"}
@@ -335,6 +409,14 @@ export default function AdminOrdersPage() {
                   className="rounded-2xl bg-blue-500 px-4 py-3 font-bold text-white transition hover:bg-blue-400 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {savingId === order.id ? "Saving..." : "Save"}
+                </button>
+
+                <button
+                  onClick={() => sendOrderReceivedEmail(order)}
+                  disabled={sendingEmailId === order.id}
+                  className="rounded-2xl bg-emerald-500 px-4 py-3 font-bold text-white transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {sendingEmailId === order.id ? "Sending..." : "Send Gmail"}
                 </button>
               </div>
             </div>

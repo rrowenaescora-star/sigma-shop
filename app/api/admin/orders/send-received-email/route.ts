@@ -68,54 +68,23 @@ export async function POST(req: Request) {
         const itemPrice = Number(item.price || item.total || 0).toFixed(2);
 
         return `
-          <div style="
-            border:1px solid #e5e7eb;
-            border-radius:14px;
-            padding:14px;
-            margin-bottom:12px;
-            background:#ffffff;
-          ">
+          <div style="border:1px solid #e5e7eb; border-radius:14px; padding:14px; margin-bottom:12px; background:#ffffff;">
             <table width="100%" cellpadding="0" cellspacing="0">
               <tr>
                 <td width="62" valign="middle">
-                  <img
-                    src="${itemImage}"
-                    alt="${itemName}"
-                    width="52"
-                    height="52"
-                    style="
-                      display:block;
-                      border-radius:10px;
-                      object-fit:cover;
-                      background:#0f172a;
-                    "
-                  />
+                  <img src="${itemImage}" alt="${itemName}" width="52" height="52" style="display:block; border-radius:10px; object-fit:cover; background:#0f172a;" />
                 </td>
 
                 <td valign="middle" style="padding-left:12px;">
-                  <p style="
-                    margin:0;
-                    font-size:14px;
-                    font-weight:800;
-                    color:#111827;
-                  ">
+                  <p style="margin:0; font-size:14px; font-weight:800; color:#111827;">
                     ${itemName}
                   </p>
-
-                  <p style="
-                    margin:6px 0 0 0;
-                    font-size:12px;
-                    color:#64748b;
-                  ">
+                  <p style="margin:6px 0 0 0; font-size:12px; color:#64748b;">
                     Quantity: ${itemQty}
                   </p>
                 </td>
 
-                <td align="right" valign="middle" style="
-                  font-size:16px;
-                  font-weight:900;
-                  color:#f59e0b;
-                ">
+                <td align="right" valign="middle" style="font-size:16px; font-weight:900; color:#f59e0b;">
                   $${itemPrice}
                 </td>
               </tr>
@@ -130,79 +99,45 @@ export async function POST(req: Request) {
       to: customerEmail,
       subject: `Your Blox Shop Order #${order.id} Was Received`,
       html: `
-        <div style="
-          margin:0;
-          padding:0;
-          background:#eaf0ff;
-          font-family:Arial, Helvetica, sans-serif;
-          color:#111827;
-        ">
-          <div style="
-            max-width:720px;
-            margin:0 auto;
-            padding:0;
-            background:#ffffff;
-            border-radius:0;
-            overflow:hidden;
-          ">
+        <div style="margin:0; padding:0; background:#eaf0ff; font-family:Arial, Helvetica, sans-serif; color:#111827;">
+          <div style="max-width:720px; margin:0 auto; padding:0; background:#ffffff; overflow:hidden;">
 
             <!-- HEADER -->
-<div style="
-  background:#050b16;
-  padding:32px 24px 28px 24px;
-  text-align:center;
-  border-bottom:5px solid #f59e0b;
-  position:relative;
-  overflow:hidden;
-">
+            <div style="background:#050b16; padding:32px 24px 28px 24px; text-align:center; border-bottom:5px solid #f59e0b; position:relative; overflow:hidden;">
 
-  <img
-    src="${logoUrl}"
-    alt="Blox Shop"
-    width="120"
-    style="
-      display:block;
-      margin:0 auto 12px auto;
-      border:0;
-      outline:none;
-      text-decoration:none;
-    "
-  />
+              <!-- BACKGROUND WATERMARK LOGO -->
+              <img
+                src="${logoUrl}"
+                width="360"
+                alt=""
+                style="position:absolute; right:-40px; top:-25px; opacity:0.18; z-index:1; border:0;"
+              />
 
-  <div style="
-    font-size:30px;
-    font-weight:900;
-    letter-spacing:1px;
-    line-height:1;
-    font-family:Arial, Helvetica, sans-serif;
-  ">
-    <span style="color:#ffffff;">BLOX</span>
-    <span style="color:#f59e0b;">SHOP</span>
-  </div>
+              <!-- MAIN LOGO -->
+              <img
+                src="${logoUrl}"
+                alt="Blox Shop"
+                width="120"
+                style="display:block; margin:0 auto 12px auto; border:0; outline:none; text-decoration:none; position:relative; z-index:2;"
+              />
 
-  <p style="
-    margin:8px 0 0 0;
-    color:#cbd5e1;
-    font-size:12px;
-    font-weight:600;
-  ">
-    Trusted Roblox Marketplace
-  </p>
-</div>
+              <div style="font-size:30px; font-weight:900; letter-spacing:1px; line-height:1; font-family:Arial, Helvetica, sans-serif; position:relative; z-index:2;">
+                <span style="color:#ffffff;">BLOX</span>
+                <span style="color:#f59e0b;">SHOP</span>
+              </div>
+
+              <p style="margin:8px 0 0 0; color:#cbd5e1; font-size:12px; font-weight:600; position:relative; z-index:2;">
+                Trusted Roblox Marketplace
+              </p>
+            </div>
 
             <!-- BODY -->
             <div style="padding:34px 38px 28px 38px;">
 
-              <!-- TOP TITLE + BUTTON -->
               <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
                 <tr>
                   <td valign="top">
-                    <h1 style="
-                      margin:0 0 14px 0;
-                      font-size:28px;
-                      line-height:1.2;
-                      color:#111827;
-                    ">
+                    <h1 style="margin:0 0 14px 0; font-size:28px; line-height:1.2; color:#111827;">
                       Your order was received!
                     </h1>
 
@@ -216,36 +151,15 @@ export async function POST(req: Request) {
                   </td>
 
                   <td align="right" valign="top" width="190">
-                    <a href="https://discord.gg/evM2G5c9Vr" style="
-                      display:inline-block;
-                      background:linear-gradient(135deg,#f59e0b,#fb923c);
-                      color:#ffffff;
-                      padding:15px 22px;
-                      border-radius:10px;
-                      text-decoration:none;
-                      font-weight:900;
-                      font-size:15px;
-                    ">
+                    <a href="${discordLink}" style="display:inline-block; background:#fb923c; color:#ffffff; padding:15px 22px; border-radius:10px; text-decoration:none; font-weight:900; font-size:15px;">
                       Finish My Order
                     </a>
                   </td>
                 </tr>
               </table>
 
-              <!-- ORDER DETAILS -->
-              <div style="
-                border:1px solid #e5e7eb;
-                border-radius:14px;
-                padding:18px 20px;
-                margin-bottom:26px;
-                background:#ffffff;
-              ">
-                <p style="
-                  margin:0 0 18px 0;
-                  font-size:15px;
-                  font-weight:900;
-                  color:#111827;
-                ">
+              <div style="border:1px solid #e5e7eb; border-radius:14px; padding:18px 20px; margin-bottom:26px; background:#ffffff;">
+                <p style="margin:0 0 18px 0; font-size:15px; font-weight:900; color:#111827;">
                   ORDER DETAILS
                 </p>
 
@@ -258,59 +172,29 @@ export async function POST(req: Request) {
                   </tr>
 
                   <tr>
-                    <td style="
-                      padding-top:8px;
-                      font-size:18px;
-                      font-weight:900;
-                      color:#f59e0b;
-                    ">
+                    <td style="padding-top:8px; font-size:18px; font-weight:900; color:#f59e0b;">
                       #${order.id}
                     </td>
 
-                    <td style="
-                      padding-top:8px;
-                      font-size:14px;
-                      font-weight:700;
-                      color:#111827;
-                    ">
+                    <td style="padding-top:8px; font-size:14px; font-weight:700; color:#111827;">
                       ${orderDate}
                     </td>
 
                     <td style="padding-top:8px;">
-                      <span style="
-                        display:inline-block;
-                        background:#fff7ed;
-                        color:#f59e0b;
-                        border:1px solid #fed7aa;
-                        padding:6px 10px;
-                        border-radius:999px;
-                        font-size:11px;
-                        font-weight:900;
-                      ">
+                      <span style="display:inline-block; background:#fff7ed; color:#f59e0b; border:1px solid #fed7aa; padding:6px 10px; border-radius:999px; font-size:11px; font-weight:900;">
                         PENDING CONFIRMATION
                       </span>
                     </td>
 
-                    <td align="right" style="
-                      padding-top:8px;
-                      font-size:22px;
-                      font-weight:900;
-                      color:#f59e0b;
-                    ">
+                    <td align="right" style="padding-top:8px; font-size:22px; font-weight:900; color:#f59e0b;">
                       $${Number(order.total_price || 0).toFixed(2)}
                     </td>
                   </tr>
                 </table>
               </div>
 
-              <!-- PURCHASED ITEMS -->
               <div style="margin-bottom:22px;">
-                <p style="
-                  margin:0 0 14px 0;
-                  font-size:16px;
-                  font-weight:900;
-                  color:#111827;
-                ">
+                <p style="margin:0 0 14px 0; font-size:16px; font-weight:900; color:#111827;">
                   PURCHASED ITEMS
                 </p>
 
@@ -320,51 +204,20 @@ export async function POST(req: Request) {
                 }
               </div>
 
-              <!-- INFO BOX -->
-              <div style="
-                border:1px solid #fed7aa;
-                background:#fff7ed;
-                border-radius:12px;
-                padding:16px;
-                margin-bottom:16px;
-              ">
-                <p style="
-                  margin:0;
-                  font-size:13px;
-                  line-height:1.6;
-                  color:#111827;
-                ">
+              <div style="border:1px solid #fed7aa; background:#fff7ed; border-radius:12px; padding:16px; margin-bottom:16px;">
+                <p style="margin:0; font-size:13px; line-height:1.6; color:#111827;">
                   <b style="color:#f59e0b;">Important:</b>
-                  To finish your order and confirm that you are ready to receive your item,
-                  please click the button above.
+                  To finish your order and confirm that you are ready to receive your item, please click the button above.
                 </p>
               </div>
 
-              <!-- SECURITY BOX -->
-              <div style="
-                border:1px solid #e5e7eb;
-                background:#f8fafc;
-                border-radius:12px;
-                padding:16px;
-                margin-bottom:26px;
-              ">
-                <p style="
-                  margin:0;
-                  font-size:13px;
-                  line-height:1.6;
-                  color:#111827;
-                ">
-                  This confirmation helps us avoid fake or spam orders.
-                  Once confirmed, our support team will process your delivery.
+              <div style="border:1px solid #e5e7eb; background:#f8fafc; border-radius:12px; padding:16px; margin-bottom:26px;">
+                <p style="margin:0; font-size:13px; line-height:1.6; color:#111827;">
+                  This confirmation helps us avoid fake or spam orders. Once confirmed, our support team will process your delivery.
                 </p>
               </div>
 
-              <!-- BENEFITS -->
-              <table width="100%" cellpadding="0" cellspacing="0" style="
-                border-top:1px solid #e5e7eb;
-                padding-top:20px;
-                margin-bottom:10px;
-              ">
+              <table width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #e5e7eb; padding-top:20px; margin-bottom:10px;">
                 <tr>
                   <td width="33%" valign="top" style="padding-right:14px;">
                     <p style="margin:0 0 6px 0; font-size:13px; font-weight:900;">
@@ -375,11 +228,7 @@ export async function POST(req: Request) {
                     </p>
                   </td>
 
-                  <td width="33%" valign="top" style="
-                    padding:0 14px;
-                    border-left:1px solid #e5e7eb;
-                    border-right:1px solid #e5e7eb;
-                  ">
+                  <td width="33%" valign="top" style="padding:0 14px; border-left:1px solid #e5e7eb; border-right:1px solid #e5e7eb;">
                     <p style="margin:0 0 6px 0; font-size:13px; font-weight:900;">
                       SECURE ORDERS
                     </p>
@@ -400,14 +249,7 @@ export async function POST(req: Request) {
               </table>
             </div>
 
-            <!-- FOOTER -->
-            <div style="
-              background:#050b16;
-              border-top:5px solid #f59e0b;
-              padding:22px 24px;
-              text-align:center;
-              color:#cbd5e1;
-            ">
+            <div style="background:#050b16; border-top:5px solid #f59e0b; padding:22px 24px; text-align:center; color:#cbd5e1;">
               <p style="margin:0 0 10px 0; font-size:13px;">
                 Thank you for ordering from Blox Shop!
               </p>

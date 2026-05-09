@@ -22,10 +22,17 @@ type CartItem = Product & {
 const OrderSummaryItem = memo(function OrderSummaryItem({
   item,
   unavailable = false,
+  currencyView,
+  usdToPhpRate,
+  usdToInrRate,
 }: {
   item: CartItem;
   unavailable?: boolean;
-}) {
+  currencyView: "USD" | "PHP" | "INR";
+  usdToPhpRate: number | null;
+  usdToInrRate: number | null;
+})
+ {
   return (
     <div
       className={`rounded-2xl border p-3 ${
@@ -66,7 +73,30 @@ const OrderSummaryItem = memo(function OrderSummaryItem({
         </div>
 
         <p className="flex-shrink-0 text-sm font-extrabold text-white">
-          ${(Number(item.price) * item.quantity).toFixed(2)}
+          {currencyView === "USD" &&
+  `$${(Number(item.price) * item.quantity).toFixed(2)}`}
+
+{currencyView === "PHP" &&
+  usdToPhpRate &&
+  `₱${(
+    Number(item.price) *
+    item.quantity *
+    usdToPhpRate
+  ).toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`}
+
+{currencyView === "INR" &&
+  usdToInrRate &&
+  `₹${(
+    Number(item.price) *
+    item.quantity *
+    usdToInrRate
+  ).toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`}
         </p>
       </div>
     </div>
@@ -93,12 +123,15 @@ export default function CheckoutPage() {
   const [verifyError, setVerifyError] = useState("");
 
   const [usdToPhpRate, setUsdToPhpRate] = useState<number | null>(null);
+  const [usdToInrRate, setUsdToInrRate] = useState<number | null>(null);
   const [rateLoading, setRateLoading] = useState(true);
+  const [currencyView, setCurrencyView] = useState<"USD" | "PHP" | "INR">("USD");
 
   const [latestProducts, setLatestProducts] = useState<Product[]>([]);
   const [productValidationMessage, setProductValidationMessage] = useState("");
   const [cartLoaded, setCartLoaded] = useState(false);
   const [confirmChecked, setConfirmChecked] = useState(false);
+  const [showAllItems, setShowAllItems] = useState(false);
 
   useEffect(() => {
     const savedCart = localStorage.getItem("real-cart");
@@ -107,6 +140,18 @@ export default function CheckoutPage() {
     }
     setCartLoaded(true);
   }, []);
+
+useEffect(() => {
+  const savedCurrency = localStorage.getItem("currency-view");
+
+  if (
+    savedCurrency === "USD" ||
+    savedCurrency === "PHP" ||
+    savedCurrency === "INR"
+  ) {
+    setCurrencyView(savedCurrency);
+  }
+}, []);
 
   useEffect(() => {
     if (!cartLoaded) return;
@@ -129,7 +174,8 @@ export default function CheckoutPage() {
           return;
         }
 
-        setUsdToPhpRate(Number(data.rate));
+        setUsdToPhpRate(Number(data.phpRate));
+	setUsdToInrRate(Number(data.inrRate));
       } catch (error) {
         console.error("Exchange rate fetch failed:", error);
       } finally {
@@ -278,10 +324,20 @@ export default function CheckoutPage() {
   }, [totalPrice, discount]);
 
   const estimatedPhpTotal = useMemo(() => {
+
     if (!usdToPhpRate || finalPrice <= 0) return null;
     const bufferMultiplier = 1.01;
     return Math.round(finalPrice * usdToPhpRate * bufferMultiplier * 100) / 100;
   }, [finalPrice, usdToPhpRate]);
+
+const estimatedInrTotal = useMemo(() => {
+  if (!usdToInrRate || finalPrice <= 0) return null;
+
+  return (
+    Math.round(finalPrice * usdToInrRate * 100) / 100
+  );
+}, [finalPrice, usdToInrRate]);
+
 
   const hasUnavailableCartItems = useMemo(() => {
     return cartItems.some((item) => isCartItemUnavailable(item));
@@ -635,21 +691,44 @@ export default function CheckoutPage() {
               </div>
             )}
 
-            <div className="mt-4 space-y-3">
-              {cartItems.length === 0 ? (
-                <div className="rounded-2xl border border-slate-700/60 bg-slate-900/40 p-4 text-sm text-slate-300">
-                  Your cart is empty.
-                </div>
-              ) : (
-                cartItems.map((item) => (
-                  <OrderSummaryItem
-                    key={item.id}
-                    item={item}
-                    unavailable={isCartItemUnavailable(item)}
-                  />
-                ))
-              )}
-            </div>
+            <div className="mt-4">
+  {cartItems.length === 0 ? (
+    <div className="rounded-2xl border border-slate-700/60 bg-slate-900/40 p-4 text-sm text-slate-300">
+      Your cart is empty.
+    </div>
+  ) : (
+    <>
+      <div
+        className={`space-y-3 pr-1 ${
+          showAllItems
+            ? "max-h-80 overflow-y-auto"
+            : "max-h-[240px] overflow-hidden"
+        }`}
+      >
+        {cartItems.map((item) => (
+          <OrderSummaryItem
+            key={item.id}
+            item={item}
+            unavailable={isCartItemUnavailable(item)}
+            currencyView={currencyView}
+            usdToPhpRate={usdToPhpRate}
+            usdToInrRate={usdToInrRate}
+          />
+        ))}
+      </div>
+
+      {cartItems.length > 3 && (
+        <button
+          type="button"
+          onClick={() => setShowAllItems(!showAllItems)}
+          className="mt-3 w-full rounded-xl border border-slate-700/60 bg-slate-900/40 px-3 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-800/70"
+        >
+          {showAllItems ? "Show Less Items" : `Show All Items (${cartItems.length})`}
+        </button>
+      )}
+    </>
+  )}
+</div>
 
             <div className="mt-4 rounded-2xl border border-slate-700/60 bg-slate-900/40 p-4">
               {discount > 0 && (
@@ -925,23 +1004,39 @@ export default function CheckoutPage() {
                   <div className="mb-4 rounded-2xl border border-blue-400/20 bg-blue-500/5 p-4">
                     <p className="text-sm text-slate-300">Store price</p>
                     <p className="text-2xl font-extrabold text-white">
-                      ${finalPrice.toFixed(2)} USD
+                      {currencyView === "USD" &&
+  `$${finalPrice.toFixed(2)} USD`}
+
+{currencyView === "PHP" &&
+  estimatedPhpTotal &&
+  `₱${estimatedPhpTotal.toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })} PHP`}
+
+{currencyView === "INR" &&
+  estimatedInrTotal &&
+  `₹${estimatedInrTotal.toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })} INR`}
                     </p>
 
-                    <p className="mt-2 text-sm text-slate-300">
-                      Estimated payment amount
-                    </p>
+                    {currencyView === "INR" && estimatedPhpTotal && (
+  <>
+    <p className="mt-2 text-sm text-slate-300">
+      Estimated PHP at checkout
+    </p>
 
-                    <p className="text-xl font-bold text-blue-300">
-                      {rateLoading
-                        ? "Loading PHP estimate..."
-                        : estimatedPhpTotal
-                        ? `≈ ₱${estimatedPhpTotal.toLocaleString(undefined, {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                          })} PHP`
-                        : "PHP estimate unavailable"}
-                    </p>
+    <p className="text-xl font-bold text-blue-300">
+      ≈ ₱
+      {estimatedPhpTotal.toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })} PHP
+    </p>
+  </>
+)}
 
                     <p className="mt-2 text-[11px] text-slate-400">
                       Final PHP may vary slightly depending on the live exchange rate.

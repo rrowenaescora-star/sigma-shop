@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 export async function GET() {
   try {
     const res = await fetch(
-      "https://api.frankfurter.dev/v1/latest?base=USD&symbols=PHP",
+      "https://api.frankfurter.dev/v1/latest?base=USD&symbols=PHP,INR",
       {
         method: "GET",
         cache: "no-store",
@@ -12,7 +12,7 @@ export async function GET() {
 
     if (!res.ok) {
       return NextResponse.json(
-        { error: "Failed to fetch exchange rate." },
+        { error: "Failed to fetch exchange rates." },
         { status: 500 }
       );
     }
@@ -21,24 +21,38 @@ export async function GET() {
       date?: string;
       rates?: {
         PHP?: number;
+        INR?: number;
       };
     };
 
-    const rate = Number(data?.rates?.PHP);
+    const phpRate = Number(data?.rates?.PHP);
+    const inrRate = Number(data?.rates?.INR);
 
-    if (!rate || Number.isNaN(rate) || rate <= 0) {
+    if (
+      !phpRate ||
+      Number.isNaN(phpRate) ||
+      phpRate <= 0 ||
+      !inrRate ||
+      Number.isNaN(inrRate) ||
+      inrRate <= 0
+    ) {
       return NextResponse.json(
-        { error: "Invalid exchange rate." },
+        { error: "Invalid exchange rates." },
         { status: 500 }
       );
     }
 
     return NextResponse.json({
-      rate,
+      phpRate,
+      inrRate,
       date: data.date ?? null,
     });
   } catch (error) {
     console.error("Exchange rate route error:", error);
-    return NextResponse.json({ error: "Server error." }, { status: 500 });
+
+    return NextResponse.json(
+      { error: "Server error." },
+      { status: 500 }
+    );
   }
 }

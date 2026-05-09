@@ -14,7 +14,7 @@ const trustItems = [
   },
   {
     title: "Order Tracking",
-    text: "Track your order anytime using the details you entered at checkout.",
+    text: "Your Order ID and order updates are sent to your email after payment confirmation or order placement.",
   },
   {
     title: "Refund Protection",
@@ -25,8 +25,8 @@ const trustItems = [
     text: "Support is available through email, Discord, and order tracking.",
   },
   {
-    title: "Digital Only",
-    text: "All products are delivered digitally. No physical shipment required.",
+    title: "Online Fulfillment",
+    text: "All products are fulfilled digitally through online delivery and customer assistance.",
   },
 ];
 
@@ -60,7 +60,7 @@ const afterPaymentSteps = [
   },
   {
     title: "4. Track anytime",
-    text: "You can track your order status using the Track Order page.",
+    text: "Your Order ID and order updates are sent to your email after payment confirmation or order placement..",
   },
 ];
 
@@ -87,8 +87,8 @@ const faqs = [
   },
   {
     question: "How do I track my order?",
-    answer:
-      "Use the Track Order page and enter the same details you used during checkout.",
+    answer:"Use the Track Order page and enter the Order ID sent to your email after checkout."
+      ,
   },
 ];
 
@@ -103,17 +103,15 @@ export default function LandingPage() {
         <div className="grid gap-8 rounded-[2rem] border border-white/10 bg-[#0b1220]/85 p-8 shadow-[0_25px_90px_rgba(0,0,0,0.45)] backdrop-blur-xl md:p-14 lg:grid-cols-[1.25fr_0.75fr]">
           <div>
             <p className="text-sm font-bold uppercase tracking-[0.25em] text-cyan-300">
-              Premium Digital Fulfillment
+              Secure Gaming Marketplace
             </p>
 
             <h1 className="mt-4 text-4xl font-black leading-tight md:text-6xl">
-              Bloxhop | Secure Digital Products & Game Services
+              Bloxhop | Gaming Digital Products & Online Services
             </h1>
 
             <p className="mt-5 max-w-3xl text-base leading-7 text-slate-300 md:text-lg">
-              Shop premium digital products and game services with secure
-              checkout, fast fulfillment, order tracking, refund protection, and
-              reliable customer support.
+              Browse gaming-related digital products and online services with secure checkout, fast fulfillment, order tracking, and customer support assistance.
             </p>
 
             <div className="mt-6 flex flex-wrap gap-2 text-xs font-semibold text-slate-300">
@@ -189,8 +187,7 @@ export default function LandingPage() {
             </h2>
 
             <p className="mt-3 text-sm leading-6 text-slate-400">
-              Browse premium digital products, service packages, and limited
-              offers with secure checkout and order tracking.
+              Browse gaming-related digital products, online services, and limited offers with secure checkout, order tracking, and customer support assistance.
             </p>
 
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
@@ -201,7 +198,7 @@ export default function LandingPage() {
                 >
                   <p className="font-bold text-white">{item}</p>
                   <p className="mt-1 text-xs text-slate-400">
-                    Available depending on stock and store updates.
+                    Availability may vary depending on stock and ongoing updates.
                   </p>
                 </div>
               ))}
@@ -221,7 +218,7 @@ export default function LandingPage() {
             </p>
 
             <h2 className="mt-3 text-3xl font-black">
-              What Happens After You Pay?
+              What Happens After Checkout?
             </h2>
 
             <div className="mt-6 space-y-4">
@@ -367,9 +364,9 @@ export default function LandingPage() {
 
       <section className="relative mx-auto max-w-7xl px-6 py-16">
         <div className="rounded-[2rem] border border-blue-400/20 bg-blue-500/10 p-8 text-center shadow-[0_20px_70px_rgba(0,0,0,0.25)]">
-          <h2 className="text-3xl font-black">Ready to shop safely?</h2>
+          <h2 className="text-3xl font-black">Ready to explore the store??</h2>
           <p className="mt-3 text-slate-300">
-            Enter the store, choose your product, and complete secure checkout.
+            Browse available products and complete secure checkout with customer support assistance.
           </p>
 
           <Link
@@ -380,9 +377,7 @@ export default function LandingPage() {
           </Link>
 
           <p className="mt-5 text-xs leading-6 text-slate-500">
-            Bloxhop is an independent digital services platform and is not
-            affiliated with, endorsed by, or sponsored by Roblox Corporation or
-            Blox Fruits.
+            Bloxhop is an independent digital goods marketplace for gaming-related products and services and is not affiliated with, endorsed by, or sponsored by Roblox Corporation or Blox Fruits.
           </p>
         </div>
       </section>

@@ -64,8 +64,9 @@ export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOption, setSortOption] = useState("default");
-  const [currencyView, setCurrencyView] = useState<"USD" | "PHP" | "BOTH">("USD");
+  const [currencyView, setCurrencyView] = useState<"USD" | "PHP" | "INR">("USD");
   const [usdToPhpRate, setUsdToPhpRate] = useState<number | null>(null);
+  const [usdToInrRate, setUsdToInrRate] = useState<number | null>(null);
   const [rateLoading, setRateLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [showPromoPopup, setShowPromoPopup] = useState(true);
@@ -173,7 +174,8 @@ export default function Home() {
           return;
         }
 
-        setUsdToPhpRate(Number(data.rate));
+        setUsdToPhpRate(Number(data.phpRate));
+	setUsdToInrRate(Number(data.inrRate));
       } catch (error) {
         console.error("Exchange rate fetch failed:", error);
       } finally {
@@ -350,15 +352,41 @@ export default function Home() {
     setCartItems([]);
     setMessage("Cart cleared.");
   }
+function formatMoney(usdAmount: number) {
+  if (currencyView === "USD") return `$${usdAmount.toFixed(2)}`;
+
+  if (currencyView === "PHP" && usdToPhpRate) {
+    return `₱${(usdAmount * usdToPhpRate).toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
+  }
+
+  if (currencyView === "INR" && usdToInrRate) {
+    return `₹${(usdAmount * usdToInrRate).toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
+  }
+
+  return `$${usdAmount.toFixed(2)}`;
+}
 
   function formatPhp(usdAmount: number) {
     if (!usdToPhpRate) return null;
     return usdAmount * usdToPhpRate;
   }
 
+  function formatInr(usdAmount: number) {
+  if (!usdToInrRate) return null;
+  return usdAmount * usdToInrRate;
+
+  }
+
   function renderPrice(product: Product) {
     const usd = Number(product.price);
     const php = formatPhp(usd);
+    const inr = formatInr(usd);
 
     if (currencyView === "USD") {
       return (
@@ -380,6 +408,19 @@ export default function Home() {
         </p>
       );
     }
+
+	if (currencyView === "INR") {
+    return (
+       <p className="text-3xl font-extrabold text-emerald-300">
+        {inr
+          ? `₹${inr.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+           })}`
+          : "INR unavailable"}
+       </p>
+    );
+  }
 
     return (
       <div>
@@ -598,6 +639,21 @@ export default function Home() {
                 />
                 PHP
               </button>
+		<button
+ 			 onClick={() => setCurrencyView("INR")}
+ 			 className={`flex items-center gap-2 rounded-full px-3 py-2 text-sm font-semibold transition ${
+   			 currencyView === "INR"
+     				 ? "bg-blue-500 text-white"
+  			    : "text-slate-300 hover:bg-white/5"
+ 		      }`}
+		>
+ 		     <img
+ 			   src="https://flagcdn.com/w20/in.png"
+  			  alt="INR"
+ 			   className="h-4 w-4 rounded-full"
+ 				 />
+ 			 INR
+		</button>
             </div>
           </div>
         </div>
@@ -804,7 +860,21 @@ export default function Home() {
 
                                 {savingsAmount && (
                                   <span className="rounded-xl bg-emerald-500/20 px-4 py-2 text-sm font-bold text-emerald-300">
-                                    Save ${savingsAmount.toFixed(2)}
+                                    {currencyView === "USD" && `Save $${savingsAmount.toFixed(2)}`}
+
+					{currencyView === "PHP" &&
+  					usdToPhpRate &&
+  					`Save ₱${(savingsAmount * usdToPhpRate).toLocaleString(undefined, {
+ 					   minimumFractionDigits: 2,
+ 					   maximumFractionDigits: 2,
+  						})}`}
+
+					{currencyView === "INR" &&
+  					usdToInrRate &&
+ 					 `Save ₹${(savingsAmount * usdToInrRate).toLocaleString(undefined, {
+ 					   minimumFractionDigits: 2,
+   					 maximumFractionDigits: 2,
+ 					 })}`}
                                   </span>
                                 )}
                               </div>
@@ -824,21 +894,14 @@ export default function Home() {
                                         maximumFractionDigits: 2,
                                       })}`}
 
-                                    {currencyView === "BOTH" && usdToPhpRate && (
-                                      <>
-                                        ${Number(product.compare_at_price).toFixed(2)}
-                                        <span className="block text-xs text-slate-500">
-                                          ≈ ₱
-                                          {(
-                                            Number(product.compare_at_price) *
-                                            usdToPhpRate
-                                          ).toLocaleString(undefined, {
-                                            minimumFractionDigits: 2,
-                                            maximumFractionDigits: 2,
-                                          })}
-                                        </span>
-                                      </>
-                                    )}
+                                    {currencyView === "INR" &&
+  					usdToInrRate &&
+ 					 `₹${(
+   					 Number(product.compare_at_price) * usdToInrRate
+					  ).toLocaleString(undefined, {
+    					minimumFractionDigits: 2,
+    					maximumFractionDigits: 2,
+ 				      })}`}
                                   </p>
                                 )}
 
@@ -947,21 +1010,21 @@ export default function Home() {
                   <div className="flex items-center justify-between">
                     <span className="text-slate-400">Total</span>
                     <span className="font-bold text-emerald-300">
-                      ${totalPrice.toFixed(2)}
+                      {formatMoney(totalPrice)}
                     </span>
                   </div>
-                  {usdToPhpRate ? (
-                    <div className="flex items-center justify-between">
-                      <span className="text-slate-400">Est. PHP</span>
-                      <span className="font-bold text-emerald-300">
-                        ₱
-                        {(totalPrice * usdToPhpRate).toLocaleString(undefined, {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
-                      </span>
-                    </div>
-                  ) : null}
+                  {currencyView === "INR" && usdToPhpRate ? (
+  <div className="flex items-center justify-between">
+    <span className="text-slate-400">Est. PHP</span>
+    <span className="font-bold text-emerald-300">
+      ₱
+      {(totalPrice * usdToPhpRate).toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })}
+    </span>
+  </div>
+) : null}
                 </div>
 
                 <button
@@ -1076,7 +1139,7 @@ export default function Home() {
                   Total
                 </p>
                 <p className="mt-2 text-2xl font-black text-sky-300">
-                  ${totalPrice.toFixed(2)}
+                  {formatMoney(totalPrice)}
                 </p>
 
                 {usdToPhpRate && (
@@ -1111,7 +1174,7 @@ export default function Home() {
                         </p>
 
                         <p className="mt-1 text-sm text-emerald-200">
-                          ${Number(item.price).toFixed(2)} × {item.quantity}
+                          {formatMoney(Number(item.price))} × {item.quantity}
                         </p>
 
                         {usdToPhpRate && (
@@ -1124,7 +1187,7 @@ export default function Home() {
                         )}
 
                         <p className="mt-2 font-bold text-sky-300">
-                          ${(Number(item.price) * item.quantity).toFixed(2)}
+                         {formatMoney(Number(item.price) * item.quantity)}
                         </p>
 
                         {usdToPhpRate && (
@@ -1177,22 +1240,24 @@ export default function Home() {
 
             <div className="flex items-center justify-between text-lg font-bold">
               <span>Total</span>
-              <span className="text-sky-300">${totalPrice.toFixed(2)}</span>
+              <span className="text-sky-300">
+  		{formatMoney(totalPrice)}
+		</span>
             </div>
+	{currencyView === "INR" && usdToPhpRate ? (
+  <div className="mt-1 flex items-center justify-between text-sm">
+    <span className="text-slate-400">Est. PHP at checkout</span>
+    <span className="font-bold text-emerald-300">
+      ₱
+      {(totalPrice * usdToPhpRate).toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })}
+    </span>
+  </div>
+) : null}
 
-            {usdToPhpRate ? (
-              <div className="flex items-center justify-between">
-                <span className="text-slate-400">Est. PHP</span>
-                <span className="font-bold text-emerald-300">
-                  ₱
-                  {(totalPrice * usdToPhpRate).toLocaleString(undefined, {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}
-                </span>
-              </div>
-            ) : null}
-
+           
             <div className="mt-4 grid grid-cols-2 gap-3">
               <button
                 onClick={clearCart}

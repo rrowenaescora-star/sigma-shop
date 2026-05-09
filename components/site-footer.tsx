@@ -16,12 +16,11 @@ export default function SiteFooter() {
             <div>
               <h3 className="mb-2 font-bold text-white">Bloxhop</h3>
               <p className="text-slate-300">
-                Digital products and online services store for premium support,
-                digital access, and customer assistance.
+                Digital products and gaming-related online services with customer support assistance.
               </p>
 
               <p className="mt-2 text-slate-500">
-                All products and services are digital only. No physical shipment required.
+                All products and services are delivered digitally. No physical shipment required.
               </p>
 
               <p className="mt-3 text-xs text-slate-500">
@@ -135,18 +134,16 @@ export default function SiteFooter() {
 
           <div className="mt-6 border-t border-white/10 pt-6 space-y-2">
             <p className="text-xs text-slate-400">
-             Bloxhop is an independent digital services platform and is not affiliated with,
-  endorsed by, or sponsored by Roblox Corporation or Blox Fruits.
+             Bloxhop is an independent digital goods marketplace for gaming-related products
+ and services and is not affiliated with, endorsed by, or sponsored by Roblox Corporation or Blox Fruits.
             </p>
 
             <p className="text-xs text-slate-500">
-              All products and services are fulfilled digitally through online access,
-              service coordination, or digital delivery. No physical items are shipped.
+              All products and services are fulfilled digitally through online delivery and customer support assistance. No physical items are shipped.
             </p>
 
             <p className="text-xs text-slate-500">
-              Refunds are reviewed only for non-delivery, duplicate payment,
-              or fulfillment issues based on store policy.
+              Refund requests are reviewed for non-delivery, duplicate payments, or eligible service-related issues based on store policy.
             </p>
 
             <p className="text-xs text-slate-500">
@@ -529,15 +526,55 @@ export default function SiteFooter() {
 
 
         </section>
-	<p>
-   contact: <a
-  href="mailto:support@bloxhop.site"
-  className="text-sky-300 hover:text-white hover:underline"
->
-  support@bloxhop.site
-</a> </p> Business Location:Cebu City, Cebu, Philippines <p>  Support Contact:+63 945 339 2304
-</p>
-            </>
+	
+  <p className="font-semibold text-white">
+    Customer Support
+  </p>
+
+  <p>
+    Support Email:{" "}
+    <a
+      href="mailto:support@bloxhop.site"
+      className="text-sky-300 hover:text-white hover:underline"
+    >
+      support@bloxhop.site
+    </a>
+  </p>
+
+  <p>
+    Discord Support:{" "}
+    <a
+      href="https://discord.gg/evM2G5c9Vr"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-sky-300 hover:text-white hover:underline"
+    >
+      Join Discord
+    </a>
+  </p>
+
+  <p>
+    Support Contact: +63 945 339 2304
+  </p>
+
+  <p>
+    Business Location: Cebu City, Cebu, Philippines
+  </p>
+
+  <div className="mt-3">
+    <p className="font-semibold text-white">
+      Support Hours:
+    </p>
+
+    <p>
+      Monday - Sunday
+    </p>
+
+    <p>
+      8:00 AM - 10:00 PM (PHT)
+    </p>
+  </div>
+</>
           )}
   {openPolicy === "delivery" && (
             <>

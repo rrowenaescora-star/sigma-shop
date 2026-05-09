@@ -26,7 +26,7 @@ const trustItems = [
   },
   {
     title: "Digital Only",
-    text: "All products are digital or online-based. No physical shipping is required.",
+    text: "All products are delivered digitally. No physical shipment required.",
   },
 ];
 
@@ -39,7 +39,7 @@ const steps = [
 ];
 
 const productPreview = [
-  "Premium Support Packages",
+  "Gaming Products",
   "Digital Services",
   "Bundles",
   "Limited Deals",

@@ -699,7 +699,7 @@ if (foundProduct) {
       <div className="absolute inset-0 bg-gradient-to-r from-[#07111f]/80 via-[#07111f]/45 to-[#07111f]/80" />
     </div>
 
-    <div className="relative mx-auto flex max-w-[1850px] items-center justify-between px-5 py-5 md:px-8">
+   <div className="relative mx-auto flex max-w-[1850px] flex-col gap-4 px-4 py-4 md:flex-row md:items-center md:justify-between md:px-8">
     <Link
   href="/"
   className="flex items-center gap-4 pl-3 transition hover:opacity-90"
@@ -712,7 +712,7 @@ if (foundProduct) {
   />
 
   <div>
-    <h1 className="text-xl font-black leading-none tracking-tight text-white">
+    <h1 className="text-base font-black leading-none tracking-tight text-white sm:text-xl">
       BLOXHOP ONLINE STORE
     </h1>
 
@@ -764,7 +764,7 @@ if (foundProduct) {
   </div>
 
   <div className="border-b border-blue-500/10 bg-[#081220]/20 backdrop-blur-xl">
-    <div className="relative flex h-[58px] items-center px-5 md:px-8">
+    <div className="relative flex flex-col gap-3 px-4 py-3 md:px-8 lg:h-[58px] lg:flex-row lg:items-center">
 <div className="group relative hidden lg:block">
   <button className="flex items-center gap-3 px-2  py-2 transition hover:bg-white/5">
     <img
@@ -823,7 +823,7 @@ if (foundProduct) {
     </div>
   </div>
 </div>
-       <div className="mx-auto flex items-center justify-center gap-3 text-sm font-black text-slate-300">
+       <div className="flex flex-wrap items-center justify-center gap-3 text-center text-sm font-black text-slate-300 lg:absolute lg:left-1/2 lg:-translate-x-1/2">
         {categories.map((category, index) => (
           <button
             key={category}
@@ -840,10 +840,10 @@ if (foundProduct) {
         ))}
       </div>
 
-      <div className="absolute right-5 flex items-center gap-3">
+      <div className="w-full lg:absolute lg:right-5 lg:w-auto">
        
 
-          <div className="grid gap-3 lg:grid-cols-[1fr_220px]">
+         <div className="grid w-full gap-3 sm:grid-cols-2 lg:w-auto lg:grid-cols-[1fr_220px]">
                   <input
                     type="text"
                     value={searchQuery}
@@ -852,7 +852,7 @@ if (foundProduct) {
                     className="w-full rounded-2xl border border-slate-700/60 bg-[#0b1628] px-4 py-3 outline-none placeholder:text-slate-500"
                   />
 
-                  <div className="relative w-[230px]">
+                  <div className="relative w-full lg:w-[230px]">
                     <button
                       onClick={() => setSortDropdownOpen(!sortDropdownOpen)}
                       className="flex w-full items-center justify-between rounded-2xl border border-white/5 bg-[#111827]/95 px-4 py-3 text-sm font-semibold text-white shadow-[0_6px_20px_rgba(0,0,0,0.35)] backdrop-blur-xl transition-all duration-300 hover:border-blue-400/20 hover:bg-[#172033]"
@@ -935,7 +935,7 @@ if (foundProduct) {
 </div>
 
               {loadingProducts ? (
-               <div className="grid auto-rows-fr grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6">
+               <div className="grid auto-rows-fr grid-cols-2 gap-3 sm:gap-5 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6">
                   {Array.from({ length: PRODUCTS_PER_PAGE }).map((_, index) => (
                     <ProductSkeletonCard key={index} />
                   ))}
@@ -946,7 +946,7 @@ if (foundProduct) {
                 </div>
               ) : (
                 <>
-                  <div className="grid auto-rows-fr grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6">
+                  <div className="grid auto-rows-fr grid-cols-2 gap-3 sm:gap-5 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6">
                     {paginatedProducts.map((product) => {
                       const stockLabel = getStockLabel(product);
                       const outOfStock = isUnavailable(product);

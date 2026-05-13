@@ -1,3 +1,30 @@
+@font-face {
+  font-family: "Satoshi";
+  src: url("/fonts/Satoshi-Regular.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Satoshi";
+  src: url("/fonts/Satoshi-Medium.otf") format("opentype");
+  font-weight: 500;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Satoshi";
+  src: url("/fonts/Satoshi-Bold.otf") format("opentype");
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Satoshi";
+  src: url("/fonts/Satoshi-Black.otf") format("opentype");
+  font-weight: 900;
+  font-style: normal;
+}
 @import "tailwindcss";
 
 :root {
@@ -22,7 +49,7 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Satoshi", sans-serif;
 }
 @keyframes shimmer {
   0% {
@@ -122,4 +149,71 @@ body {
 * {
   scrollbar-width: thin;
   scrollbar-color: #3b82f6 #07111f;
+}
+@keyframes productAppear {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes shine {
+  0% {
+    transform: translateX(-120%) rotate(12deg);
+  }
+
+  100% {
+    transform: translateX(420%) rotate(12deg);
+  }
+}
+@keyframes premiumFloat {
+  0%, 100% {
+    transform: translateY(0px) rotate(-2deg);
+  }
+
+  50% {
+    transform: translateY(-14px) rotate(2deg);
+  }
+}
+@keyframes premiumGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 18px rgba(59,130,246,0.45));
+  }
+
+  50% {
+    filter: drop-shadow(0 0 40px rgba(96,165,250,0.95));
+  }
+}
+
+@keyframes shineMove {
+  0% {
+    transform: translateX(-120%) rotate(12deg);
+  }
+
+  100% {
+    transform: translateX(120%) rotate(12deg);
+  }
+}
+@keyframes vacuumCard {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+    filter: blur(0px);
+  }
+
+  65% {
+    transform: translateY(28vh) scale(0.45);
+    opacity: 0.9;
+    filter: blur(0px);
+  }
+
+  100% {
+    transform: translateY(42vh) scale(0.08);
+    opacity: 0;
+    filter: blur(3px);
+  }
 }

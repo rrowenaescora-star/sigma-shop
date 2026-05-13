@@ -20,6 +20,7 @@ type Product = {
   is_active: boolean;
   cost_value?: number | null;
   created_at?: string;
+  game?: string | null;
 };
 
 const emptyForm = {
@@ -35,6 +36,7 @@ const emptyForm = {
   imageUrl: "",
   costValue: "",
   isActive: true,
+  game: "",
 };
 
 export default function AdminProductsPage() {
@@ -205,6 +207,7 @@ export default function AdminProductsPage() {
         imageUrl: form.imageUrl,
         cost_value: form.costValue === "" ? 0 : Number(form.costValue),
         isActive: form.isActive,
+	game: form.game,
       }),
     });
 
@@ -245,6 +248,7 @@ export default function AdminProductsPage() {
           ? ""
           : String(product.cost_value),
       isActive: product.is_active,
+      game: product.game || "",
     });
     setMessage(`Editing product #${product.id}`);
   }
@@ -274,6 +278,7 @@ export default function AdminProductsPage() {
         imageUrl: form.imageUrl,
         cost_value: form.costValue === "" ? 0 : Number(form.costValue),
         isActive: form.isActive,
+	game: form.game,
       }),
     });
 
@@ -561,6 +566,26 @@ export default function AdminProductsPage() {
                 placeholder="Category"
                 className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none"
               />
+		
+<div className="relative">
+  <select
+    value={form.game}
+    onChange={(e) => updateForm("game", e.target.value)}
+    className="appearance-none w-full rounded-2xl border border-white/10 bg-[#101729] px-4 py-3 text-white outline-none"
+  >
+    <option value="">Select Game</option>
+    <option value="blox-fruits">Blox Fruits</option>
+    <option value="mm2">MM2</option>
+    <option value="adopt-me">Adopt Me</option>
+    <option value="pet-simulator">Pet Simulator</option>
+    <option value="blade-ball">Blade Ball</option>
+    <option value="anime-defender">Anime Defender</option>
+  </select>
+
+  <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
+    ▼
+  </div>
+</div>
 
               <textarea
                 value={form.description}
@@ -645,8 +670,9 @@ export default function AdminProductsPage() {
     return (
       product.name.toLowerCase().includes(query) ||
       String(product.id).includes(query) ||
-      (product.category || "").toLowerCase().includes(query) ||
-      (product.tag || "").toLowerCase().includes(query)
+     (product.category || "").toLowerCase().includes(query) ||
+    (product.tag || "").toLowerCase().includes(query) ||
+    (product.game || "").toLowerCase().includes(query)
     );
   })
   .map((product) => {
@@ -681,6 +707,9 @@ export default function AdminProductsPage() {
                             <p className="mt-1 text-sm text-slate-400">
                               Category: {product.category || "N/A"}
                             </p>
+				<p className="mt-1 text-sm text-slate-400">
+ 				 Game: {product.game || "N/A"}
+			    </p>
                             <p className="mt-1 text-sm text-slate-400">
                               Tag: {product.tag || "N/A"}
                             </p>

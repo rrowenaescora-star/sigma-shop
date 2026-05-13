@@ -638,8 +638,8 @@ export default function CheckoutPage() {
     <div className="min-h-screen bg-[#06101d] text-white">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.16),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(37,99,235,0.10),transparent_32%)]" />
 
-      <div className="relative mx-auto max-w-[1500px] px-4 py-5 md:px-8">
-        <header className="mb-8 flex flex-wrap items-center justify-between gap-4 border-b border-blue-500/20 px-1 pb-5">
+      <div className="relative mx-auto max-w-[2550px] px-5 py-6 md:px-8">
+        <header className="mb-2 flex flex-wrap w-full items-center justify-between gap-4 border-b border-blue-500/20 px-1 pb-5">
           <div>
             <p className="text-2xl font-black tracking-tight text-white">
               BLOXHOP
@@ -667,7 +667,7 @@ export default function CheckoutPage() {
           </div>
         </header>
 
-        <main className="grid items-start gap-8 xl:grid-cols-[1.05fr_0.95fr]">
+       <main className="grid items-start gap-10 xl:grid-cols-[1.05fr_0.95fr]">
           <section className="space-y-5">
             <div className="p-1">
               <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
@@ -968,7 +968,7 @@ export default function CheckoutPage() {
             </div>
           </section>
 
-          <aside className="xl:self-start xl:border-l xl:border-blue-500/20 xl:pl-8">
+        <aside className="xl:sticky xl:top-6 xl:self-start xl:border-l xl:border-white/10 xl:pl-10">
             <div className="p-1">
               <div className="flex items-start justify-between gap-4">
                 <div>

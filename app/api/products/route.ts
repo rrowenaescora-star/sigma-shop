@@ -19,7 +19,8 @@ export async function GET() {
           category,
           description,
           image_url,
-          is_active
+          is_active,
+          game
         `,
         { count: "exact" }
       )

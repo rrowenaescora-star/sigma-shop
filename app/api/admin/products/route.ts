@@ -88,7 +88,8 @@ export async function POST(request: Request) {
       description,
       imageUrl,
       isActive,
-      cost_value, // ✅ NEW
+      cost_value, 
+      game,
     } = body;
 
     if (!name || price === undefined || price === null) {
@@ -113,7 +114,8 @@ export async function POST(request: Request) {
           description: description || null,
           image_url: imageUrl || null,
           is_active: isActive ?? true,
-          cost_value: cost_value ?? 0, // ✅ NEW
+          cost_value: cost_value ?? 0, 
+	  game: game || null,
         },
       ])
       .select()
@@ -156,7 +158,8 @@ export async function PATCH(request: Request) {
       description,
       imageUrl,
       isActive,
-      cost_value, // ✅ NEW
+      cost_value, 
+      game,
     } = body;
 
     if (!id) {
@@ -180,7 +183,8 @@ export async function PATCH(request: Request) {
         description,
         image_url: imageUrl,
         is_active: isActive,
-        cost_value: cost_value ?? 0, // ✅ NEW
+        cost_value: cost_value ?? 0, 
+	game: game || null,
       })
       .eq("id", id)
       .select()

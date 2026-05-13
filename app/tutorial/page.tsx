@@ -60,15 +60,21 @@ export default function TutorialPage() {
             className="group overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.04] shadow-[0_20px_80px_rgba(0,0,0,0.35)] transition duration-300 hover:-translate-y-1 hover:border-blue-400/40 hover:bg-white/[0.06]"
           >
             <div className="relative overflow-hidden border-b border-white/10 bg-[#0b1628]">
-              <video
-                src={step.video}
-                className="h-[260px] w-full object-cover transition duration-500 group-hover:scale-[1.02]"
-                muted
-                loop
-                playsInline
-                preload="metadata"
-                controls
-              />
+             <video
+  src={step.video}
+  className="h-[360px] w-full object-cover transition duration-500 group-hover:scale-[1.02]"
+  muted
+  playsInline
+  preload="metadata"
+  controls={false}
+  onMouseEnter={(e) => {
+    e.currentTarget.play();
+  }}
+  onMouseLeave={(e) => {
+    e.currentTarget.pause();
+    e.currentTarget.currentTime = 0;
+  }}
+/>
             </div>
 
             <div className="p-6">

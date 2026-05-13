@@ -125,10 +125,8 @@ export default function Home() {
   const [usdToInrRate, setUsdToInrRate] = useState<number | null>(null);
   const [rateLoading, setRateLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const [showPromoPopup, setShowPromoPopup] = useState(() => {
-  if (typeof window === "undefined") return false;
-  return !window.location.hash;
-  });
+  const [mounted, setMounted] = useState(false);
+  const [showPromoPopup, setShowPromoPopup] = useState(false);
   const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [cartPulse, setCartPulse] = useState(false);
@@ -148,22 +146,23 @@ export default function Home() {
 
   const PRODUCTS_PER_PAGE = 18;
 
-  useEffect(() => {
+useEffect(() => {
+  setMounted(true);
+
   const hasFeaturedHash = window.location.hash;
 
-  if (hasFeaturedHash) {
-    setShowPromoPopup(false);
-    return;
+  if (!hasFeaturedHash) {
+    setShowPromoPopup(true);
+
+    const timer = setTimeout(() => {
+      setShowPromoPopup(false);
+    }, 1000);
+
+    return () => clearTimeout(timer);
   }
-
-  const timer = setTimeout(() => {
-    setShowPromoPopup(false);
-  }, 1000);
-
-  return () => clearTimeout(timer);
 }, []);
 
-  useEffect(() => {
+   useEffect(() => {
     const savedCart = localStorage.getItem("real-cart");
     if (savedCart) {
       setCartItems(JSON.parse(savedCart));
@@ -626,12 +625,12 @@ if (foundProduct) {
 
   return (
     <div className="relative min-h-screen bg-[#07111f] text-white">
-      {showPromoPopup && (
+      {mounted && showPromoPopup && (
         <div className="fixed inset-0 z-40 backdrop-blur-md transition-all duration-1000" />
       )}
 
-      <div
-        className={`fixed z-50 transition-all duration-1000 ease-in-out ease-out hover:scale-120 ${
+     <div
+  className={`fixed z-50 hidden md:block transition-all duration-1000 ease-in-out ease-out hover:scale-120 ${
           showPromoPopup
             ? "left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 scale-100"
             : "-bottom-16 left-5 scale-110"
@@ -646,7 +645,7 @@ if (foundProduct) {
             }`}
           />
 
-          {showPromoPopup && (
+          {mounted && showPromoPopup && (
             <div
               className={`relative z-10 -mt-32 rounded-[2rem] border border-cyan-400/20 bg-[#0f1b2d]/95 px-6 pb-6 pt-32 shadow-2xl backdrop-blur-md transition-all duration-700 ${
                 showPromoPopup

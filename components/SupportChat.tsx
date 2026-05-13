@@ -141,127 +141,185 @@ export default function SupportChat() {
   }
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 sm:bottom-6 sm:right-6">
-      {open && (
-        <div className="mb-3 flex h-[620px] w-[calc(100vw-2rem)] max-w-[390px] flex-col overflow-hidden rounded-3xl border border-slate-700/70 bg-[#08111f] text-white shadow-[0_20px_70px_rgba(0,0,0,0.45)] sm:w-[390px]">
-          <div className="border-b border-slate-700/70 bg-[#0b1628] px-5 py-4">
-            <div className="flex items-center justify-between gap-3">
+  <div className="fixed bottom-4 right-4 z-50 sm:bottom-6 sm:right-6">
+    {open && (
+      <div className="mb-3 flex h-[640px] w-[calc(100vw-2rem)] max-w-[390px] flex-col overflow-hidden rounded-[24px] border border-slate-200 bg-white text-slate-900 shadow-[0_20px_70px_rgba(15,23,42,0.25)] sm:w-[390px]">
+        
+        {/* Header */}
+        <div className="relative overflow-hidden bg-gradient-to-r from-blue-600 via-sky-500 to-cyan-400 px-5 py-4 text-white">
+          <div className="absolute inset-0 opacity-15 [background-image:radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] [background-size:14px_14px]" />
+
+          <div className="relative flex items-center justify-between">
+            <div>
+              <div className="mx-auto mb-3 flex w-fit items-center gap-2 rounded-full bg-white/15 px-5 py-2 text-sm font-bold shadow-inner backdrop-blur">
+                <span>💬</span>
+                <span>Messages</span>
+              </div>
+
               <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-500/15 text-xl">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-950 text-lg">
                   🤖
                 </div>
 
                 <div>
-                  <h3 className="text-base font-black text-white">
-                    BloxBot Support
-                  </h3>
-                  <p className="text-xs font-medium text-slate-400">
-                    Order and checkout assistant
+                  <h3 className="text-sm font-black">BloxBot Support</h3>
+                  <p className="text-xs text-blue-100">
+                    Usually replies instantly
                   </p>
                 </div>
               </div>
+            </div>
 
-              <button
-                onClick={() => setOpen(false)}
-                className="rounded-full border border-slate-700 bg-slate-900/80 px-3 py-1 text-xs font-bold text-slate-300 transition hover:bg-slate-800"
+            
+          </div>
+        </div>
+
+        {/* Messages */}
+        <div
+  className="flex-1 bg-white p-4 overflow-y-auto"
+  style={{
+    scrollbarWidth: "none",
+    msOverflowStyle: "none",
+  }}
+>
+          <div className="space-y-3">
+            {messages.map((message, index) => (
+              <div
+                key={index}
+                className={`flex ${
+                  message.sender === "user"
+                    ? "justify-end"
+                    : "justify-start"
+                }`}
               >
-                Close
-              </button>
-            </div>
-          </div>
+                {message.sender === "bot" && (
+                  <div className="mr-2 mt-1 flex h-7 w-7 items-center justify-center rounded-full bg-slate-900 text-sm text-white">
+                    🤖
+                  </div>
+                )}
 
-          <div className="border-b border-slate-700/60 px-4 py-3">
-            <div className="grid grid-cols-2 gap-2">
-              {faqs.map((faq) => (
-                <button
-                  key={faq}
-                  onClick={() => sendMessage(faq)}
-                  className="rounded-2xl border border-slate-700/70 bg-[#0c1a2d] px-3 py-2 text-left text-xs font-semibold text-slate-200 transition hover:border-blue-400/40 hover:bg-[#10213a]"
-                >
-                  {faq}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div
-            className="flex-1 overflow-y-auto p-4"
-            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-          >
-            <div className="space-y-3">
-              {messages.map((message, index) => (
                 <div
-                  key={index}
-                  className={`flex ${
-                    message.sender === "user" ? "justify-end" : "justify-start"
+                  className={`max-w-[82%] rounded-2xl px-4 py-3 text-sm leading-6 ${
+                    message.sender === "user"
+                      ? "bg-gradient-to-r from-blue-500 to-sky-400 text-white"
+                      : "bg-slate-100 text-slate-800"
                   }`}
                 >
-                  <div
-                    className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-6 ${
-                      message.sender === "user"
-                        ? "rounded-tr-md bg-blue-500 text-white"
-                        : "rounded-tl-md border border-slate-700/60 bg-[#101d31] text-slate-100"
-                    }`}
-                  >
-                    {message.text}
-                  </div>
+                  {message.text}
                 </div>
-              ))}
+              </div>
+            ))}
 
-              {isTyping && (
-                <div className="flex justify-start">
-                  <div className="rounded-2xl rounded-tl-md border border-slate-700/60 bg-[#101d31] px-4 py-2.5 text-sm text-slate-300">
-                    BloxBot is typing...
-                  </div>
+            {isTyping && (
+              <div className="flex justify-start">
+                <div className="mr-2 mt-1 flex h-7 w-7 items-center justify-center rounded-full bg-slate-900 text-sm text-white">
+                  🤖
                 </div>
-              )}
 
-              <div ref={messagesEndRef} />
-            </div>
+                <div className="rounded-2xl bg-slate-100 px-4 py-3 text-sm text-slate-600">
+                  BloxBot is typing...
+                </div>
+              </div>
+            )}
+
+            <div ref={messagesEndRef} />
           </div>
+        </div>
 
-          <div className="border-t border-slate-700/70 bg-[#0b1628] p-4">
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={userInput}
-                onChange={(e) => setUserInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") sendMessage();
-                }}
-                placeholder="Type your question..."
-                className="min-w-0 flex-1 rounded-2xl border border-slate-700 bg-[#07111f] px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-blue-400"
-              />
+        {/* Quick Questions */}
+        <div className="border-t border-slate-100 bg-white px-4 py-3">
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {faqs.slice(0, 4).map((faq) => (
+              <button
+                key={faq}
+                onClick={() => sendMessage(faq)}
+                className="shrink-0 rounded-full border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-bold text-blue-600 transition hover:bg-blue-100"
+              >
+                {faq}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Input */}
+        <div className="border-t border-slate-100 bg-white p-3">
+          <div className="rounded-2xl border border-slate-200 bg-white px-3 py-3 shadow-sm">
+            <input
+              type="text"
+              value={userInput}
+              onChange={(e) => setUserInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") sendMessage();
+              }}
+              placeholder="Compose your message..."
+              className="w-full bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400"
+            />
+
+            <div className="mt-2 flex items-center justify-between">
+              <div className="flex items-center gap-3 text-slate-400">
+                
+              </div>
 
               <button
                 onClick={() => sendMessage()}
                 disabled={!userInput.trim() || isTyping}
-                className="rounded-2xl bg-blue-500 px-4 py-3 text-sm font-bold text-white transition hover:bg-blue-400 disabled:cursor-not-allowed disabled:bg-slate-700"
+                className="text-2xl font-black text-blue-500 transition hover:text-blue-600 disabled:cursor-not-allowed disabled:text-slate-300"
               >
-                Send
+                ➤
               </button>
             </div>
-
-            <Link
-              href="/track-order"
-              className="mt-3 block rounded-2xl border border-blue-400/20 bg-blue-500/10 px-4 py-3 text-center text-sm font-bold text-blue-100 transition hover:bg-blue-500/20"
-            >
-              Track Order
-            </Link>
-
-            <p className="mt-3 text-center text-[11px] text-slate-500">
-              For faster help, include your order email and Roblox username.
-            </p>
           </div>
-        </div>
-      )}
 
-      <button
-        onClick={() => setOpen(!open)}
-        className="rounded-full bg-blue-500 px-5 py-3 text-sm font-bold text-white shadow-[0_0_28px_rgba(59,130,246,0.38)] transition hover:bg-blue-400"
-      >
-        {open ? "Close Support" : "Chat Support"}
-      </button>
-    </div>
-  );
+          <button
+  onClick={() => {
+    setMessages([{ sender: "bot", text: welcomeMessage }]);
+    setUserInput("");
+    setIsTyping(false);
+  }}
+  className="mt-2 block w-full text-center text-xs font-bold text-blue-500 transition hover:underline"
+>
+  Restart Chat
+</button>
+        </div>
+      </div>
+    )}
+
+   <button
+  onClick={() => setOpen(!open)}
+  className="fixed bottom-4 right-4 z-[120] flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-r from-blue-600 to-sky-400 text-white shadow-[0_0_28px_rgba(59,130,246,0.45)] transition hover:scale-110 sm:bottom-6 sm:right-6"
+>
+  {open ? (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      className="h-6 w-6"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2.5}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M6 18L18 6M6 6l12 12"
+      />
+    </svg>
+  ) : (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      className="h-7 w-7"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2.2}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M8 10h8M8 14h5m-9 7l2.5-2.5A2 2 0 015.914 18H19a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v11a2 2 0 002 2h1"
+      />
+    </svg>
+  )}
+</button>
+  </div>
+);
 }

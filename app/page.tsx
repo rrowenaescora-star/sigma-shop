@@ -160,7 +160,7 @@ export default function LandingPage() {
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(6,16,29,0.98)_0%,rgba(6,16,29,0.88)_40%,rgba(6,16,29,0.52)_68%,rgba(6,16,29,0.72)_100%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_42%,rgba(37,99,235,0.24),transparent_28%),radial-gradient(circle_at_20%_45%,rgba(14,165,233,0.07),transparent_25%)]" />
 
-        <div className="pointer-events-none absolute right-[50px] top-1/2 z-0 h-[650px] w-[700px] max-w-[58vw] -translate-y-1/2">
+        <div className="pointer-events-none absolute right-[-120px] top-1/2 z-0 h-[420px] w-[420px] -translate-y-1/2 opacity-30 sm:right-[-40px] sm:h-[520px] sm:w-[520px] lg:right-[50px] lg:h-[650px] lg:w-[700px] lg:max-w-[58vw] lg:opacity-100">
           <img
             src="/bloxlogo2.png"
             alt="Bloxhop Hero"
@@ -174,9 +174,9 @@ export default function LandingPage() {
           />
         </div>
 
-        <div className="relative z-10 right-[-300px] grid max-w-[1500px] items-center gap-8 px-4 py-14 lg:grid-cols-[0.9fr_1.1fr] lg:py-16">
+        <div className="relative z-10 mx-auto grid max-w-[1500px] items-center gap-8 px-5 py-12 sm:px-6 lg:right-[50px] lg:grid-cols-[0.9fr_1.1fr] lg:py-16">
           <div>
-            <h1 className="mt-5 max-w-3xl text-5xl font-black leading-[1.05] tracking-tight md:text-6xl">
+            <h1 className="mt-5 max-w-3xl text-4xl font-black leading-[1.05] tracking-tight sm:text-5xl md:text-6xl">
               Trusted Bloxhop Marketplace,
               <span className="mt-1 block bg-gradient-to-r from-blue-400 via-blue-300 to-white bg-clip-text text-transparent">
                 Fast & Secure Delivery
@@ -272,7 +272,7 @@ export default function LandingPage() {
             </Link>
           </div>
 
-          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+         <div className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-2 xl:grid-cols-4">
             {featuredProducts.map((product) => (
               <div
                 key={product.id}

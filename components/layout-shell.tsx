@@ -18,11 +18,11 @@ export default function LayoutShell({
   pathname.startsWith("/refund-policy") ||
   pathname.startsWith("/privacy-policy") ||
   pathname.startsWith("/delivery") ||
-  pathname.startsWith("/contact");
-  pathname.startsWith("/adopt-me");
-  pathname.startsWith("/pet-simulator");
-  pathname.startsWith("/mm2");
-  pathname.startsWith("/anime-defenders");
+  pathname.startsWith("/contact")  ||
+  pathname.startsWith("/adopt-me")  ||
+  pathname.startsWith("/pet-simulator")  ||
+  pathname.startsWith("/mm2")  ||
+  pathname.startsWith("/anime-defenders") ||
   pathname.startsWith("/blade-ball");
   return (
     <>

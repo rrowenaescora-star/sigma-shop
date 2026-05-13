@@ -690,7 +690,7 @@ if (foundProduct) {
     
 <div className="sticky top-0 z-50 mb-6">
   <div className="overflow-hidden border-b border-blue-500/10 bg-[#07111f]/95 shadow-[0_15px_50px_rgba(0,0,0,0.45)] backdrop-blur-xl">
-    <div className="absolute inset-0">
+    <div className="absolute inset-0 hidden md:block">
       <img
         src="/blof-fruit-logo.png"
         alt="Background"
@@ -722,7 +722,7 @@ if (foundProduct) {
   </div>
 </Link>
 
-      <div className="flex items-center gap-3">
+    <div className="flex w-full flex-wrap items-center justify-between gap-3 md:w-auto md:justify-end">
         <Link
           href="https://discord.gg/EEpftCnkgv"
           target="_blank"
@@ -732,7 +732,7 @@ if (foundProduct) {
           <Image src="/discord2.png" alt="Discord" width={50} height={25} />
         </Link>
 
-        <div className="flex items-center rounded-2xl border border-white/10 bg-[#0b1628]/80 p-1 backdrop-blur-xl">
+        <div className="flex max-w-full items-center overflow-x-auto rounded-2xl border border-white/10 bg-[#0b1628]/80 p-1 backdrop-blur-xl">
           {[
   { label: "USD", flag: "https://flagcdn.com/w20/us.png" },
   { label: "PHP", flag: "https://flagcdn.com/w20/ph.png" },

@@ -8,8 +8,6 @@ const {
   ButtonStyle,
 } = require("discord.js");
 
-const allowedCategoryId = "1492008548148973598";
-
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -22,6 +20,7 @@ client.on("ready", () => {
   console.log(`Bloxhop bot logged in as ${client.user.tag}`);
 });
 
+// ✅ Main support buttons
 function supportButtons() {
   return new ActionRowBuilder().addComponents(
     new ButtonBuilder()
@@ -46,6 +45,7 @@ function supportButtons() {
   );
 }
 
+// ✅ QR buttons
 function qrButtons() {
   return new ActionRowBuilder().addComponents(
     new ButtonBuilder()
@@ -60,12 +60,9 @@ function qrButtons() {
   );
 }
 
+// ✅ Button interactions
 client.on("interactionCreate", async (interaction) => {
   if (!interaction.isButton()) return;
-
-  if (interaction.channel?.parentId !== allowedCategoryId) {
-    return;
-  }
 
   if (interaction.customId === "paid_yes") {
     await interaction.reply({
@@ -73,7 +70,6 @@ client.on("interactionCreate", async (interaction) => {
         "📦 Please send your Order ID.\n\nExample:\n`order id: BH12345`",
       ephemeral: true,
     });
-    return;
   }
 
   if (interaction.customId === "payment_methods") {
@@ -89,7 +85,6 @@ client.on("interactionCreate", async (interaction) => {
       components: [qrButtons()],
       ephemeral: true,
     });
-    return;
   }
 
   if (interaction.customId === "track_order") {
@@ -98,7 +93,6 @@ client.on("interactionCreate", async (interaction) => {
         "📦 Please send your Order ID to track your order.\n\nExample:\n`order id: BH12345`",
       ephemeral: true,
     });
-    return;
   }
 
   if (interaction.customId === "human_support") {
@@ -107,7 +101,6 @@ client.on("interactionCreate", async (interaction) => {
         "👤 A support staff member will assist you shortly.\n\nPlease describe your issue while waiting.",
       ephemeral: false,
     });
-    return;
   }
 
   if (interaction.customId === "gcash_qr") {
@@ -117,7 +110,6 @@ client.on("interactionCreate", async (interaction) => {
       files: ["./assets/gcash-qr.png"],
       ephemeral: true,
     });
-    return;
   }
 
   if (interaction.customId === "maya_qr") {
@@ -127,37 +119,13 @@ client.on("interactionCreate", async (interaction) => {
       files: ["./assets/maya-qr.png"],
       ephemeral: true,
     });
-    return;
   }
 });
 
 client.on("messageCreate", async (message) => {
-  if (message.channel.parentId !== allowedCategoryId) {
-    return;
-  }
-
-  if (message.author.bot && message.author.username !== "Ticket Tool") {
-    return;
-  }
+  if (message.author.bot && message.author.username !== "Ticket Tool") return;
 
   const content = message.content.toLowerCase();
-
-  // ✅ Auto payment / QR response first
-  if (
-    content.includes("gcash") ||
-    content.includes("maya") ||
-    content.includes("paypal") ||
-    content.includes("qr")
-  ) {
-    await message.reply({
-      content:
-        "# 💳 Payment Help\n\n" +
-        "Choose your payment QR below.\n\n" +
-        "⚠️ Please only pay using official Bloxhop payment details.",
-      components: [qrButtons()],
-    });
-    return;
-  }
 
   // ✅ Auto support menu
   if (
@@ -178,6 +146,23 @@ client.on("messageCreate", async (message) => {
       });
       return;
     }
+  }
+
+  // ✅ Auto payment response
+  if (
+    content.includes("gcash") ||
+    content.includes("maya") ||
+    content.includes("paypal") ||
+    content.includes("qr")
+  ) {
+    await message.reply({
+      content:
+        "# 💳 Payment Help\n\n" +
+        "Choose your payment QR below.\n\n" +
+        "⚠️ Please only pay using official Bloxhop payment details.",
+      components: [qrButtons()],
+    });
+    return;
   }
 
   // ✅ Order ID checker
@@ -216,13 +201,13 @@ client.on("messageCreate", async (message) => {
       : "Items unavailable";
 
     const paymentStatus = String(order.paymentStatus || "").toLowerCase();
-
     const isPaid =
       Boolean(order.paid_at) ||
       paymentStatus === "paid" ||
       paymentStatus === "completed" ||
       paymentStatus === "success";
 
+    // ✅ If customer claims paid but not verified
     if (!isPaid) {
       await message.reply(
         `# ⚠️ PAYMENT NOT VERIFIED\n\n` +
@@ -240,6 +225,7 @@ client.on("messageCreate", async (message) => {
       return;
     }
 
+    // ✅ Paid order response
     await message.reply(
       `# ✅ PAYMENT VERIFIED\n\n` +
 

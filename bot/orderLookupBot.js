@@ -123,6 +123,12 @@ client.on("interactionCreate", async (interaction) => {
 });
 
 client.on("messageCreate", async (message) => {
+// ✅ ONLY RESPOND INSIDE TICKET CATEGORY
+const allowedCategoryId = "1492008548148973598";
+
+if (message.channel.parentId !== allowedCategoryId) {
+  return;
+}
   if (message.author.bot && message.author.username !== "Ticket Tool") return;
 
   const content = message.content.toLowerCase();

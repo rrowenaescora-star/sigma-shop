@@ -691,7 +691,7 @@ if (foundProduct) {
   <div className="overflow-hidden border-b border-blue-500/10 bg-[#07111f]/95 shadow-[0_15px_50px_rgba(0,0,0,0.45)] backdrop-blur-xl">
     <div className="absolute inset-0 hidden md:block">
       <img
-        src="/blof-fruit-logo.png"
+        src="/adnime-defender-logo.png"
         alt="Background"
         className="h-full w-full object-cover opacity-70"
       />
@@ -1303,17 +1303,33 @@ if (foundProduct) {
   </div>
 </section>
       <>
-<section className="border-t border-white/5 bg-[#07111f] px-6 py-8">
-  <div className="mx-auto max-w-5xl text-center">
-    <p className="text-sm leading-7 text-slate-500">
+<section className="relative w-full overflow-hidden border-t border-white/10 bg-[#07111f]">
+
+  <img
+    src="/adnime-defender-logo.png"
+    alt="Adopt Me Shop"
+   className="h-[180px] w-full object-cover object-center md:h-[320px]"
+  />
+
+  <div className="absolute inset-0 bg-gradient-to-t from-[#07111f] via-[#07111f]/50 to-transparent" />
+
+  <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center">
+    
+
+
+    <p className="mt-3 max-w-2xl text-xs leading-6 text-slate-200 md:text-lg">
+     
       Bloxhop is an independent digital marketplace and is not affiliated,
       associated, authorized, endorsed by, or officially connected with Roblox
       Corporation, Blox Fruits, Gamer Robot Inc., or any respective game
       developers, publishers, or trademark holders. All game titles, names,
       trademarks, and assets remain the property of their respective owners.
     </p>
+ 
+
   </div>
 </section>
+
         <div
           onClick={() => setIsCartOpen(false)}
           className={`fixed inset-0 z-[70] bg-black/60 transition-opacity duration-300 ${

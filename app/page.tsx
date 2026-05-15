@@ -17,6 +17,7 @@ import {
   Users,
   Rocket,
   Tags,
+  Search,
 } from "lucide-react";
 
 const featuredProducts = [
@@ -190,11 +191,11 @@ export default function LandingPage() {
 
             <div className="mt-7 flex flex-wrap gap-4">
               <Link
-                href="/home"
+                href="/request-item"
                 className="flex h-14 items-center justify-center gap-2 rounded-2xl bg-blue-500 px-7 text-base font-black text-white shadow-[0_0_40px_rgba(59,130,246,0.35)] transition hover:-translate-y-1 hover:bg-blue-400"
               >
-                <ShoppingCart className="h-5 w-5" />
-                Shop Now
+                <Search className="h-5 w-5" />
+Request an Item
               </Link>
 
               <a

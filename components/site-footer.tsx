@@ -232,7 +232,7 @@ export default function SiteFooter() {
               </button>
 
               <div className="flex flex-wrap gap-2">
-                {["AMEX", "Apple Pay", "GCash", "Maya", "Mastercard", "VISA"].map(
+                {["QR Ph Supported", "GCash", "Maya"].map(
                   (item) => (
                     <div
                       key={item}

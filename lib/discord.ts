@@ -19,6 +19,29 @@ async function sendDiscordWebhook(payload: unknown) {
   }
 }
 
+async function sendDiscordRequestWebhook(payload: unknown) {
+  const webhookUrl = process.env.DISCORD_REQUEST_WEBHOOK_URL;
+
+  if (!webhookUrl) {
+    throw new Error("Missing DISCORD_REQUEST_WEBHOOK_URL");
+  }
+
+  const response = await fetch(webhookUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(
+      `Discord request webhook failed: ${response.status} ${text}`
+    );
+  }
+}
+
 function safeText(value: unknown, fallback = "N/A") {
   if (value === null || value === undefined) return fallback;
   const text = String(value).trim();
@@ -174,4 +197,69 @@ export async function sendDiscordDeliveredNotification(params: {
   };
 
   await sendDiscordWebhook(payload);
+}
+
+export async function sendDiscordItemRequest(params: {
+  robloxUsername: string;
+  game: string;
+  itemWanted: string;
+  budget?: string | null;
+  contactInfo: string;
+  extraNotes?: string | null;
+}) {
+  const robloxUsername = safeText(params.robloxUsername);
+  const game = safeText(params.game);
+  const itemWanted = safeText(params.itemWanted);
+  const budget = safeText(params.budget, "Not provided");
+  const contactInfo = safeText(params.contactInfo);
+  const extraNotes = safeText(params.extraNotes, "No extra notes");
+
+  const payload = {
+    username: "Bloxhop",
+    content: "📩 New item request received",
+    embeds: [
+      {
+        title: "New Item Request",
+        color: 3447003,
+        fields: [
+          {
+            name: "Roblox Username",
+            value: robloxUsername,
+            inline: true,
+          },
+          {
+            name: "Game",
+            value: game,
+            inline: true,
+          },
+          {
+            name: "Requested Item",
+            value: itemWanted,
+            inline: false,
+          },
+          {
+            name: "Budget",
+            value: budget,
+            inline: true,
+          },
+          {
+            name: "Contact Info",
+            value: contactInfo,
+            inline: true,
+          },
+          {
+            name: "Extra Notes",
+            value: extraNotes,
+            inline: false,
+          },
+        ],
+        footer: {
+          text: "Bloxhop Request System",
+        },
+        timestamp: new Date().toISOString(),
+      },
+    ],
+  };
+
+  await sendDiscordRequestWebhook(payload);
 }

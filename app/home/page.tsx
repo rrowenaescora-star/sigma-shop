@@ -135,6 +135,7 @@ export default function Home() {
   const [flyingCardProduct, setFlyingCardProduct] = useState<Product | null>(null);
   const [cartHit, setCartHit] = useState(false);
   const [addingProductId, setAddingProductId] = useState<number | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // NEW: capital amount available for fulfilling orders.
   // Products still show, but if capital is lower than the product price, Add to Cart becomes unavailable.
@@ -699,28 +700,44 @@ if (foundProduct) {
     </div>
 
    <div className="relative mx-auto flex max-w-[1850px] flex-col gap-4 px-4 py-4 md:flex-row md:items-center md:justify-between md:px-8">
+
+
     <Link
   href="/"
-  className="flex items-center gap-4 pl-3 transition hover:opacity-90"
+  className="flex items-center gap-4 px-2 transition hover:opacity-90"
 >
+
 
   <img
     src="/logo.png"
     alt="Bloxhop"
     className="h-12 w-12 object-contain"
-  />
+  />	
 
   <div>
     <h1 className="text-base font-black leading-none tracking-tight text-white sm:text-xl">
       BLOXHOP ONLINE STORE
     </h1>
+	
 
-    <p className="mt-1 text-xs text-slate-300">
+    <p className="mt-1 text-xs px-2 text-slate-300">
       Fast & Reliable Gaming Services
     </p>
+	
   </div>
-</Link>
 
+<button
+	type="button"
+      onClick={(e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setMobileMenuOpen(!mobileMenuOpen);
+    }}
+       className="flex h-11 w-20 items-center justify-center rounded-xl border border-white/10 bg-[#0b1628]/80 text-xl font-black text-white lg:hidden"
+    >
+      ☰
+    </button>
+</Link>
     <div className="flex w-full flex-wrap items-center justify-between gap-3 md:w-auto md:justify-end">
         <Link
           href="https://discord.gg/EEpftCnkgv"
@@ -730,6 +747,7 @@ if (foundProduct) {
         >
           <Image src="/discord2.png" alt="Discord" width={50} height={25} />
         </Link>
+	
 
         <div className="flex max-w-full items-center overflow-x-auto rounded-2xl border border-white/10 bg-[#0b1628]/80 p-1 backdrop-blur-xl">
           {[
@@ -761,8 +779,41 @@ if (foundProduct) {
       </div>
     </div>
   </div>
+{mobileMenuOpen && (
+  <div className="absolute left-0 top-full z-50 w-full border-t border-white/10 bg-[#081220]/95 px-4 py-4 shadow-[0_20px_60px_rgba(0,0,0,0.55)] backdrop-blur-xl lg:hidden">
+    
+    <div className="grid gap-3">
+
+     
+
+      <Link
+        href="/tutorial"
+        className="rounded-2xl border border-white/10 bg-[#0b1628]/80 px-4 py-3 text-sm font-black text-white"
+      >
+        ❔ Tutorial
+      </Link>
+
+      <Link
+        href="/request-item"
+        className="rounded-2xl border border-white/10 bg-[#0b1628]/80 px-4 py-3 text-sm font-black text-white"
+      >
+        📩 Request Item
+      </Link>
+
+      <Link
+        href="/track-order"
+        className="rounded-2xl border border-white/10 bg-[#0b1628]/80 px-4 py-3 text-sm font-black text-white"
+      >
+        📦 Track Order
+      </Link>
+
+    </div>
+  </div>
+)}
+
 
   <div className="border-b border-blue-500/10 bg-[#081220]/20 backdrop-blur-xl">
+  	
     <div className="relative flex flex-col gap-3 px-4 py-3 md:px-8 lg:h-[58px] lg:flex-row lg:items-center">
 <div className="group relative hidden lg:block">
   <button className="flex items-center gap-3 px-2  py-2 transition hover:bg-white/5">
@@ -1303,15 +1354,30 @@ if (foundProduct) {
   </div>
 </section>
       <>
-<section className="border-t border-white/5 bg-[#07111f] px-6 py-8">
-  <div className="mx-auto max-w-5xl text-center">
-    <p className="text-sm leading-7 text-slate-500">
+<section className="relative w-full overflow-hidden border-t border-white/10 bg-[#07111f]">
+
+  <img
+    src="/blox-fruit-logo.png"
+    alt="Adopt Me Shop"
+   className="h-[180px] w-full object-cover object-center md:h-[320px]"
+  />
+
+  <div className="absolute inset-0 bg-gradient-to-t from-[#07111f] via-[#07111f]/50 to-transparent" />
+
+  <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center">
+    
+
+
+    <p className="mt-3 max-w-2xl text-xs leading-6 text-slate-200 md:text-lg">
+     
       Bloxhop is an independent digital marketplace and is not affiliated,
       associated, authorized, endorsed by, or officially connected with Roblox
       Corporation, Blox Fruits, Gamer Robot Inc., or any respective game
       developers, publishers, or trademark holders. All game titles, names,
       trademarks, and assets remain the property of their respective owners.
     </p>
+ 
+
   </div>
 </section>
         <div

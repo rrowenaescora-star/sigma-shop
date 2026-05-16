@@ -36,8 +36,8 @@ export async function POST(req: Request) {
     const { data: order, error } = await supabase
       .from("orders")
       .select(
-        "id, roblox_username, items, total_price, payment_status, payment_method, created_at,coupon_code, coupon_discount, original_total"
-      )
+  "id, roblox_username, items, total_price, payment_status, payment_method, created_at, paid_at, delivery_status, claimed_by, coupon_code, coupon_discount, original_total"
+)
       .eq("id", orderId)
       .maybeSingle();
 
@@ -70,6 +70,9 @@ export async function POST(req: Request) {
 	couponCode: order.coupon_code,
 	couponDiscount: order.coupon_discount,
 	originalTotal: order.original_total,
+	paid_at: order.paid_at,
+	deliveryStatus: order.delivery_status,
+	claimedBy: order.claimed_by,
       },
     });
   } catch (error) {

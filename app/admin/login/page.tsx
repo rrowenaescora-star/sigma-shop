@@ -6,7 +6,6 @@ import { createBrowserClient } from "@supabase/ssr";
 export default function AdminLoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [token, setToken] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function handleLogin(e: React.FormEvent) {
@@ -20,10 +19,6 @@ export default function AdminLoginPage() {
       return;
     }
 
-	if (token.trim() !== process.env.NEXT_PUBLIC_ADMIN_SECURITY_TOKEN) {
-  alert("Invalid security token.");
-  return;
-}
     const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey);
 
     setLoading(true);
@@ -60,7 +55,11 @@ export default function AdminLoginPage() {
         <p className="text-sm uppercase tracking-[0.25em] text-cyan-300">
           Admin
         </p>
-        <h1 className="mt-2 text-4xl font-extrabold">Login</h1>
+
+        <h1 className="mt-2 text-4xl font-extrabold">
+          Login
+        </h1>
+
         <p className="mt-2 text-slate-400">
           Sign in to access the admin dashboard
         </p>
@@ -83,14 +82,6 @@ export default function AdminLoginPage() {
           required
         />
 
-	<input
-  type="password"
-  placeholder="Security Token"
-  value={token}
-  onChange={(e) => setToken(e.target.value)}
-  className="mt-4 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none"
-  required
-/>
         <button
           type="submit"
           disabled={loading}

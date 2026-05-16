@@ -183,6 +183,22 @@ async function updateOrderStaff(orderId, action, staffName) {
 
   return res.json();
 }
+async function sendDeliveredEmail(orderId) {
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_APP_URL}/api/admin/orders/send-delivered-email`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        orderId,
+      }),
+    }
+  );
+
+  return res.json();
+}
 
 async function logSuspicious(message, reason) {
   try {
@@ -358,6 +374,16 @@ client.on("interactionCreate", async (interaction) => {
         apiAction = "mark_delivered";
         nextStage = "done";
         removeFromQueue(orderId);
+
+try {
+  const emailResult = await sendDeliveredEmail(orderId);
+
+  if (!emailResult.success) {
+    console.error("Delivered email failed:", emailResult);
+  }
+} catch (emailError) {
+  console.error("Delivered email error:", emailError);
+}
 
         customerMessage =
           `# ✅ ORDER DELIVERED\n\n` +

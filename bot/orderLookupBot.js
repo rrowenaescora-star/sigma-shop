@@ -641,7 +641,7 @@ client.on("messageCreate", async (message) => {
           `**Payment Status:** ${order.paymentStatus || "Pending"}\n\n` +
           `We could not confirm your payment yet.\n\n` +
           `If you already paid, upload your payment screenshot and wait for staff review.`,
-        components: [staffOrderButtons(order.id, false)],
+        components: [staffOrderButtons(order.id, false),
       });
     }
 
@@ -670,7 +670,7 @@ client.on("messageCreate", async (message) => {
         `📦 Your order is now queued for delivery.\n` +
         `⏱️ Estimated delivery: within 5-30 minutes.\n\n` +
         `${process.env.DELIVERY_ROLE_ID ? `<@&${process.env.DELIVERY_ROLE_ID}> New paid order ready for delivery.` : ""}`,
-      components: [staffOrderButtons(order.id, true)],
+      components: [staffOrderButtons(order.id, true),
     });
   } catch (error) {
     console.error(error);

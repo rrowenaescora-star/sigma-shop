@@ -26,6 +26,7 @@ const BLOCK_DURATION_MS = 10 * 60 * 1000;
 const ATTEMPT_RESET_MS = 15 * 60 * 1000;
 const DUPLICATE_ORDER_LOCK_MS = 5 * 60 * 1000;
 const CLEAN_REPLY_COOLDOWN_MS = 30 * 1000;
+const AUTO_CLOSE_MS = 2 * 60 * 1000;
 
 const MAX_INVALID_ATTEMPTS = 5;
 
@@ -35,6 +36,8 @@ const lastInvalidLookup = new Map();
 const lastButtonClick = new Map();
 const lastCleanReply = new Map();
 const orderLocks = new Map();
+const claimedOrders = new Map();
+const orderQueue = [];
 
 function now() {
   return Date.now();
@@ -63,6 +66,107 @@ function isStaff(member) {
     .filter(Boolean);
 
   return member.roles.cache.some((role) => staffRoles.includes(role.id));
+}
+
+function getQueuePosition(orderId) {
+  if (!orderQueue.includes(orderId)) {
+    orderQueue.push(orderId);
+  }
+
+  return orderQueue.indexOf(orderId) + 1;
+}
+
+function removeFromQueue(orderId) {
+  const index = orderQueue.indexOf(orderId);
+  if (index !== -1) orderQueue.splice(index, 1);
+}
+
+function staffOrderButtons(orderId, paid = false) {
+  const row1 = new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId(`staff_verify:${orderId}`)
+      .setLabel("Verify Payment")
+      .setStyle(ButtonStyle.Success),
+
+    new ButtonBuilder()
+      .setCustomId(`staff_reject:${orderId}`)
+      .setLabel("Reject Payment")
+      .setStyle(ButtonStyle.Danger),
+
+    new ButtonBuilder()
+      .setCustomId(`staff_claim:${orderId}`)
+      .setLabel("Claim Order")
+      .setStyle(ButtonStyle.Primary)
+  );
+
+  const row2 = new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId(`staff_delivering:${orderId}`)
+      .setLabel("Mark Delivering")
+      .setStyle(ButtonStyle.Secondary),
+
+    new ButtonBuilder()
+      .setCustomId(`staff_delivered:${orderId}`)
+      .setLabel("Mark Delivered")
+      .setStyle(ButtonStyle.Success)
+  );
+
+  return paid ? [row2] : [row1, row2];
+}
+
+function supportButtons() {
+  return new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId("paid_yes")
+      .setLabel("Yes, I Already Paid")
+      .setStyle(ButtonStyle.Success),
+
+    new ButtonBuilder()
+      .setCustomId("payment_methods")
+      .setLabel("Payment Methods")
+      .setStyle(ButtonStyle.Primary),
+
+    new ButtonBuilder()
+      .setCustomId("track_order")
+      .setLabel("Track Order")
+      .setStyle(ButtonStyle.Secondary),
+
+    new ButtonBuilder()
+      .setCustomId("human_support")
+      .setLabel("Human Support")
+      .setStyle(ButtonStyle.Danger)
+  );
+}
+
+function qrButtons() {
+  return new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId("gcash_qr")
+      .setLabel("GCash QR")
+      .setStyle(ButtonStyle.Primary),
+
+    new ButtonBuilder()
+      .setCustomId("maya_qr")
+      .setLabel("Maya QR")
+      .setStyle(ButtonStyle.Primary)
+  );
+}
+
+async function updateOrderStaff(orderId, action, staffName) {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/orders/staff-update`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-staff-secret": process.env.STAFF_UPDATE_SECRET,
+    },
+    body: JSON.stringify({
+      orderId,
+      action,
+      staffName,
+    }),
+  });
+
+  return res.json();
 }
 
 async function logSuspicious(message, reason) {
@@ -111,12 +215,7 @@ function getUserAttemptData(userId) {
 
 function addInvalidAttempt(userId, orderId) {
   const data = getUserAttemptData(userId);
-
-  let addCount = 1;
-
-  if (data.lastOrderId === orderId) {
-    addCount = 2;
-  }
+  let addCount = data.lastOrderId === orderId ? 2 : 1;
 
   const updated = {
     count: data.count + addCount,
@@ -149,12 +248,8 @@ function isBlocked(userId) {
   return blockedUntil;
 }
 
-function cleanReplyKey(userId, type) {
-  return `${userId}:${type}`;
-}
-
 function canSendCleanReply(userId, type) {
-  const key = cleanReplyKey(userId, type);
+  const key = `${userId}:${type}`;
   const last = lastCleanReply.get(key) || 0;
 
   if (now() - last < CLEAN_REPLY_COOLDOWN_MS) return false;
@@ -163,50 +258,6 @@ function canSendCleanReply(userId, type) {
   return true;
 }
 
-// =====================
-// BUTTONS
-// =====================
-function supportButtons() {
-  return new ActionRowBuilder().addComponents(
-    new ButtonBuilder()
-      .setCustomId("paid_yes")
-      .setLabel("Yes, I Already Paid")
-      .setStyle(ButtonStyle.Success),
-
-    new ButtonBuilder()
-      .setCustomId("payment_methods")
-      .setLabel("Payment Methods")
-      .setStyle(ButtonStyle.Primary),
-
-    new ButtonBuilder()
-      .setCustomId("track_order")
-      .setLabel("Track Order")
-      .setStyle(ButtonStyle.Secondary),
-
-    new ButtonBuilder()
-      .setCustomId("human_support")
-      .setLabel("Human Support")
-      .setStyle(ButtonStyle.Danger)
-  );
-}
-
-function qrButtons() {
-  return new ActionRowBuilder().addComponents(
-    new ButtonBuilder()
-      .setCustomId("gcash_qr")
-      .setLabel("GCash QR")
-      .setStyle(ButtonStyle.Primary),
-
-    new ButtonBuilder()
-      .setCustomId("maya_qr")
-      .setLabel("Maya QR")
-      .setStyle(ButtonStyle.Primary)
-  );
-}
-
-// =====================
-// READY
-// =====================
 client.on("ready", () => {
   console.log(`Bloxhop bot logged in as ${client.user.tag}`);
 });
@@ -235,10 +286,113 @@ client.on("interactionCreate", async (interaction) => {
     lastButtonClick.set(userId, now());
   }
 
+  const [action, orderId] = interaction.customId.split(":");
+
+  // =====================
+  // STAFF BUTTONS
+  // =====================
+  if (action && action.startsWith("staff_")) {
+    if (!staff) {
+      return interaction.reply({
+        content: "⛔ Only staff can use this button.",
+        ephemeral: true,
+      });
+    }
+
+    await interaction.deferReply();
+
+    try {
+      let apiAction = "";
+      let customerMessage = "";
+
+      if (action === "staff_verify") {
+        apiAction = "verify_payment";
+        const queuePosition = getQueuePosition(orderId);
+
+        customerMessage =
+          `# ✅ PAYMENT VERIFIED BY STAFF\n\n` +
+          `**Order ID:** #${orderId}\n` +
+          `**Queue Position:** #${queuePosition}\n\n` +
+          `📦 Your order is now queued for delivery.\n` +
+          `⏱️ Estimated delivery: within 5-30 minutes.\n\n` +
+          `${process.env.DELIVERY_ROLE_ID ? `<@&${process.env.DELIVERY_ROLE_ID}> New verified order is ready for delivery.` : ""}`;
+      }
+
+      if (action === "staff_reject") {
+        apiAction = "reject_payment";
+        customerMessage =
+          `# ❌ PAYMENT REJECTED\n\n` +
+          `**Order ID:** #${orderId}\n\n` +
+          `Staff could not verify this payment.\n` +
+          `Please double-check your payment proof or wait for human support.`;
+      }
+
+      if (action === "staff_claim") {
+        apiAction = "claim_order";
+        claimedOrders.set(orderId, interaction.user.tag);
+
+        customerMessage =
+          `# 📦 ORDER CLAIMED\n\n` +
+          `**Order ID:** #${orderId}\n` +
+          `**Claimed By:** ${interaction.user.tag}\n\n` +
+          `A deliverer is now handling your order.`;
+      }
+
+      if (action === "staff_delivering") {
+        apiAction = "mark_delivering";
+        customerMessage =
+          `# 🚚 DELIVERY STARTED\n\n` +
+          `**Order ID:** #${orderId}\n\n` +
+          `Your order is now being delivered. Please stay ready in Roblox.`;
+      }
+
+      if (action === "staff_delivered") {
+        apiAction = "mark_delivered";
+        removeFromQueue(orderId);
+
+        customerMessage =
+          `# ✅ ORDER DELIVERED\n\n` +
+          `**Order ID:** #${orderId}\n\n` +
+          `Thank you for shopping at Bloxhop!\n\n` +
+          `${process.env.VOUCH_CHANNEL_ID ? `⭐ Please leave a vouch here: <#${process.env.VOUCH_CHANNEL_ID}>` : "⭐ Please leave a vouch in our review channel."}\n\n` +
+          `This ticket may close automatically in 2 minutes.`;
+      }
+
+      const result = await updateOrderStaff(orderId, apiAction, interaction.user.tag);
+
+      if (!result.success) {
+        return interaction.editReply(
+          `❌ Failed to update order.\n\nReason: ${result.message || "Unknown error"}`
+        );
+      }
+
+      await interaction.editReply(customerMessage);
+
+      if (action === "staff_delivered") {
+        setTimeout(async () => {
+          try {
+            if (interaction.channel && interaction.channel.deletable) {
+              await interaction.channel.delete("Order delivered. Auto closing ticket.");
+            }
+          } catch (err) {
+            console.error("Auto close failed:", err);
+          }
+        }, AUTO_CLOSE_MS);
+      }
+
+      return;
+    } catch (error) {
+      console.error(error);
+      return interaction.editReply("❌ Something went wrong while updating the order.");
+    }
+  }
+
+  // =====================
+  // NORMAL CUSTOMER BUTTONS
+  // =====================
   if (interaction.customId === "paid_yes") {
     return interaction.reply({
-      content:
-        "📦 Please send your Order ID.\n\nExample:\n`order id: BH12345`",
+      content: "📦 Please send your Order ID.\n\nExample:\n`order id: BH12345`",
       ephemeral: true,
     });
   }
@@ -260,16 +414,14 @@ client.on("interactionCreate", async (interaction) => {
 
   if (interaction.customId === "track_order") {
     return interaction.reply({
-      content:
-        "📦 Please send your Order ID to track your order.\n\nExample:\n`order id: BH12345`",
+      content: "📦 Please send your Order ID to track your order.\n\nExample:\n`order id: BH12345`",
       ephemeral: true,
     });
   }
 
   if (interaction.customId === "human_support") {
     return interaction.reply({
-      content:
-        "👤 A support staff member will assist you shortly.\n\nPlease describe your issue while waiting.",
+      content: "👤 A support staff member will assist you shortly.\n\nPlease describe your issue while waiting.",
       ephemeral: false,
     });
   }
@@ -302,6 +454,25 @@ client.on("messageCreate", async (message) => {
   const staff = isStaff(message.member);
 
   if (content.includes("@everyone") || content.includes("@here")) return;
+
+  // Screenshot / payment proof detection
+  if (!message.author.bot && message.attachments.size > 0) {
+    const hasImage = message.attachments.some((file) => {
+      const name = file.name?.toLowerCase() || "";
+      const type = file.contentType?.toLowerCase() || "";
+      return type.startsWith("image/") || /\.(png|jpg|jpeg|webp)$/i.test(name);
+    });
+
+    if (hasImage) {
+      await message.reply({
+        content:
+          `# 📸 PAYMENT PROOF RECEIVED\n\n` +
+          `Staff will review your screenshot shortly.\n\n` +
+          `${process.env.DELIVERY_ROLE_ID ? `<@&${process.env.DELIVERY_ROLE_ID}> Payment proof needs review.` : ""}\n\n` +
+          `Staff: ask for the customer's Order ID if it is not included.`,
+      });
+    }
+  }
 
   // Support menu
   if (
@@ -370,17 +541,14 @@ client.on("messageCreate", async (message) => {
   await message.reply(`🔎 Checking Order ID #${orderId}...`);
 
   try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_APP_URL}/api/orders/lookup`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-ticket-secret": process.env.TICKET_LOOKUP_SECRET,
-        },
-        body: JSON.stringify({ orderId }),
-      }
-    );
+    const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/orders/lookup`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-ticket-secret": process.env.TICKET_LOOKUP_SECRET,
+      },
+      body: JSON.stringify({ orderId }),
+    });
 
     const data = await res.json();
 
@@ -464,45 +632,46 @@ client.on("messageCreate", async (message) => {
       paymentStatus === "success";
 
     if (!isPaid) {
-      return message.reply(
-        `# ⚠️ PAYMENT NOT VERIFIED\n\n` +
+      return message.reply({
+        content:
+          `# ⚠️ PAYMENT NOT VERIFIED\n\n` +
           `**Order ID:** #${order.id}\n` +
           `**Username:** ${order.username || "Unknown"}\n` +
           `**Payment Method:** ${order.paymentMethod || "Unknown"}\n` +
           `**Payment Status:** ${order.paymentStatus || "Pending"}\n\n` +
           `We could not confirm your payment yet.\n\n` +
-          `Possible reasons:\n` +
-          `• Payment is still processing\n` +
-          `• Payment was not completed\n` +
-          `• Wrong Order ID was sent\n\n` +
-          `If you already paid, please wait a few minutes and send your Order ID again.`
-      );
+          `If you already paid, upload your payment screenshot and wait for staff review.`,
+        components: [staffOrderButtons(order.id, false)],
+      });
     }
 
     resetUserAttempts(userId);
 
-    await message.reply(
-      `# ✅ PAYMENT VERIFIED\n\n` +
+    const queuePosition = getQueuePosition(order.id);
+
+    await message.reply({
+      content:
+        `# ✅ PAYMENT VERIFIED\n\n` +
         `## 📦 Order Information\n` +
         `**Order ID:** #${order.id}\n` +
         `**Username:** ${order.username || "Unknown"}\n` +
         `**Payment Status:** ${order.paymentStatus || "Paid"}\n` +
         `**Payment Method:** ${order.paymentMethod || "Unknown"}\n` +
-        `**Paid At:** ${order.paid_at || "Verified"}\n\n` +
+        `**Queue Position:** #${queuePosition}\n\n` +
         `## 🛒 Items\n` +
         `${items}\n\n` +
         `## 💰 Payment Summary\n` +
-        `**Original Total:** $${Number(
-          order.originalTotal || order.totalPrice
-        ).toFixed(2)}\n` +
+        `**Original Total:** $${Number(order.originalTotal || order.totalPrice).toFixed(2)}\n` +
         `**Coupon:** ${order.couponCode || "None"}\n` +
         `**Discount:** -$${Number(order.couponDiscount || 0).toFixed(2)}\n` +
         "```yaml\n" +
         `FINAL TOTAL: $${Number(order.totalPrice).toFixed(2)}\n` +
         "```\n\n" +
         `📦 Your order is now queued for delivery.\n` +
-        `⏱️ Estimated delivery: within 5-30 minutes.`
-    );
+        `⏱️ Estimated delivery: within 5-30 minutes.\n\n` +
+        `${process.env.DELIVERY_ROLE_ID ? `<@&${process.env.DELIVERY_ROLE_ID}> New paid order ready for delivery.` : ""}`,
+      components: [staffOrderButtons(order.id, true)],
+    });
   } catch (error) {
     console.error(error);
     await message.reply("Something went wrong while checking your order.");

@@ -17,9 +17,6 @@ const client = new Client({
   ],
 });
 
-// =====================
-// CONFIG
-// =====================
 const INVALID_COOLDOWN_MS = 30 * 1000;
 const BUTTON_COOLDOWN_MS = 10 * 1000;
 const BLOCK_DURATION_MS = 10 * 60 * 1000;
@@ -27,7 +24,6 @@ const ATTEMPT_RESET_MS = 15 * 60 * 1000;
 const DUPLICATE_ORDER_LOCK_MS = 5 * 60 * 1000;
 const CLEAN_REPLY_COOLDOWN_MS = 30 * 1000;
 const AUTO_CLOSE_MS = 2 * 60 * 1000;
-
 const MAX_INVALID_ATTEMPTS = 5;
 
 const invalidAttempts = new Map();
@@ -36,7 +32,6 @@ const lastInvalidLookup = new Map();
 const lastButtonClick = new Map();
 const lastCleanReply = new Map();
 const orderLocks = new Map();
-const claimedOrders = new Map();
 const orderQueue = [];
 
 function now() {
@@ -69,10 +64,7 @@ function isStaff(member) {
 }
 
 function getQueuePosition(orderId) {
-  if (!orderQueue.includes(orderId)) {
-    orderQueue.push(orderId);
-  }
-
+  if (!orderQueue.includes(orderId)) orderQueue.push(orderId);
   return orderQueue.indexOf(orderId) + 1;
 }
 
@@ -81,37 +73,57 @@ function removeFromQueue(orderId) {
   if (index !== -1) orderQueue.splice(index, 1);
 }
 
-function staffOrderButtons(orderId, paid = false) {
-  const row1 = new ActionRowBuilder().addComponents(
-    new ButtonBuilder()
-      .setCustomId(`staff_verify:${orderId}`)
-      .setLabel("Verify Payment")
-      .setStyle(ButtonStyle.Success),
+function staffOrderButtons(orderId, stage = "unpaid") {
+  if (stage === "unpaid") {
+    return [
+      new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+          .setCustomId(`staff_verify:${orderId}`)
+          .setLabel("Verify Payment")
+          .setStyle(ButtonStyle.Success),
 
-    new ButtonBuilder()
-      .setCustomId(`staff_reject:${orderId}`)
-      .setLabel("Reject Payment")
-      .setStyle(ButtonStyle.Danger),
+        new ButtonBuilder()
+          .setCustomId(`staff_reject:${orderId}`)
+          .setLabel("Reject Payment")
+          .setStyle(ButtonStyle.Danger)
+      ),
+    ];
+  }
 
-    new ButtonBuilder()
-      .setCustomId(`staff_claim:${orderId}`)
-      .setLabel("Claim Order")
-      .setStyle(ButtonStyle.Primary)
-  );
+  if (stage === "verified") {
+    return [
+      new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+          .setCustomId(`staff_claim:${orderId}`)
+          .setLabel("Claim Order")
+          .setStyle(ButtonStyle.Primary)
+      ),
+    ];
+  }
 
-  const row2 = new ActionRowBuilder().addComponents(
-    new ButtonBuilder()
-      .setCustomId(`staff_delivering:${orderId}`)
-      .setLabel("Mark Delivering")
-      .setStyle(ButtonStyle.Secondary),
+  if (stage === "claimed") {
+    return [
+      new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+          .setCustomId(`staff_delivering:${orderId}`)
+          .setLabel("Mark Delivering")
+          .setStyle(ButtonStyle.Secondary)
+      ),
+    ];
+  }
 
-    new ButtonBuilder()
-      .setCustomId(`staff_delivered:${orderId}`)
-      .setLabel("Mark Delivered")
-      .setStyle(ButtonStyle.Success)
-  );
+  if (stage === "delivering") {
+    return [
+      new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+          .setCustomId(`staff_delivered:${orderId}`)
+          .setLabel("Mark Delivered")
+          .setStyle(ButtonStyle.Success)
+      ),
+    ];
+  }
 
-  return paid ? [row2] : [row1, row2];
+  return [];
 }
 
 function supportButtons() {
@@ -153,18 +165,21 @@ function qrButtons() {
 }
 
 async function updateOrderStaff(orderId, action, staffName) {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/orders/staff-update`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-staff-secret": process.env.STAFF_UPDATE_SECRET,
-    },
-    body: JSON.stringify({
-      orderId,
-      action,
-      staffName,
-    }),
-  });
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_APP_URL}/api/orders/staff-update`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-staff-secret": process.env.STAFF_UPDATE_SECRET,
+      },
+      body: JSON.stringify({
+        orderId,
+        action,
+        staffName,
+      }),
+    }
+  );
 
   return res.json();
 }
@@ -194,20 +209,12 @@ function getUserAttemptData(userId) {
   const data = invalidAttempts.get(userId);
 
   if (!data) {
-    return {
-      count: 0,
-      lastAttemptAt: 0,
-      lastOrderId: null,
-    };
+    return { count: 0, lastAttemptAt: 0, lastOrderId: null };
   }
 
   if (now() - data.lastAttemptAt > ATTEMPT_RESET_MS) {
     invalidAttempts.delete(userId);
-    return {
-      count: 0,
-      lastAttemptAt: 0,
-      lastOrderId: null,
-    };
+    return { count: 0, lastAttemptAt: 0, lastOrderId: null };
   }
 
   return data;
@@ -215,7 +222,7 @@ function getUserAttemptData(userId) {
 
 function addInvalidAttempt(userId, orderId) {
   const data = getUserAttemptData(userId);
-  let addCount = data.lastOrderId === orderId ? 2 : 1;
+  const addCount = data.lastOrderId === orderId ? 2 : 1;
 
   const updated = {
     count: data.count + addCount,
@@ -262,9 +269,6 @@ client.on("ready", () => {
   console.log(`Bloxhop bot logged in as ${client.user.tag}`);
 });
 
-// =====================
-// BUTTON INTERACTIONS
-// =====================
 client.on("interactionCreate", async (interaction) => {
   if (!interaction.isButton()) return;
 
@@ -288,9 +292,6 @@ client.on("interactionCreate", async (interaction) => {
 
   const [action, orderId] = interaction.customId.split(":");
 
-  // =====================
-  // STAFF BUTTONS
-  // =====================
   if (action && action.startsWith("staff_")) {
     if (!staff) {
       return interaction.reply({
@@ -299,14 +300,17 @@ client.on("interactionCreate", async (interaction) => {
       });
     }
 
-    await interaction.deferReply();
+    await interaction.deferUpdate();
 
     try {
       let apiAction = "";
       let customerMessage = "";
+      let nextStage = "done";
 
       if (action === "staff_verify") {
         apiAction = "verify_payment";
+        nextStage = "verified";
+
         const queuePosition = getQueuePosition(orderId);
 
         customerMessage =
@@ -320,6 +324,8 @@ client.on("interactionCreate", async (interaction) => {
 
       if (action === "staff_reject") {
         apiAction = "reject_payment";
+        nextStage = "done";
+
         customerMessage =
           `# ❌ PAYMENT REJECTED\n\n` +
           `**Order ID:** #${orderId}\n\n` +
@@ -329,7 +335,7 @@ client.on("interactionCreate", async (interaction) => {
 
       if (action === "staff_claim") {
         apiAction = "claim_order";
-        claimedOrders.set(orderId, interaction.user.tag);
+        nextStage = "claimed";
 
         customerMessage =
           `# 📦 ORDER CLAIMED\n\n` +
@@ -340,6 +346,8 @@ client.on("interactionCreate", async (interaction) => {
 
       if (action === "staff_delivering") {
         apiAction = "mark_delivering";
+        nextStage = "delivering";
+
         customerMessage =
           `# 🚚 DELIVERY STARTED\n\n` +
           `**Order ID:** #${orderId}\n\n` +
@@ -348,6 +356,7 @@ client.on("interactionCreate", async (interaction) => {
 
       if (action === "staff_delivered") {
         apiAction = "mark_delivered";
+        nextStage = "done";
         removeFromQueue(orderId);
 
         customerMessage =
@@ -358,21 +367,33 @@ client.on("interactionCreate", async (interaction) => {
           `This ticket may close automatically in 2 minutes.`;
       }
 
-      const result = await updateOrderStaff(orderId, apiAction, interaction.user.tag);
+      const result = await updateOrderStaff(
+        orderId,
+        apiAction,
+        interaction.user.tag
+      );
 
       if (!result.success) {
-        return interaction.editReply(
-          `❌ Failed to update order.\n\nReason: ${result.message || "Unknown error"}`
-        );
+        return interaction.followUp({
+          content: `❌ Failed to update order.\n\nReason: ${
+            result.message || "Unknown error"
+          }`,
+          ephemeral: true,
+        });
       }
 
-      await interaction.editReply(customerMessage);
+      await interaction.editReply({
+        content: customerMessage,
+        components: staffOrderButtons(orderId, nextStage),
+      });
 
       if (action === "staff_delivered") {
         setTimeout(async () => {
           try {
             if (interaction.channel && interaction.channel.deletable) {
-              await interaction.channel.delete("Order delivered. Auto closing ticket.");
+              await interaction.channel.delete(
+                "Order delivered. Auto closing ticket."
+              );
             }
           } catch (err) {
             console.error("Auto close failed:", err);
@@ -383,13 +404,14 @@ client.on("interactionCreate", async (interaction) => {
       return;
     } catch (error) {
       console.error(error);
-      return interaction.editReply("❌ Something went wrong while updating the order.");
+
+      return interaction.followUp({
+        content: "❌ Something went wrong while updating the order.",
+        ephemeral: true,
+      });
     }
   }
 
-  // =====================
-  // NORMAL CUSTOMER BUTTONS
-  // =====================
   if (interaction.customId === "paid_yes") {
     return interaction.reply({
       content: "📦 Please send your Order ID.\n\nExample:\n`order id: BH12345`",
@@ -414,14 +436,16 @@ client.on("interactionCreate", async (interaction) => {
 
   if (interaction.customId === "track_order") {
     return interaction.reply({
-      content: "📦 Please send your Order ID to track your order.\n\nExample:\n`order id: BH12345`",
+      content:
+        "📦 Please send your Order ID to track your order.\n\nExample:\n`order id: BH12345`",
       ephemeral: true,
     });
   }
 
   if (interaction.customId === "human_support") {
     return interaction.reply({
-      content: "👤 A support staff member will assist you shortly.\n\nPlease describe your issue while waiting.",
+      content:
+        "👤 A support staff member will assist you shortly.\n\nPlease describe your issue while waiting.",
       ephemeral: false,
     });
   }
@@ -443,9 +467,6 @@ client.on("interactionCreate", async (interaction) => {
   }
 });
 
-// =====================
-// MESSAGE HANDLER
-// =====================
 client.on("messageCreate", async (message) => {
   if (message.author.bot && message.author.username !== "Ticket Tool") return;
 
@@ -455,7 +476,6 @@ client.on("messageCreate", async (message) => {
 
   if (content.includes("@everyone") || content.includes("@here")) return;
 
-  // Screenshot / payment proof detection
   if (!message.author.bot && message.attachments.size > 0) {
     const hasImage = message.attachments.some((file) => {
       const name = file.name?.toLowerCase() || "";
@@ -474,7 +494,6 @@ client.on("messageCreate", async (message) => {
     }
   }
 
-  // Support menu
   if (
     content.includes("support") ||
     content.includes("help") ||
@@ -495,7 +514,6 @@ client.on("messageCreate", async (message) => {
     }
   }
 
-  // Payment menu
   if (
     content.includes("gcash") ||
     content.includes("maya") ||
@@ -514,7 +532,6 @@ client.on("messageCreate", async (message) => {
     return;
   }
 
-  // Order ID checker
   const match = message.content.match(/order\s*id[:\s#-]*(.+)/i);
   if (!match) return;
 
@@ -533,22 +550,23 @@ client.on("messageCreate", async (message) => {
 
     const lastInvalid = lastInvalidLookup.get(userId) || 0;
 
-    if (now() - lastInvalid < INVALID_COOLDOWN_MS) {
-      return;
-    }
+    if (now() - lastInvalid < INVALID_COOLDOWN_MS) return;
   }
 
   await message.reply(`🔎 Checking Order ID #${orderId}...`);
 
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/orders/lookup`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-ticket-secret": process.env.TICKET_LOOKUP_SECRET,
-      },
-      body: JSON.stringify({ orderId }),
-    });
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_APP_URL}/api/orders/lookup`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-ticket-secret": process.env.TICKET_LOOKUP_SECRET,
+        },
+        body: JSON.stringify({ orderId }),
+      }
+    );
 
     const data = await res.json();
 
@@ -627,6 +645,7 @@ client.on("messageCreate", async (message) => {
 
     const isPaid =
       Boolean(order.paid_at) ||
+      Boolean(order.paidAt) ||
       paymentStatus === "paid" ||
       paymentStatus === "completed" ||
       paymentStatus === "success";
@@ -641,7 +660,7 @@ client.on("messageCreate", async (message) => {
           `**Payment Status:** ${order.paymentStatus || "Pending"}\n\n` +
           `We could not confirm your payment yet.\n\n` +
           `If you already paid, upload your payment screenshot and wait for staff review.`,
-        components: staffOrderButtons(order.id, false),
+        components: staffOrderButtons(order.id, "unpaid"),
       });
     }
 
@@ -661,7 +680,9 @@ client.on("messageCreate", async (message) => {
         `## 🛒 Items\n` +
         `${items}\n\n` +
         `## 💰 Payment Summary\n` +
-        `**Original Total:** $${Number(order.originalTotal || order.totalPrice).toFixed(2)}\n` +
+        `**Original Total:** $${Number(
+          order.originalTotal || order.totalPrice
+        ).toFixed(2)}\n` +
         `**Coupon:** ${order.couponCode || "None"}\n` +
         `**Discount:** -$${Number(order.couponDiscount || 0).toFixed(2)}\n` +
         "```yaml\n" +
@@ -670,7 +691,7 @@ client.on("messageCreate", async (message) => {
         `📦 Your order is now queued for delivery.\n` +
         `⏱️ Estimated delivery: within 5-30 minutes.\n\n` +
         `${process.env.DELIVERY_ROLE_ID ? `<@&${process.env.DELIVERY_ROLE_ID}> New paid order ready for delivery.` : ""}`,
-      components: staffOrderButtons(order.id, true),
+      components: staffOrderButtons(order.id, "verified"),
     });
   } catch (error) {
     console.error(error);

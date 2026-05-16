@@ -6,6 +6,7 @@ const {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
+  PermissionsBitField,
 } = require("discord.js");
 
 const client = new Client({
@@ -16,11 +17,155 @@ const client = new Client({
   ],
 });
 
-client.on("ready", () => {
-  console.log(`Bloxhop bot logged in as ${client.user.tag}`);
-});
+// =====================
+// CONFIG
+// =====================
+const INVALID_COOLDOWN_MS = 30 * 1000;
+const BUTTON_COOLDOWN_MS = 10 * 1000;
+const BLOCK_DURATION_MS = 10 * 60 * 1000;
+const ATTEMPT_RESET_MS = 15 * 60 * 1000;
+const DUPLICATE_ORDER_LOCK_MS = 5 * 60 * 1000;
+const CLEAN_REPLY_COOLDOWN_MS = 30 * 1000;
 
-// ✅ Main support buttons
+const MAX_INVALID_ATTEMPTS = 5;
+
+const invalidAttempts = new Map();
+const blockedUsers = new Map();
+const lastInvalidLookup = new Map();
+const lastButtonClick = new Map();
+const lastCleanReply = new Map();
+const orderLocks = new Map();
+
+function now() {
+  return Date.now();
+}
+
+function formatTime(ms) {
+  const seconds = Math.ceil(ms / 1000);
+  const min = Math.floor(seconds / 60);
+  const sec = seconds % 60;
+  return `${min}m ${sec}s`;
+}
+
+function isStaff(member) {
+  if (!member) return false;
+
+  if (
+    member.permissions?.has(PermissionsBitField.Flags.Administrator) ||
+    member.permissions?.has(PermissionsBitField.Flags.ManageGuild)
+  ) {
+    return true;
+  }
+
+  const staffRoles = (process.env.STAFF_ROLE_IDS || "")
+    .split(",")
+    .map((r) => r.trim())
+    .filter(Boolean);
+
+  return member.roles.cache.some((role) => staffRoles.includes(role.id));
+}
+
+async function logSuspicious(message, reason) {
+  try {
+    const logChannelId = process.env.ADMIN_LOG_CHANNEL_ID;
+    if (!logChannelId) return;
+
+    const channel = await client.channels.fetch(logChannelId);
+    if (!channel) return;
+
+    await channel.send(
+      `# ⚠️ Suspicious Bot Activity\n\n` +
+        `**User:** ${message.author.tag}\n` +
+        `**User ID:** ${message.author.id}\n` +
+        `**Reason:** ${reason}\n` +
+        `**Channel:** <#${message.channel.id}>\n` +
+        `**Time:** <t:${Math.floor(Date.now() / 1000)}:F>`
+    );
+  } catch (err) {
+    console.error("Log error:", err);
+  }
+}
+
+function getUserAttemptData(userId) {
+  const data = invalidAttempts.get(userId);
+
+  if (!data) {
+    return {
+      count: 0,
+      lastAttemptAt: 0,
+      lastOrderId: null,
+    };
+  }
+
+  if (now() - data.lastAttemptAt > ATTEMPT_RESET_MS) {
+    invalidAttempts.delete(userId);
+    return {
+      count: 0,
+      lastAttemptAt: 0,
+      lastOrderId: null,
+    };
+  }
+
+  return data;
+}
+
+function addInvalidAttempt(userId, orderId) {
+  const data = getUserAttemptData(userId);
+
+  let addCount = 1;
+
+  if (data.lastOrderId === orderId) {
+    addCount = 2;
+  }
+
+  const updated = {
+    count: data.count + addCount,
+    lastAttemptAt: now(),
+    lastOrderId: orderId,
+  };
+
+  invalidAttempts.set(userId, updated);
+  lastInvalidLookup.set(userId, now());
+
+  return updated;
+}
+
+function resetUserAttempts(userId) {
+  invalidAttempts.delete(userId);
+  blockedUsers.delete(userId);
+  lastInvalidLookup.delete(userId);
+}
+
+function isBlocked(userId) {
+  const blockedUntil = blockedUsers.get(userId);
+
+  if (!blockedUntil) return false;
+
+  if (now() >= blockedUntil) {
+    blockedUsers.delete(userId);
+    return false;
+  }
+
+  return blockedUntil;
+}
+
+function cleanReplyKey(userId, type) {
+  return `${userId}:${type}`;
+}
+
+function canSendCleanReply(userId, type) {
+  const key = cleanReplyKey(userId, type);
+  const last = lastCleanReply.get(key) || 0;
+
+  if (now() - last < CLEAN_REPLY_COOLDOWN_MS) return false;
+
+  lastCleanReply.set(key, now());
+  return true;
+}
+
+// =====================
+// BUTTONS
+// =====================
 function supportButtons() {
   return new ActionRowBuilder().addComponents(
     new ButtonBuilder()
@@ -45,7 +190,6 @@ function supportButtons() {
   );
 }
 
-// ✅ QR buttons
 function qrButtons() {
   return new ActionRowBuilder().addComponents(
     new ButtonBuilder()
@@ -60,12 +204,39 @@ function qrButtons() {
   );
 }
 
-// ✅ Button interactions
+// =====================
+// READY
+// =====================
+client.on("ready", () => {
+  console.log(`Bloxhop bot logged in as ${client.user.tag}`);
+});
+
+// =====================
+// BUTTON INTERACTIONS
+// =====================
 client.on("interactionCreate", async (interaction) => {
   if (!interaction.isButton()) return;
 
+  const staff = isStaff(interaction.member);
+  const userId = interaction.user.id;
+
+  if (!staff) {
+    const lastClick = lastButtonClick.get(userId) || 0;
+
+    if (now() - lastClick < BUTTON_COOLDOWN_MS) {
+      return interaction.reply({
+        content: `⚠️ Please wait ${formatTime(
+          BUTTON_COOLDOWN_MS - (now() - lastClick)
+        )} before clicking again.`,
+        ephemeral: true,
+      });
+    }
+
+    lastButtonClick.set(userId, now());
+  }
+
   if (interaction.customId === "paid_yes") {
-    await interaction.reply({
+    return interaction.reply({
       content:
         "📦 Please send your Order ID.\n\nExample:\n`order id: BH12345`",
       ephemeral: true,
@@ -73,7 +244,7 @@ client.on("interactionCreate", async (interaction) => {
   }
 
   if (interaction.customId === "payment_methods") {
-    await interaction.reply({
+    return interaction.reply({
       content:
         "# 💳 Payment Methods\n\n" +
         "We currently accept:\n" +
@@ -88,7 +259,7 @@ client.on("interactionCreate", async (interaction) => {
   }
 
   if (interaction.customId === "track_order") {
-    await interaction.reply({
+    return interaction.reply({
       content:
         "📦 Please send your Order ID to track your order.\n\nExample:\n`order id: BH12345`",
       ephemeral: true,
@@ -96,7 +267,7 @@ client.on("interactionCreate", async (interaction) => {
   }
 
   if (interaction.customId === "human_support") {
-    await interaction.reply({
+    return interaction.reply({
       content:
         "👤 A support staff member will assist you shortly.\n\nPlease describe your issue while waiting.",
       ephemeral: false,
@@ -104,30 +275,35 @@ client.on("interactionCreate", async (interaction) => {
   }
 
   if (interaction.customId === "gcash_qr") {
-    await interaction.reply({
-      content:
-        "# 💳 GCash Payment QR\n\nScan the QR code below to pay.",
+    return interaction.reply({
+      content: "# 💳 GCash Payment QR\n\nScan the QR code below to pay.",
       files: ["./assets/gcash-qr.png"],
       ephemeral: true,
     });
   }
 
   if (interaction.customId === "maya_qr") {
-    await interaction.reply({
-      content:
-        "# 💳 Maya Payment QR\n\nScan the QR code below to pay.",
+    return interaction.reply({
+      content: "# 💳 Maya Payment QR\n\nScan the QR code below to pay.",
       files: ["./assets/maya-qr.png"],
       ephemeral: true,
     });
   }
 });
 
+// =====================
+// MESSAGE HANDLER
+// =====================
 client.on("messageCreate", async (message) => {
   if (message.author.bot && message.author.username !== "Ticket Tool") return;
 
   const content = message.content.toLowerCase();
+  const userId = message.author.id;
+  const staff = isStaff(message.member);
 
-  // ✅ Auto support menu
+  if (content.includes("@everyone") || content.includes("@here")) return;
+
+  // Support menu
   if (
     content.includes("support") ||
     content.includes("help") ||
@@ -137,7 +313,7 @@ client.on("messageCreate", async (message) => {
   ) {
     const hasOrderId = /order\s*id[:\s#-]*(.+)/i.test(message.content);
 
-    if (!hasOrderId) {
+    if (!hasOrderId && canSendCleanReply(userId, "support_menu")) {
       await message.reply({
         content:
           "# 👋 Welcome to Bloxhop Support\n\n" +
@@ -148,107 +324,184 @@ client.on("messageCreate", async (message) => {
     }
   }
 
-  // ✅ Auto payment response
+  // Payment menu
   if (
     content.includes("gcash") ||
     content.includes("maya") ||
     content.includes("paypal") ||
     content.includes("qr")
   ) {
-    await message.reply({
-      content:
-        "# 💳 Payment Help\n\n" +
-        "Choose your payment QR below.\n\n" +
-        "⚠️ Please only pay using official Bloxhop payment details.",
-      components: [qrButtons()],
-    });
+    if (canSendCleanReply(userId, "payment_menu")) {
+      await message.reply({
+        content:
+          "# 💳 Payment Help\n\n" +
+          "Choose your payment QR below.\n\n" +
+          "⚠️ Please only pay using official Bloxhop payment details.",
+        components: [qrButtons()],
+      });
+    }
     return;
   }
 
-  // ✅ Order ID checker
+  // Order ID checker
   const match = message.content.match(/order\s*id[:\s#-]*(.+)/i);
   if (!match) return;
 
   const orderId = match[1].trim();
 
+  if (!staff) {
+    const blockedUntil = isBlocked(userId);
+
+    if (blockedUntil) {
+      return message.reply(
+        `# ⛔ TEMPORARILY BLOCKED\n\n` +
+          `Too many invalid order attempts.\n\n` +
+          `Please try again in **${formatTime(blockedUntil - now())}**.`
+      );
+    }
+
+    const lastInvalid = lastInvalidLookup.get(userId) || 0;
+
+    if (now() - lastInvalid < INVALID_COOLDOWN_MS) {
+      return;
+    }
+  }
+
   await message.reply(`🔎 Checking Order ID #${orderId}...`);
 
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/orders/lookup`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-ticket-secret": process.env.TICKET_LOOKUP_SECRET,
-      },
-      body: JSON.stringify({ orderId }),
-    });
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_APP_URL}/api/orders/lookup`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-ticket-secret": process.env.TICKET_LOOKUP_SECRET,
+        },
+        body: JSON.stringify({ orderId }),
+      }
+    );
 
     const data = await res.json();
 
     if (!data.found) {
-      await message.reply(
+      if (!staff) {
+        const attemptData = addInvalidAttempt(userId, orderId);
+
+        if (attemptData.count >= MAX_INVALID_ATTEMPTS) {
+          blockedUsers.set(userId, now() + BLOCK_DURATION_MS);
+
+          await logSuspicious(
+            message,
+            `Blocked for invalid order spam. Order ID: ${orderId}`
+          );
+
+          return message.reply(
+            `# ⛔ TEMPORARILY BLOCKED\n\n` +
+              `Too many invalid order attempts.\n\n` +
+              `You can try again in **10 minutes**.`
+          );
+        }
+
+        if (attemptData.count >= 4) {
+          await logSuspicious(
+            message,
+            `Final warning for invalid order attempts. Order ID: ${orderId}`
+          );
+
+          return message.reply(
+            `# ⚠️ FINAL WARNING\n\n` +
+              `Order ID #${orderId} was not found.\n\n` +
+              `Invalid attempts: **${attemptData.count}/${MAX_INVALID_ATTEMPTS}**\n\n` +
+              `One more fake/wrong attempt may temporarily block order lookup.`
+          );
+        }
+      }
+
+      return message.reply(
         `# ❌ ORDER NOT FOUND\n\n` +
-        `Order ID #${orderId} was not found.\n\n` +
-        `Reason: ${data.message || "Unknown error"}`
+          `Order ID #${orderId} was not found.\n\n` +
+          `Reason: ${data.message || "Unknown error"}`
       );
-      return;
     }
 
     const order = data.order;
+    const orderLock = orderLocks.get(order.id);
+
+    if (
+      !staff &&
+      orderLock &&
+      orderLock.userId !== userId &&
+      now() < orderLock.expiresAt
+    ) {
+      await logSuspicious(
+        message,
+        `Different user tried checking locked order. Order ID: ${order.id}`
+      );
+
+      return message.reply(
+        `# ⚠️ ORDER ALREADY BEING CHECKED\n\n` +
+          `This order was recently checked by another user.\n\n` +
+          `Please contact human support if this is your order.`
+      );
+    }
+
+    orderLocks.set(order.id, {
+      userId,
+      expiresAt: now() + DUPLICATE_ORDER_LOCK_MS,
+    });
 
     const items = Array.isArray(order.items)
       ? order.items.map((item) => `• ${item.name} x${item.quantity}`).join("\n")
       : "Items unavailable";
 
     const paymentStatus = String(order.paymentStatus || "").toLowerCase();
+
     const isPaid =
       Boolean(order.paid_at) ||
       paymentStatus === "paid" ||
       paymentStatus === "completed" ||
       paymentStatus === "success";
 
-    // ✅ If customer claims paid but not verified
     if (!isPaid) {
-      await message.reply(
+      return message.reply(
         `# ⚠️ PAYMENT NOT VERIFIED\n\n` +
-        `**Order ID:** #${order.id}\n` +
-        `**Username:** ${order.username || "Unknown"}\n` +
-        `**Payment Method:** ${order.paymentMethod || "Unknown"}\n` +
-        `**Payment Status:** ${order.paymentStatus || "Pending"}\n\n` +
-        `We could not confirm your payment yet.\n\n` +
-        `Possible reasons:\n` +
-        `• Payment is still processing\n` +
-        `• Payment was not completed\n` +
-        `• Wrong Order ID was sent\n\n` +
-        `If you already paid, please wait a few minutes and send your Order ID again.`
+          `**Order ID:** #${order.id}\n` +
+          `**Username:** ${order.username || "Unknown"}\n` +
+          `**Payment Method:** ${order.paymentMethod || "Unknown"}\n` +
+          `**Payment Status:** ${order.paymentStatus || "Pending"}\n\n` +
+          `We could not confirm your payment yet.\n\n` +
+          `Possible reasons:\n` +
+          `• Payment is still processing\n` +
+          `• Payment was not completed\n` +
+          `• Wrong Order ID was sent\n\n` +
+          `If you already paid, please wait a few minutes and send your Order ID again.`
       );
-      return;
     }
 
-    // ✅ Paid order response
+    resetUserAttempts(userId);
+
     await message.reply(
       `# ✅ PAYMENT VERIFIED\n\n` +
-
-      `## 📦 Order Information\n` +
-      `**Order ID:** #${order.id}\n` +
-      `**Username:** ${order.username || "Unknown"}\n` +
-      `**Payment Status:** ${order.paymentStatus || "Paid"}\n` +
-      `**Payment Method:** ${order.paymentMethod || "Unknown"}\n` +
-      `**Paid At:** ${order.paid_at || "Verified"}\n\n` +
-
-      `## 🛒 Items\n` +
-      `${items}\n\n` +
-
-      `## 💰 Payment Summary\n` +
-      `**Original Total:** $${Number(order.originalTotal || order.totalPrice).toFixed(2)}\n` +
-      `**Coupon:** ${order.couponCode || "None"}\n` +
-      `**Discount:** -$${Number(order.couponDiscount || 0).toFixed(2)}\n` +
-      "```yaml\n" +
-      `FINAL TOTAL: $${Number(order.totalPrice).toFixed(2)}\n` +
-      "```\n\n" +
-
-      `📦 Your order is now queued for delivery.\n` +
-      `⏱️ Estimated delivery: within 5-30 minutes.`
+        `## 📦 Order Information\n` +
+        `**Order ID:** #${order.id}\n` +
+        `**Username:** ${order.username || "Unknown"}\n` +
+        `**Payment Status:** ${order.paymentStatus || "Paid"}\n` +
+        `**Payment Method:** ${order.paymentMethod || "Unknown"}\n` +
+        `**Paid At:** ${order.paid_at || "Verified"}\n\n` +
+        `## 🛒 Items\n` +
+        `${items}\n\n` +
+        `## 💰 Payment Summary\n` +
+        `**Original Total:** $${Number(
+          order.originalTotal || order.totalPrice
+        ).toFixed(2)}\n` +
+        `**Coupon:** ${order.couponCode || "None"}\n` +
+        `**Discount:** -$${Number(order.couponDiscount || 0).toFixed(2)}\n` +
+        "```yaml\n" +
+        `FINAL TOTAL: $${Number(order.totalPrice).toFixed(2)}\n` +
+        "```\n\n" +
+        `📦 Your order is now queued for delivery.\n` +
+        `⏱️ Estimated delivery: within 5-30 minutes.`
     );
   } catch (error) {
     console.error(error);

@@ -244,82 +244,126 @@ export async function POST(req: Request) {
           try {
             await sendEmail({
               to: email,
-              subject: "Your Bloxhop Payment Has Been Confirmed",
-              html: `
-                <div style="margin:0; padding:0; background-color:#f4f4f7; font-family:Arial, sans-serif; color:#111;">
-                  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#f4f4f7; padding:30px 0;">
-                    <tr>
-                      <td align="center">
-                        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px; background:#ffffff; border-radius:18px; overflow:hidden; box-shadow:0 8px 24px rgba(0,0,0,0.08);">
-                          <tr>
-                            <td style="background:linear-gradient(135deg,#111827,#4f46e5); padding:32px 24px; text-align:center;">
-                              <h1 style="margin:0; font-size:28px; color:#ffffff; font-weight:700;">Bloxhop</h1>
-                              <p style="margin:10px 0 0; color:#dbeafe; font-size:14px;">
-                                Fast & Trusted Blox Fruits Store
-                              </p>
-                            </td>
-                          </tr>
+              subject: `Your Blox Shop Order #${existingOrder.id} Payment Was Confirmed`,
+             html: `
+  <div style="margin:0; padding:0; background:#eaf0ff; font-family:Arial, Helvetica, sans-serif; color:#111827;">
+    <div style="max-width:720px; margin:0 auto; padding:0; background:#ffffff; overflow:hidden;">
 
-                          <tr>
-                            <td style="padding:32px 24px;">
-                              <p style="margin:0 0 16px; font-size:16px;">Hi ${existingOrder.roblox_username},</p>
+      <img
+        src="${process.env.NEXT_PUBLIC_APP_URL}/header-email.png"
+        alt="Blox Shop"
+        width="720"
+        style="display:block; width:100%; max-width:720px; border:0; outline:none; text-decoration:none;"
+      />
 
-                              <p style="margin:0 0 20px; font-size:15px; line-height:1.7; color:#374151;">
-                                Your payment has been confirmed and your order is now in our queue.
-                              </p>
+      <div style="padding:34px 38px 28px 38px;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
+          <tr>
+            <td valign="top">
+              <h1 style="margin:0 0 14px 0; font-size:28px; line-height:1.2; color:#111827;">
+                Your payment was confirmed!
+              </h1>
 
-                              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f9fafb; border:1px solid #e5e7eb; border-radius:14px; margin-bottom:24px;">
-                                <tr>
-                                  <td style="padding:20px;">
-                                    <p style="margin:0 0 10px; font-size:14px; color:#6b7280;">Order Details</p>
-                                    <p style="margin:0 0 8px; font-size:15px;"><strong>Order ID:</strong> ${existingOrder.id}</p>
-                                    <p style="margin:0 0 8px; font-size:15px;"><strong>Total:</strong> $${Number(existingOrder.total_price).toFixed(2)}</p>
-                                    <p style="margin:0 0 8px; font-size:15px;"><strong>Payment Status:</strong> Paid</p>
-                                    <p style="margin:0; font-size:15px;"><strong>Sent To:</strong> ${email}</p>
-                                  </td>
-                                </tr>
-                              </table>
+              <p style="margin:0 0 12px 0; font-size:14px;">
+                Hello <b style="color:#f59e0b;">${existingOrder.roblox_username}</b>,
+              </p>
 
-                              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#eef2ff; border:1px solid #c7d2fe; border-radius:14px; margin-bottom:18px;">
-                                <tr>
-                                  <td style="padding:18px 20px;">
-                                    <p style="margin:0; font-size:15px; line-height:1.7; color:#312e81;">
-                                      Please wait up to <strong>3 hours maximum</strong> for your item to be delivered.
-                                    </p>
-                                  </td>
-                                </tr>
-                              </table>
+              <p style="margin:0; font-size:14px; color:#374151;">
+                We received your payment successfully. Your order is now in our delivery queue.
+              </p>
+            </td>
 
-                              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#fff7ed; border:1px solid #fdba74; border-radius:14px; margin-bottom:24px;">
-                                <tr>
-                                  <td style="padding:18px 20px;">
-                                    <p style="margin:0; font-size:15px; line-height:1.7; color:#9a3412;">
-                                      If your item is not delivered after 3 hours, you will be eligible for a refund.
-                                    </p>
-                                  </td>
-                                </tr>
-                              </table>
+            <td align="right" valign="top" width="190">
+              <a
+                href="https://discord.gg/evM2G5c9Vr"
+                style="display:inline-block; background:#fb923c; color:#ffffff; padding:15px 22px; border-radius:10px; text-decoration:none; font-weight:900; font-size:15px;"
+              >
+                Need Help?
+              </a>
+            </td>
+          </tr>
+        </table>
 
-                              <p style="margin:0; font-size:14px; line-height:1.7; color:#6b7280;">
-                                Please make sure your contact information is correct so we can reach you if needed.
-                              </p>
-                            </td>
-                          </tr>
+        <div style="border:1px solid #e5e7eb; border-radius:14px; padding:18px 20px; margin-bottom:26px; background:#ffffff;">
+          <p style="margin:0 0 18px 0; font-size:15px; font-weight:900; color:#111827;">
+            ORDER DETAILS
+          </p>
 
-                          <tr>
-                            <td style="border-top:1px solid #e5e7eb; padding:20px 24px; text-align:center; background:#fafafa;">
-                              <p style="margin:0 0 6px; font-size:13px; color:#6b7280;">Bloxhop</p>
-                              <p style="margin:0; font-size:12px; color:#9ca3af;">
-                                This is a transactional email about your order.
-                              </p>
-                            </td>
-                          </tr>
-                        </table>
-                      </td>
-                    </tr>
-                  </table>
-                </div>
-              `,
+          <table width="100%" cellpadding="0" cellspacing="0">
+            <tr>
+              <td style="font-size:12px; color:#64748b;">Order ID</td>
+              <td style="font-size:12px; color:#64748b;">Payment</td>
+              <td style="font-size:12px; color:#64748b;">Status</td>
+              <td align="right" style="font-size:12px; color:#64748b;">Total</td>
+            </tr>
+
+            <tr>
+              <td style="padding-top:8px; font-size:18px; font-weight:900; color:#f59e0b;">
+                #${existingOrder.id}
+              </td>
+
+              <td style="padding-top:8px; font-size:14px; font-weight:700; color:#111827;">
+                Xendit
+              </td>
+
+              <td style="padding-top:8px;">
+                <span style="display:inline-block; background:#ecfdf5; color:#16a34a; border:1px solid #86efac; padding:6px 10px; border-radius:999px; font-size:11px; font-weight:900;">
+                  PAID
+                </span>
+              </td>
+
+              <td align="right" style="padding-top:8px; font-size:22px; font-weight:900; color:#f59e0b;">
+                $${Number(existingOrder.total_price || 0).toFixed(2)}
+              </td>
+            </tr>
+          </table>
+        </div>
+
+        <div style="border:1px solid #c7d2fe; background:#eef2ff; border-radius:12px; padding:16px; margin-bottom:16px;">
+          <p style="margin:0; font-size:13px; line-height:1.6; color:#312e81;">
+            Please wait up to <b>3 hours maximum</b> for your item to be delivered.
+          </p>
+        </div>
+
+        <div style="border:1px solid #fed7aa; background:#fff7ed; border-radius:12px; padding:16px; margin-bottom:16px;">
+          <p style="margin:0; font-size:13px; line-height:1.6; color:#111827;">
+            <b style="color:#f59e0b;">Important:</b>
+            If your item is not delivered after 3 hours, you will be eligible for a refund.
+          </p>
+        </div>
+
+        <table width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #e5e7eb; padding-top:20px; margin-bottom:10px;">
+          <tr>
+            <td width="33%" valign="top" style="padding-right:14px;">
+              <p style="margin:0 0 6px 0; font-size:13px; font-weight:900;">FAST DELIVERY</p>
+              <p style="margin:0; font-size:12px; color:#64748b; line-height:1.5;">We deliver your items as fast as possible.</p>
+            </td>
+
+            <td width="33%" valign="top" style="padding:0 14px; border-left:1px solid #e5e7eb; border-right:1px solid #e5e7eb;">
+              <p style="margin:0 0 6px 0; font-size:13px; font-weight:900;">SECURE ORDERS</p>
+              <p style="margin:0; font-size:12px; color:#64748b; line-height:1.5;">Your orders are safe and protected.</p>
+            </td>
+
+            <td width="33%" valign="top" style="padding-left:14px;">
+              <p style="margin:0 0 6px 0; font-size:13px; font-weight:900;">24/7 SUPPORT</p>
+              <p style="margin:0; font-size:12px; color:#64748b; line-height:1.5;">Our support team is always here to help.</p>
+            </td>
+          </tr>
+        </table>
+      </div>
+
+      <div style="background:#050b16; border-top:5px solid #f59e0b; padding:22px 24px; text-align:center; color:#cbd5e1;">
+        <p style="margin:0 0 10px 0; font-size:13px;">
+          Thank you for ordering from Blox Shop!
+        </p>
+
+        <p style="margin:0; font-size:11px; color:#94a3b8;">
+          © ${new Date().getFullYear()} Blox Shop. All rights reserved.
+        </p>
+      </div>
+    </div>
+  </div>
+`,
             });
           } catch (emailError) {
             console.error(`Webhook email failed for ${email}:`, emailError);

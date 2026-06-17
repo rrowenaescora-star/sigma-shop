@@ -61,7 +61,7 @@ export async function POST(req: Request) {
               quantity: Number(item.quantity),
               images: item.image_url ? [item.image_url] : [],
             })),
-          payment_method_types: ["card"],
+          payment_method_types: ["card", "gcash", "paymaya"],
 billing: {
   name: robloxUsername,
   email: contactInfo,

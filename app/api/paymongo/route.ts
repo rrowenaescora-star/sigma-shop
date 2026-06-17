@@ -45,6 +45,24 @@ export async function POST(req: Request) {
 
     const auth = Buffer.from(`${process.env.PAYMONGO_SECRET_KEY}:`).toString("base64");
 
+console.log(
+  JSON.stringify(
+    {
+      line_items: items.map((item) => ({
+        name: item.name,
+        amount: Math.round(
+          Number(item.price) * usdToPhpRate * BUFFER_MULTIPLIER * 100
+        ),
+        currency: "PHP",
+        quantity: Number(item.quantity),
+      })),
+      payment_method_types: ["card", "qrph", "dob"],
+    },
+    null,
+    2
+  )
+);
+
     const paymongoRes = await fetch("https://api.paymongo.com/v2/checkout_sessions", {
       method: "POST",
       headers: {
@@ -61,7 +79,7 @@ export async function POST(req: Request) {
               quantity: Number(item.quantity),
               images: item.image_url ? [item.image_url] : [],
             })),
-          payment_method_types: ["card", "gcash", "paymaya"],
+          payment_method_types: ["card", "qrph", "dob"],
 billing: {
   name: robloxUsername,
   email: contactInfo,

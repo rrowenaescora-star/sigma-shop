@@ -110,14 +110,14 @@ export async function POST(req: Request) {
       .join("");
 
     await transporter.sendMail({
-      from: `"Blox Shop" <${process.env.EMAIL_USER}>`,
+      from: `"Bloxhop" <${process.env.EMAIL_USER}>`,
       to: customerEmail,
-      subject: `Your Blox Shop Order #${order.id} Has Been Delivered`,
+      subject: `Your Bloxhop Order #${order.id} Has Been Delivered`,
       html: `
         <div style="margin:0; padding:0; background:#eaf0ff; font-family:Arial, Helvetica, sans-serif; color:#111827;">
           <div style="max-width:720px; margin:0 auto; padding:0; background:#ffffff; overflow:hidden;">
 
-            <img src="${headerUrl}" alt="Blox Shop" width="720" style="display:block; width:100%; max-width:720px; border:0; outline:none; text-decoration:none;" />
+            <img src="${headerUrl}" alt="Bloxhop" width="720" style="display:block; width:100%; max-width:720px; border:0; outline:none; text-decoration:none;" />
 
             <div style="padding:34px 38px 28px 38px;">
 
@@ -133,7 +133,7 @@ export async function POST(req: Request) {
                     </p>
 
                     <p style="margin:0; font-size:14px; color:#374151;">
-                      Your Blox Shop order was successfully delivered. Thank you for shopping with us!
+                      Your Bloxhop order was successfully delivered. Thank you for shopping with us!
                     </p>
                   </td>
 
@@ -226,11 +226,11 @@ export async function POST(req: Request) {
 
             <div style="background:#050b16; border-top:5px solid #f59e0b; padding:22px 24px; text-align:center; color:#cbd5e1;">
               <p style="margin:0 0 10px 0; font-size:13px;">
-                Thank you for ordering from Blox Shop!
+                Thank you for ordering from Bloxhop!
               </p>
 
               <p style="margin:0; font-size:11px; color:#94a3b8;">
-                © ${new Date().getFullYear()} Blox Shop. All rights reserved.
+                © ${new Date().getFullYear()} Bloxhop. All rights reserved.
               </p>
             </div>
 

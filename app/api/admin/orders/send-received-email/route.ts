@@ -104,10 +104,11 @@ export async function POST(req: Request) {
       })
       .join("");
 
-    await transporter.sendMail({
-      from: `"Blox Shop" <${process.env.EMAIL_USER}>`,
+    try {
+  await transporter.sendMail({
+      from: `"Bloxhop" <${process.env.EMAIL_USER}>`,
       to: customerEmail,
-      subject: `Your Blox Shop Order #${order.id} Was Received`,
+      subject: `Your Bloxhop Order #${order.id} Was Received`,
       html: `
         <div style="margin:0; padding:0; background:#eaf0ff; font-family:Arial, Helvetica, sans-serif; color:#111827;">
           <div style="max-width:720px; margin:0 auto; padding:0; background:#ffffff; overflow:hidden;">
@@ -115,7 +116,7 @@ export async function POST(req: Request) {
             <!-- HEADER IMAGE -->
             <img
               src="${headerUrl}"
-              alt="Blox Shop"
+              alt="Bloxhop"
               width="720"
               style="display:block; width:100%; max-width:720px; border:0; outline:none; text-decoration:none;"
             />
@@ -135,7 +136,7 @@ export async function POST(req: Request) {
                     </p>
 
                     <p style="margin:0; font-size:14px; color:#374151;">
-                      We received your Blox Shop order successfully.
+                      We received your Bloxhop order successfully.
                     </p>
                   </td>
 
@@ -243,18 +244,28 @@ export async function POST(req: Request) {
 
             <div style="background:#050b16; border-top:5px solid #f59e0b; padding:22px 24px; text-align:center; color:#cbd5e1;">
               <p style="margin:0 0 10px 0; font-size:13px;">
-                Thank you for ordering from Blox Shop!
+                Thank you for ordering from Bloxhop!
               </p>
 
               <p style="margin:0; font-size:11px; color:#94a3b8;">
-                © ${new Date().getFullYear()} Blox Shop. All rights reserved.
+                © ${new Date().getFullYear()} Bloxhop. All rights reserved.
               </p>
             </div>
 
           </div>
         </div>
       `,
-    });
+  });
+} catch (mailError: any) {
+  console.error("Email send failed:", mailError?.message);
+
+  return NextResponse.json(
+    {
+      error: "Customer email address is invalid or unavailable.",
+    },
+    { status: 400 }
+  );
+}
 
     await supabase
       .from("orders")

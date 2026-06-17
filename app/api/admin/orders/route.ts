@@ -207,7 +207,7 @@ export async function PATCH(request: Request) {
 
               <img
                 src="${headerUrl}"
-                alt="Blox Shop"
+                alt="Bloxhop"
                 width="720"
                 style="display:block; width:100%; max-width:720px; border:0; outline:none; text-decoration:none;"
               />
@@ -225,7 +225,7 @@ export async function PATCH(request: Request) {
                       </p>
 
                       <p style="margin:0; font-size:14px; color:#374151;">
-                        Your Blox Shop order was successfully delivered. Thank you for shopping with us!
+                        Your Bloxhop order was successfully delivered. Thank you for shopping with us!
                       </p>
                     </td>
 
@@ -333,11 +333,11 @@ export async function PATCH(request: Request) {
 
               <div style="background:#050b16; border-top:5px solid #f59e0b; padding:22px 24px; text-align:center; color:#cbd5e1;">
                 <p style="margin:0 0 10px 0; font-size:13px;">
-                  Thank you for ordering from Blox Shop!
+                  Thank you for ordering from Bloxhop!
                 </p>
 
                 <p style="margin:0; font-size:11px; color:#94a3b8;">
-                  © ${new Date().getFullYear()} Blox Shop. All rights reserved.
+                  © ${new Date().getFullYear()} Bloxhop. All rights reserved.
                 </p>
               </div>
             </div>
@@ -347,7 +347,7 @@ export async function PATCH(request: Request) {
         try {
           const results = await sendEmailsIndividually({
             recipients: uniqueRecipients,
-            subject: `Your Blox Shop Order #${data.id} Has Been Delivered`,
+            subject: `Your Bloxhop Order #${data.id} Has Been Delivered`,
             html,
           });
 

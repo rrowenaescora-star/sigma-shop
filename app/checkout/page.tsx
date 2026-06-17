@@ -577,7 +577,7 @@ export default function CheckoutPage() {
     await saveOrder("Pending", "Manual Order", "/manual-payment");
   }
 
-  async function handleXenditCheckout() {
+  async function handlePayMongoCheckout() {
     if (cartItems.length === 0) return;
 
     if (!robloxUsername.trim() || !contactInfo.trim()) {
@@ -596,7 +596,7 @@ export default function CheckoutPage() {
     setIsSubmitting(true);
 
     try {
-      const res = await fetch("/api/xendit/checkout", {
+      const res = await fetch("/api/paymongo", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -907,7 +907,7 @@ export default function CheckoutPage() {
 	
                   <button
                     type="button"
-                    onClick={handleXenditCheckout}
+                    onClick={handlePayMongoCheckout}
                     disabled={!confirmChecked || isCheckoutDisabled}
                     className={`w-full rounded-2xl border py-4 text-lg font-black transition ${
                       !confirmChecked || isCheckoutDisabled
@@ -915,7 +915,7 @@ export default function CheckoutPage() {
                         : "border-blue-400/30 bg-[#10233c] text-white hover:bg-[#18345a]"
                     }`}
                   >
-                    {isSubmitting ? "Redirecting..." : "Proceed to Checkout"}
+                    {isSubmitting ? "Redirecting..." : "Pay with Visa / Mastercard"}
                   </button>
 <div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-sm font-semibold text-slate-400">
   <Link

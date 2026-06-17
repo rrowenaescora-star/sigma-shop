@@ -48,7 +48,7 @@ export async function POST(req: Request) {
 console.log(
   JSON.stringify(
     {
-      line_items: items.map((item) => ({
+      line_items: items.map((item: CartItem) => ({
         name: item.name,
         amount: Math.round(
           Number(item.price) * usdToPhpRate * BUFFER_MULTIPLIER * 100

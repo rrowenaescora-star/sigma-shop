@@ -573,10 +573,6 @@ export default function CheckoutPage() {
   async function handleFreeCheckout() {
     await saveOrder("Free");
   }
-  async function handlePlaceOrder() {
-    await saveOrder("Pending", "Manual Order", "/manual-payment");
-  }
-
   async function handlePayMongoCheckout() {
     if (cartItems.length === 0) return;
 
@@ -892,19 +888,7 @@ export default function CheckoutPage() {
                 </button>
               ) : (
                 <div className="mt-5 grid gap-3">
-                  <button
-                    type="button"
-                    onClick={handlePlaceOrder}
-                    disabled={!confirmChecked || isCheckoutDisabled}
-                    className={`w-full rounded-2xl py-4 text-lg font-black transition ${
-                      !confirmChecked || isCheckoutDisabled
-                        ? "cursor-not-allowed bg-slate-700 text-slate-300"
-                        : "bg-blue-500 text-white shadow-[0_0_30px_rgba(59,130,246,0.35)] hover:bg-blue-400"
-                    }`}
-                  >
-                    {isSubmitting ? "Placing Order..." : "Place Order"}
-                  </button>
-	
+              	
                   <button
                     type="button"
                     onClick={handlePayMongoCheckout}

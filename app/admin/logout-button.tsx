@@ -12,10 +12,13 @@ export default function LogoutButton() {
   );
 
   async function handleLogout() {
-    await supabase.auth.signOut();
-    router.replace("/admin/login");
-    router.refresh();
-  }
+  localStorage.removeItem("admin-session-started-at");
+
+  await supabase.auth.signOut();
+
+  router.replace("/admin/login");
+  router.refresh();
+}
 
   return (
     <button

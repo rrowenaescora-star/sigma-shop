@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
+import AdminHeader from "../admin-header";
 
 type Order = {
   id: string;
@@ -201,30 +201,12 @@ export default function AdminOrdersPage() {
   return (
     <div className="min-h-screen bg-[#070b14] px-5 py-8 text-white md:px-10">
       <div className="mx-auto max-w-7xl">
-        <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-white">Admin Orders</h1>
-            <p className="mt-1 text-sm text-slate-400">
-              Manage pending, and refund orders.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap gap-3">
-            <Link
-              href="/admin/order-history"
-              className="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 font-bold text-white transition hover:bg-white/10"
-            >
-              Order History
-            </Link>
-
-            <Link
-              href="/admin/products"
-              className="rounded-2xl bg-cyan-400 px-5 py-3 font-bold text-slate-950 transition hover:opacity-90"
-            >
-              Add Products
-            </Link>
-          </div>
-        </div>
+        <AdminHeader
+          title="Active Orders"
+          subtitle="Manage pending, paid, refund, and delivery orders."
+          active="orders"
+          onRefresh={fetchOrders}
+        />
 
         <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <div className="rounded-2xl border border-white/10 bg-[#101729] p-4">
@@ -416,7 +398,7 @@ export default function AdminOrdersPage() {
                   disabled={sendingEmailId === order.id}
                   className="rounded-2xl bg-emerald-500 px-4 py-3 font-bold text-white transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {sendingEmailId === order.id ? "Sending..." : "Send Gmail"}
+                  {sendingEmailId === order.id ? "Sending..." : "Send Mail"}
                 </button>
               </div>
             </div>

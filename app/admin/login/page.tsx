@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createBrowserClient } from "@supabase/ssr";
+import AdminHeader from "../admin-header";
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState("");

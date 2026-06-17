@@ -17,6 +17,10 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+function isValidEmail(email: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
 export async function POST(req: Request) {
   try {
     const { orderId } = await req.json();
@@ -37,7 +41,7 @@ export async function POST(req: Request) {
 
     const customerEmail = order.payer_email || order.contact_info;
 
-    if (!customerEmail || !customerEmail.includes("@")) {
+    if (!customerEmail || !isValidEmail(customerEmail)) {
       return NextResponse.json(
         { error: "No valid customer email found for this order." },
         { status: 400 }

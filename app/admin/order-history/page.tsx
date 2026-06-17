@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
+import AdminHeader from "../admin-header";
 
 type Order = {
   id: string;
@@ -106,21 +106,11 @@ export default function AdminOrderHistoryPage() {
   return (
     <div className="min-h-screen bg-[#070b14] px-5 py-8 text-white md:px-10">
       <div className="mx-auto max-w-7xl">
-        <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">Order History</h1>
-            <p className="mt-1 text-sm text-slate-400">
-              Completed, delivered, cancelled, and archived orders.
-            </p>
-          </div>
-
-          <Link
-            href="/admin/orders"
-            className="rounded-2xl bg-blue-500 px-5 py-3 font-bold text-white transition hover:bg-blue-400"
-          >
-            Back to Active Orders
-          </Link>
-        </div>
+        <AdminHeader
+          title="Order History"
+          subtitle="Completed, delivered, cancelled, and archived orders."
+          active="history"
+        />
 
         <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <div className="rounded-2xl border border-white/10 bg-[#101729] p-4">

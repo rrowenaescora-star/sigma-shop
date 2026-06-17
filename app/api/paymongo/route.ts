@@ -85,6 +85,7 @@ success_url: `${process.env.NEXT_PUBLIC_APP_URL}/payment-success?reference=${ref
     });
 
     const paymongoData = await paymongoRes.json();
+	console.log(JSON.stringify(paymongoData, null, 2));
 
     if (!paymongoRes.ok) {
       console.error("PayMongo error:", paymongoData);

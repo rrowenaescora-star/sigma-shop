@@ -56,7 +56,12 @@ console.log(
         currency: "PHP",
         quantity: Number(item.quantity),
       })),
-      payment_method_types: ["card", "qrph", "dob"],
+      payment_method_types: [
+  "card",
+  "shopeepay",
+  "qrph",
+  "dob"
+],
     },
     null,
     2
@@ -79,7 +84,12 @@ console.log(
               quantity: Number(item.quantity),
               images: item.image_url ? [item.image_url] : [],
             })),
-          payment_method_types: ["card", "qrph", "dob"],
+          payment_method_types: [
+  "card",
+  "shopeepay",
+  "qrph",
+  "dob"
+],
 billing: {
   name: robloxUsername,
   email: contactInfo,

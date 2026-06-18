@@ -10,6 +10,28 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: "https://bloxhop.site/home",
       lastModified: new Date(),
     },
+
+    {
+      url: "https://bloxhop.site/mm2",
+      lastModified: new Date(),
+    },
+    {
+      url: "https://bloxhop.site/adopt-me",
+      lastModified: new Date(),
+    },
+    {
+      url: "https://bloxhop.site/blade-ball",
+      lastModified: new Date(),
+    },
+    {
+      url: "https://bloxhop.site/pet-simulator",
+      lastModified: new Date(),
+    },
+    {
+      url: "https://bloxhop.site/anime-defenders",
+      lastModified: new Date(),
+    },
+
     {
       url: "https://bloxhop.site/track-order",
       lastModified: new Date(),

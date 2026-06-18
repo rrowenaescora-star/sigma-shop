@@ -525,13 +525,12 @@ Request an Item
                   marketplace.
                 </h3>
 
-                <p className="mt-6 text-sm leading-8 text-slate-400 md:text-[15px]">
-                  Bloxhop Online Store was created to make digital gaming
-                  purchases feel cleaner, easier, and more organized for
-                  players. The goal is to build a storefront where customers can
-                  browse products clearly, understand the order process, and get
-                  support when they need help.
-                </p>
+               <p className="mt-6 text-sm leading-8 text-slate-400 md:text-[15px]">
+  		 Bloxhop Online Store is a Roblox marketplace offering products and services for
+ 		 Blox Fruits, MM2, Adopt Me, Blade Ball, Pet Simulator, and Anime
+ 		 Defenders. Buy Roblox items with fast delivery, secure checkout,
+		  order tracking, and customer support for players worldwide.
+		</p>
 
                 <p className="mt-5 text-sm leading-8 text-slate-400 md:text-[15px]">
                   Instead of a confusing layout or random checkout experience,

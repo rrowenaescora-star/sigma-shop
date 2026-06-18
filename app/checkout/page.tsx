@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { memo, useEffect, useMemo, useState } from "react";
+import { Suspense, memo, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useSearchParams } from "next/navigation";
 
 type Product = {
   id: number;
@@ -104,7 +105,9 @@ const OrderSummaryItem = memo(function OrderSummaryItem({
   );
 });
 
-export default function CheckoutPage() {
+function CheckoutPageContent() {
+  const searchParams = useSearchParams();
+
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [robloxUsername, setRobloxUsername] = useState("");
   const [contactInfo, setContactInfo] = useState("");
@@ -130,12 +133,49 @@ export default function CheckoutPage() {
     "USD",
   );
 
+
   const [latestProducts, setLatestProducts] = useState<Product[]>([]);
   const [productValidationMessage, setProductValidationMessage] = useState("");
   const [cartLoaded, setCartLoaded] = useState(false);
   const [confirmChecked, setConfirmChecked] = useState(false);
   const [showAllItems, setShowAllItems] = useState(false);
+  
+  
 
+useEffect(() => {
+  const orderId = searchParams.get("orderId");
+
+  if (!orderId) return;
+
+  async function loadPendingOrder() {
+    try {
+      const res = await fetch(`/api/orders/${orderId}`, {
+        cache: "no-store",
+      });
+
+      const order = await res.json();
+
+      if (!res.ok) {
+        alert(order.error || "Order not found.");
+        return;
+      }
+
+      setRobloxUsername(order.roblox_username || "");
+      setContactInfo(order.contact_info || "");
+      setNotes(order.notes || "");
+      setCartItems(order.items || []);
+      setConfirmChecked(false);
+      setIsVerified(false);
+
+      localStorage.setItem("real-cart", JSON.stringify(order.items || []));
+    } catch (error) {
+      console.error("Failed to load pending order:", error);
+      alert("Failed to load pending order.");
+    }
+  }
+
+  loadPendingOrder();
+}, [searchParams]);
   useEffect(() => {
     const savedCart = localStorage.getItem("real-cart");
     if (savedCart) {
@@ -1135,5 +1175,14 @@ export default function CheckoutPage() {
         </main>
       </div>
     </div>
+  );
+}
+export default function CheckoutPage() {
+  return (
+    <Suspense
+      fallback={<div className="min-h-screen bg-[#06101d] text-white" />}
+    >
+      <CheckoutPageContent />
+    </Suspense>
   );
 }

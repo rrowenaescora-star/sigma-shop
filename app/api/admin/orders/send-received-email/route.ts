@@ -51,7 +51,7 @@ export async function POST(req: Request) {
     const appUrl = process.env.NEXT_PUBLIC_APP_URL;
     const headerUrl = `${appUrl}/header-email.png`;
     const fallbackImage = `${appUrl}/logo.png`;
-    const discordLink = "https://discord.gg/evM2G5c9Vr";
+    const finishOrderLink = `${appUrl}/checkout?orderId=${order.id}`;
 
     const orderDate = order.created_at
       ? new Date(order.created_at).toLocaleDateString("en-US", {
@@ -142,7 +142,7 @@ export async function POST(req: Request) {
 
                   <td align="right" valign="top" width="190">
                     <a
-                      href="${discordLink}"
+                      href="${finishOrderLink}"
                       style="display:inline-block; background:#fb923c; color:#ffffff; padding:15px 22px; border-radius:10px; text-decoration:none; font-weight:900; font-size:15px;"
                     >
                       Finish My Order

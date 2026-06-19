@@ -20,91 +20,6 @@ type CartItem = Product & {
   quantity: number;
 };
 
-const OrderSummaryItem = memo(function OrderSummaryItem({
-  item,
-  unavailable = false,
-  currencyView,
-  usdToPhpRate,
-  usdToInrRate,
-}: {
-  item: CartItem;
-  unavailable?: boolean;
-  currencyView: "USD" | "PHP" | "INR";
-  usdToPhpRate: number | null;
-  usdToInrRate: number | null;
-}) {
-  return (
-    <div
-      className={`rounded-2xl border p-3 ${
-        unavailable
-          ? "border-red-400/20 bg-red-500/10"
-          : "border-slate-700/60 bg-slate-900/40"
-      }`}
-    >
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-3">
-          <div className="relative h-14 w-14 flex-shrink-0 rounded-xl border border-slate-700/60 bg-[#0b1628]">
-            <span className="absolute -right-1 -top-1 z-10 flex min-w-[18px] items-center justify-center rounded-full border border-white/20 bg-slate-700/80 px-1 text-[10px] font-bold text-white backdrop-blur">
-              {item.quantity}
-            </span>
-
-            {item.image_url ? (
-              <img
-                src={item.image_url}
-                alt={item.name}
-                className="h-full w-full object-contain p-1"
-              />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center rounded-xl bg-gradient-to-br from-cyan-300/20 to-violet-400/20 text-[9px] text-slate-400">
-                No Image
-              </div>
-            )}
-          </div>
-
-          <div className="min-w-0">
-            <h3 className="truncate text-sm font-bold text-white">
-              {item.name}
-            </h3>
-            <p className="text-xs text-slate-400">{item.tag || "Service"}</p>
-            {unavailable && (
-              <p className="mt-1 text-[11px] font-semibold text-red-300">
-                Unavailable
-              </p>
-            )}
-          </div>
-        </div>
-
-        <p className="flex-shrink-0 text-sm font-extrabold text-white">
-          {currencyView === "USD" &&
-            `$${(Number(item.price) * item.quantity).toFixed(2)}`}
-
-          {currencyView === "PHP" &&
-            usdToPhpRate &&
-            `₱${(
-              Number(item.price) *
-              item.quantity *
-              usdToPhpRate
-            ).toLocaleString(undefined, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}`}
-
-          {currencyView === "INR" &&
-            usdToInrRate &&
-            `₹${(
-              Number(item.price) *
-              item.quantity *
-              usdToInrRate
-            ).toLocaleString(undefined, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}`}
-        </p>
-      </div>
-    </div>
-  );
-});
-
 function CheckoutPageContent() {
   const searchParams = useSearchParams();
 
@@ -133,56 +48,76 @@ function CheckoutPageContent() {
     "USD",
   );
 
-
   const [latestProducts, setLatestProducts] = useState<Product[]>([]);
   const [productValidationMessage, setProductValidationMessage] = useState("");
   const [cartLoaded, setCartLoaded] = useState(false);
   const [confirmChecked, setConfirmChecked] = useState(false);
   const [showAllItems, setShowAllItems] = useState(false);
-  
-  
 
-useEffect(() => {
-  const orderId = searchParams.get("orderId");
+  const inputClass =
+    "min-w-0 flex-1 rounded-2xl border border-blue-400/40 bg-[#0b1728] px-4 py-4 text-sm text-white outline-none placeholder:text-slate-500 focus:border-blue-300 focus:ring-4 focus:ring-blue-500/20";
 
-  if (!orderId) return;
+  const fullInputClass =
+    "w-full rounded-2xl border border-blue-400/40 bg-[#0b1728] px-4 py-4 text-sm text-white outline-none placeholder:text-slate-500 focus:border-blue-300 focus:ring-4 focus:ring-blue-500/20";
 
-  async function loadPendingOrder() {
-    try {
-      const res = await fetch(`/api/orders/${orderId}`, {
-        cache: "no-store",
-      });
+  const textareaClass =
+    "min-h-[112px] w-full rounded-2xl border border-blue-400/40 bg-[#0b1728] px-4 py-4 text-sm text-white outline-none placeholder:text-slate-500 focus:border-blue-300 focus:ring-4 focus:ring-blue-500/20";
 
-      const order = await res.json();
-
-      if (!res.ok) {
-        alert(order.error || "Order not found.");
-        return;
-      }
-
-      setRobloxUsername(order.roblox_username || "");
-      setContactInfo(order.contact_info || "");
-      setNotes(order.notes || "");
-      setCartItems(order.items || []);
-      setConfirmChecked(false);
-      setIsVerified(false);
-
-      localStorage.setItem("real-cart", JSON.stringify(order.items || []));
-    } catch (error) {
-      console.error("Failed to load pending order:", error);
-      alert("Failed to load pending order.");
-    }
-  }
-
-  loadPendingOrder();
-}, [searchParams]);
   useEffect(() => {
-    const savedCart = localStorage.getItem("real-cart");
-    if (savedCart) {
-      setCartItems(JSON.parse(savedCart));
+    const orderId = searchParams.get("orderId");
+
+    if (!orderId) return;
+
+    async function loadPendingOrder() {
+      try {
+        const res = await fetch(`/api/orders/${orderId}`, {
+          cache: "no-store",
+        });
+
+        const order = await res.json();
+
+        if (!res.ok) {
+          alert(order.error || "Order not found.");
+          return;
+        }
+
+        setRobloxUsername(order.roblox_username || "");
+        setContactInfo(order.contact_info || "");
+        setNotes(order.notes || "");
+        setCartItems(order.items || []);
+        setConfirmChecked(false);
+        setIsVerified(false);
+
+        localStorage.setItem("real-cart", JSON.stringify(order.items || []));
+      } catch (error) {
+        console.error("Failed to load pending order:", error);
+        alert("Failed to load pending order.");
+      }
     }
+
+    loadPendingOrder();
+  }, [searchParams]);
+
+  useEffect(() => {
+    const orderId = searchParams.get("orderId");
+
+    if (orderId) {
+      setCartLoaded(true);
+      return;
+    }
+
+    const savedCart = localStorage.getItem("real-cart");
+
+    if (savedCart) {
+      try {
+        setCartItems(JSON.parse(savedCart));
+      } catch {
+        localStorage.removeItem("real-cart");
+      }
+    }
+
     setCartLoaded(true);
-  }, []);
+  }, [searchParams]);
 
   useEffect(() => {
     const savedCurrency = localStorage.getItem("currency-view");
@@ -205,6 +140,7 @@ useEffect(() => {
     async function loadRate() {
       try {
         setRateLoading(true);
+
         const res = await fetch("/api/exchange-rate", {
           method: "GET",
           cache: "no-store",
@@ -287,6 +223,7 @@ useEffect(() => {
       updatedCart.length !== cartItems.length ||
       updatedCart.some((item, index) => {
         const old = cartItems[index];
+
         return (
           !old ||
           old.id !== item.id ||
@@ -307,6 +244,7 @@ useEffect(() => {
     const unavailableNames = updatedCart
       .filter((item) => {
         const stock = Number(item.stock_quantity ?? 0);
+
         return (
           item.is_active === false ||
           item.stock === "Out of Stock" ||
@@ -366,15 +304,11 @@ useEffect(() => {
 
   const estimatedPhpTotal = useMemo(() => {
     if (!usdToPhpRate || finalPrice <= 0) return null;
+
     const bufferMultiplier = 1.01;
+
     return Math.round(finalPrice * usdToPhpRate * bufferMultiplier * 100) / 100;
   }, [finalPrice, usdToPhpRate]);
-
-  const estimatedInrTotal = useMemo(() => {
-    if (!usdToInrRate || finalPrice <= 0) return null;
-
-    return Math.round(finalPrice * usdToInrRate * 100) / 100;
-  }, [finalPrice, usdToInrRate]);
 
   const hasUnavailableCartItems = useMemo(() => {
     return cartItems.some((item) => isCartItemUnavailable(item));
@@ -401,12 +335,7 @@ useEffect(() => {
     try {
       await refreshProductsForValidation();
 
-      const savedCart = localStorage.getItem("real-cart");
-      const currentCart: CartItem[] = savedCart
-        ? JSON.parse(savedCart)
-        : cartItems;
-
-      const hasUnavailable = currentCart.some((item) =>
+      const hasUnavailable = cartItems.some((item) =>
         isCartItemUnavailable(item),
       );
 
@@ -556,6 +485,7 @@ useEffect(() => {
     }
 
     const valid = await validateCartBeforeSubmit();
+
     if (!valid) return;
 
     setIsSubmitting(true);
@@ -577,7 +507,7 @@ useEffect(() => {
           xenditSessionId: null,
           xenditReferenceId: null,
           paymentMethod:
-            paymentMethodOverride || (finalPrice <= 0 ? "Free" : "Xendit"),
+            paymentMethodOverride || (finalPrice <= 0 ? "Free" : "PayMongo"),
           paymentStatus,
           payerEmail: null,
           paidAmount: paymentStatus === "Free" ? 0 : null,
@@ -598,6 +528,7 @@ useEffect(() => {
         "real-last-order",
         JSON.stringify(orderResult.order),
       );
+
       localStorage.removeItem("real-cart");
       setCartItems([]);
 
@@ -613,6 +544,7 @@ useEffect(() => {
   async function handleFreeCheckout() {
     await saveOrder("Free");
   }
+
   async function handlePayMongoCheckout() {
     if (cartItems.length === 0) return;
 
@@ -627,6 +559,7 @@ useEffect(() => {
     }
 
     const valid = await validateCartBeforeSubmit();
+
     if (!valid) return;
 
     setIsSubmitting(true);
@@ -674,8 +607,8 @@ useEffect(() => {
     <div className="min-h-screen bg-[#06101d] text-white">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.16),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(37,99,235,0.10),transparent_32%)]" />
 
-      <div className="relative mx-auto max-w-[2550px] px-5 py-6 md:px-8">
-        <header className="mb-2 flex flex-wrap w-full items-center justify-between gap-4 border-b border-blue-500/20 px-1 pb-5">
+      <div className="relative mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <header className="mb-6 flex w-full flex-wrap items-center justify-between gap-4 border-b border-blue-500/20 px-1 pb-5">
           <div>
             <p className="text-2xl font-black tracking-tight text-white">
               BLOXHOP
@@ -686,7 +619,6 @@ useEffect(() => {
             </p>
           </div>
 
-          
           <div className="flex flex-wrap gap-2">
             <Link
               href="/home"
@@ -694,6 +626,7 @@ useEffect(() => {
             >
               Back to Store
             </Link>
+
             <Link
               href="/track-order"
               className="rounded-2xl bg-blue-500 px-4 py-2 text-sm font-black text-white shadow-[0_0_25px_rgba(59,130,246,0.35)] hover:bg-blue-400"
@@ -703,17 +636,19 @@ useEffect(() => {
           </div>
         </header>
 
-       <main className="grid items-start gap-10 xl:grid-cols-[1.05fr_0.95fr]">
-          <section className="space-y-5">
-            <div className="p-1">
+        <main className="grid items-start gap-8 lg:grid-cols-[1fr_420px]">
+          <section className="space-y-6">
+            <div className="rounded-[1.75rem] border border-blue-500/20 bg-slate-950/30 p-5 sm:p-6">
               <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <p className="text-xs font-black uppercase tracking-[0.28em] text-blue-400">
                     Order Details
                   </p>
+
                   <h1 className="mt-3 text-3xl font-black tracking-tight text-white">
                     Customer Details
                   </h1>
+
                   <p className="mt-2 text-sm text-slate-300">
                     Please provide your information accurately.
                   </p>
@@ -732,7 +667,8 @@ useEffect(() => {
                   <label className="mb-2 block text-sm font-bold text-white">
                     Roblox Username / Service Username
                   </label>
-                  <div className="flex gap-3">
+
+                  <div className="flex flex-col gap-3 sm:flex-row">
                     <input
                       type="text"
                       value={robloxUsername}
@@ -744,10 +680,11 @@ useEffect(() => {
                         setRobloxDisplayName("");
                         setVerifyError("");
                       }}
-                      className="min-w-0 flex-1 rounded-2xl border border-blue-500/20 bg-transparent px-4 py-4 text-sm text-white outline-none ring-blue-500/20 placeholder:text-slate-500 focus:border-blue-400 focus:ring-4"
+                      className={inputClass}
                       placeholder="Enter your Roblox username"
                       required
                     />
+
                     <button
                       type="button"
                       onClick={verifyRobloxUser}
@@ -762,85 +699,86 @@ useEffect(() => {
                     </button>
                   </div>
 
-                 <div className="grid items-center gap-5 sm:grid-cols-[140px_1fr]">
-    <div className="relative flex h-[140px] w-[140px] items-center justify-center overflow-hidden rounded-[28px]">
-      {verifyLoading ? (
-        <div className="h-full w-full animate-pulse bg-slate-700/40" />
-      ) : robloxAvatar ? (
-        <img
-          src={robloxAvatar}
-          alt="Account avatar"
-          className="h-full w-full object-cover"
-        />
-      ) : (
-        <div className="flex h-full w-full items-center justify-center rounded-[28px] bg-[#0b1728] text-sm font-bold text-slate-500">
-  Avatar
-</div>
-      )}
-    </div>
+                  {verifyError && (
+                    <p className="mt-2 text-sm font-semibold text-red-400">
+                      {verifyError}
+                    </p>
+                  )}
 
-    <div className="grid gap-3">
-      <div className="rounded-xl  px-5 py-3">
-        {verifyLoading ? (
-          <div className="h-7 w-40 animate-pulse rounded bg-slate-700/50" />
-        ) : (
-          <p className="truncate border-b border-blue-400/30 pb-2 text-3xl font-black text-white">
-            {isVerified ? robloxDisplayName || robloxUsername : "Username Preview"}
-          </p>
-        )}
-      </div>
+                  <div className="mt-4 grid items-center gap-5 rounded-2xl border border-blue-500/20 bg-[#081426] p-4 sm:grid-cols-[120px_1fr]">
+                    <div className="relative flex h-[120px] w-[120px] items-center justify-center overflow-hidden rounded-[24px] border border-blue-400/20 bg-[#0b1728]">
+                      {verifyLoading ? (
+                        <div className="h-full w-full animate-pulse bg-slate-700/40" />
+                      ) : robloxAvatar ? (
+                        <img
+                          src={robloxAvatar}
+                          alt="Account avatar"
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center text-sm font-bold text-slate-500">
+                          Avatar
+                        </div>
+                      )}
+                    </div>
 
-      <div className="truncate border-b border-blue-400/30 px-5 py-2 pb-2">
-        {verifyLoading ? (
-          <div className="h-5 w-28 animate-pulse rounded bg-slate-700/50" />
-        ) : (
-          <p className={`text-lg font-black ${isVerified ? "text-emerald-300" : "text-slate-500"}`}>
-            {isVerified ? "Verified" : "Waiting for verification"}
-          </p>
-        )}
-      </div>
+                    <div className="grid gap-3">
+                      <p className="truncate border-b border-blue-400/30 pb-2 text-2xl font-black text-white">
+                        {isVerified
+                          ? robloxDisplayName || robloxUsername
+                          : "Username Preview"}
+                      </p>
 
-      <div className="truncate border-b border-blue-400/30 px-5 py-2">
-        {verifyLoading ? (
-          <div className="h-5 w-36 animate-pulse rounded bg-slate-700/50" />
-        ) : (
-          <p className="text-sm font-bold text-slate-400">
-            {isVerified && robloxUserId
-              ? `User ID: ${robloxUserId}`
-              : "User ID will appear here"}
-          </p>
-        )}
-      </div>
-    </div>
-  </div>
-</div>
-              
+                      <p
+                        className={`truncate border-b border-blue-400/30 pb-2 text-lg font-black ${
+                          isVerified ? "text-emerald-300" : "text-slate-500"
+                        }`}
+                      >
+                        {isVerified ? "Verified" : "Waiting for verification"}
+                      </p>
+
+                      <p className="truncate text-sm font-bold text-slate-400">
+                        {isVerified && robloxUserId
+                          ? `User ID: ${robloxUserId}`
+                          : "User ID will appear here"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
 
                 <div>
                   <label className="mb-2 block text-sm font-bold text-white">
                     Contact Information
                   </label>
+
                   <input
                     type="email"
                     value={contactInfo}
                     onChange={(e) => setContactInfo(e.target.value)}
-                    className="w-full rounded-2xl border border-blue-500/20 bg-transparent px-4 py-4 text-sm text-white outline-none ring-blue-500/20 placeholder:text-slate-500 focus:border-blue-400 focus:ring-4"
+                    className={fullInputClass}
                     placeholder="youremail@example.com"
                     required
                   />
+
+                  <p className="mt-2 text-xs text-slate-400">
+                    Order updates and delivery notifications will be sent to
+                    this email.
+                  </p>
                 </div>
 
                 <div>
                   <label className="mb-2 block text-sm font-bold text-white">
-                    Coupon Code (Optional)
+                    Coupon Code Optional
                   </label>
-                  <div className="flex gap-3">
+
+                  <div className="flex flex-col gap-3 sm:flex-row">
                     <input
                       value={couponCode}
                       onChange={(e) => setCouponCode(e.target.value)}
-                      className="min-w-0 flex-1 rounded-2xl border border-blue-500/20 bg-transparent px-4 py-4 text-sm text-white outline-none ring-blue-500/20 placeholder:text-slate-500 focus:border-blue-400 focus:ring-4"
+                      className={inputClass}
                       placeholder="Enter coupon code"
                     />
+
                     <button
                       type="button"
                       onClick={applyCoupon}
@@ -853,6 +791,7 @@ useEffect(() => {
                   {couponError && (
                     <p className="mt-2 text-sm text-red-400">{couponError}</p>
                   )}
+
                   {!couponError && discount > 0 && (
                     <p className="mt-2 text-sm font-bold text-emerald-300">
                       Coupon applied: -${discount.toFixed(2)}
@@ -863,30 +802,39 @@ useEffect(() => {
 
                 <div>
                   <label className="mb-2 block text-sm font-bold text-white">
-                    Additional Notes (Optional)
+                    Additional Notes Optional
                   </label>
+
                   <textarea
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    className="min-h-[112px] w-full rounded-2xl border border-blue-500/20 bg-transparent px-4 py-4 text-sm text-white outline-none ring-blue-500/20 placeholder:text-slate-500 focus:border-blue-400 focus:ring-4"
+                    className={textareaClass}
                     placeholder="Type your notes here..."
                   />
                 </div>
               </div>
             </div>
 
-            <div className="p-1">
+            <div className="rounded-[1.75rem] border border-blue-500/20 bg-slate-950/30 p-5 sm:p-6">
               <p className="text-xs font-black uppercase tracking-[0.28em] text-emerald-300">
                 Secure Checkout
               </p>
+
               <h2 className="mt-3 text-3xl font-black tracking-tight text-white">
                 Complete Your Order
               </h2>
+
               <p className="mt-2 text-sm text-slate-300">
-                Review your details, then choose your checkout option.
+                Review your details, then continue to secure payment.
               </p>
 
-              <label className="mt-5 flex items-start gap-3 rounded-2xl border border-blue-500/20 p-4">
+              <div className="mt-5 grid gap-3 rounded-2xl border border-blue-500/20 bg-[#081426] p-4 text-sm font-bold text-slate-300 sm:grid-cols-3">
+                <p>✓ Secure Checkout</p>
+                <p>✓ Order Confirmation</p>
+                <p>✓ Fast Delivery</p>
+              </div>
+
+              <label className="mt-5 flex items-start gap-3 rounded-2xl border border-blue-500/20 bg-[#0b1728] p-4">
                 <input
                   type="checkbox"
                   id="confirm"
@@ -894,22 +842,23 @@ useEffect(() => {
                   onChange={(e) => setConfirmChecked(e.target.checked)}
                   className="mt-1 h-5 w-5 accent-blue-500"
                 />
+
                 <span className="text-sm leading-6 text-slate-300">
                   I confirm that my account/service information and contact
                   details are correct.
                 </span>
               </label>
-	<div className="mt-3 rounded-2xl border border-yellow-400/20 bg-yellow-400/5 px-4 py-3">
-  <p className="text-xs leading-6 text-yellow-200">
-    Online payment gateways are currently under application and verification.
-    If checkout becomes unavailable, you may temporarily use the manual order option.
-  </p>
 
-</div>
-{isCheckoutDisabled && (
+              <div className="mt-3 rounded-2xl border border-blue-400/20 bg-blue-400/5 px-4 py-3">
+                <p className="text-xs leading-6 text-blue-200">
+                  Payments are securely processed through our payment partners.
+                </p>
+              </div>
+
+              {isCheckoutDisabled && (
                 <p className="mt-4 rounded-2xl border border-yellow-400/20 bg-yellow-400/10 p-3 text-sm font-semibold text-yellow-200">
-                  Please verify your account and complete the required details
-                  before checkout.
+                  Please complete all required information and ensure all items
+                  are available before checkout.
                 </p>
               )}
 
@@ -928,7 +877,6 @@ useEffect(() => {
                 </button>
               ) : (
                 <div className="mt-5 grid gap-3">
-              	
                   <button
                     type="button"
                     onClick={handlePayMongoCheckout}
@@ -939,70 +887,74 @@ useEffect(() => {
                         : "border-blue-400/30 bg-[#10233c] text-white hover:bg-[#18345a]"
                     }`}
                   >
-                    {isSubmitting ? "Redirecting..." : "Pay with Visa / Mastercard"}
+                    {isSubmitting
+                      ? "Redirecting..."
+                      : "Proceed to Secure Payment"}
                   </button>
-<div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-sm font-semibold text-slate-400">
-  <Link
-    href="/terms"
-    className="transition hover:text-white"
-  >
-    Terms
-  </Link>
 
-  <span className="text-slate-600">•</span>
+                  <p className="text-center text-xs font-semibold text-slate-400">
+                    Estimated delivery time: Usually within minutes after payment verification.
+                  </p>
 
-  <Link
-    href="/refund-policy"
-    className="transition hover:text-white"
-  >
-    Refund Policy
-  </Link>
+                  <div className="mt-4 flex flex-wrap items-center justify-center gap-4 text-sm font-semibold text-slate-400">
+                    <Link href="/terms" className="transition hover:text-white">
+                      Terms
+                    </Link>
 
-  <span className="text-slate-600">•</span>
+                    <span className="text-slate-600">•</span>
 
-  <Link
-    href="/privacy-policy"
-    className="transition hover:text-white"
-  >
-    Privacy
-  </Link>
+                    <Link
+                      href="/refund-policy"
+                      className="transition hover:text-white"
+                    >
+                      Refund Policy
+                    </Link>
 
-  <span className="text-slate-600">•</span>
+                    <span className="text-slate-600">•</span>
 
-  <Link
-    href="/delivery"
-    className="transition hover:text-white"
-  >
-    Delivery
-  </Link>
+                    <Link
+                      href="/privacy-policy"
+                      className="transition hover:text-white"
+                    >
+                      Privacy
+                    </Link>
 
-  <span className="text-slate-600">•</span>
+                    <span className="text-slate-600">•</span>
 
-  <Link
-    href="/contact"
-    className="transition hover:text-white"
-  >
-    Contact
-  </Link>
-</div>
+                    <Link
+                      href="/delivery"
+                      className="transition hover:text-white"
+                    >
+                      Delivery
+                    </Link>
+
+                    <span className="text-slate-600">•</span>
+
+                    <Link
+                      href="/contact"
+                      className="transition hover:text-white"
+                    >
+                      Contact
+                    </Link>
+                  </div>
                 </div>
               )}
-
-              
             </div>
           </section>
 
-        <aside className="xl:sticky xl:top-6 xl:self-start xl:border-l xl:border-white/10 xl:pl-10">
-            <div className="p-1">
+          <aside className="lg:sticky lg:top-6 lg:self-start">
+            <div className="rounded-[1.75rem] border border-blue-500/20 bg-slate-950/30 p-5 sm:p-6">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="text-xs font-black uppercase tracking-[0.28em] text-blue-400">
                     Order Summary
                   </p>
+
                   <h2 className="mt-3 text-3xl font-black tracking-tight text-white">
                     Items in Your Order
                   </h2>
                 </div>
+
                 <div className="rounded-2xl border border-blue-500/20 px-4 py-3 text-center">
                   <p className="text-xs text-slate-400">Items</p>
                   <p className="text-xl font-black text-white">
@@ -1025,20 +977,25 @@ useEffect(() => {
                   </div>
                 ) : (
                   <div
-                    className={`divide-y divide-blue-500/10 ${showAllItems ? "max-h-[360px] overflow-y-auto" : "max-h-[360px] overflow-hidden"}`}
+                    className={`divide-y divide-blue-500/10 ${
+                      showAllItems
+                        ? "max-h-[360px] overflow-y-auto"
+                        : "max-h-[360px] overflow-hidden"
+                    }`}
                   >
                     {cartItems.map((item) => (
                       <div
                         key={item.id}
-                        className={`flex items-center justify-between gap-4 p-5 ${
+                        className={`flex items-center justify-between gap-4 p-4 ${
                           isCartItemUnavailable(item) ? "bg-red-500/10" : ""
                         }`}
                       >
                         <div className="flex min-w-0 items-center gap-4">
-                          <div className="relative h-20 w-20 flex-shrink-0 rounded-xl border border-blue-500/20 bg-[#06101d]">
-                            <span className="absolute -right-2 -top-2 flex min-w-8 items-center justify-center rounded-xl border border-blue-500/20 bg-[#10233c] px-2 py-1 text-sm font-black text-white">
+                          <div className="relative h-16 w-16 flex-shrink-0 rounded-xl border border-blue-500/20 bg-[#06101d]">
+                            <span className="absolute -right-2 -top-2 flex min-w-7 items-center justify-center rounded-xl border border-blue-500/20 bg-[#10233c] px-2 py-1 text-xs font-black text-white">
                               x{item.quantity}
                             </span>
+
                             {item.image_url ? (
                               <img
                                 src={item.image_url}
@@ -1053,12 +1010,14 @@ useEffect(() => {
                           </div>
 
                           <div className="min-w-0">
-                            <h3 className="truncate text-lg font-black text-white">
+                            <h3 className="truncate text-base font-black text-white">
                               {item.name}
                             </h3>
+
                             <p className="mt-1 text-sm text-slate-400">
                               {item.tag || "Item"}
                             </p>
+
                             {isCartItemUnavailable(item) && (
                               <p className="mt-1 text-xs font-bold text-red-300">
                                 Unavailable
@@ -1067,9 +1026,12 @@ useEffect(() => {
                           </div>
                         </div>
 
-                        <p className="flex-shrink-0 text-xl font-black text-white">
+                        <p className="flex-shrink-0 text-base font-black text-white">
                           {currencyView === "USD" &&
-                            `$${(Number(item.price) * item.quantity).toFixed(2)}`}
+                            `$${(
+                              Number(item.price) * item.quantity
+                            ).toFixed(2)}`}
+
                           {currencyView === "PHP" &&
                             usdToPhpRate &&
                             `₱${(
@@ -1080,6 +1042,7 @@ useEffect(() => {
                               minimumFractionDigits: 2,
                               maximumFractionDigits: 2,
                             })}`}
+
                           {currencyView === "INR" &&
                             usdToInrRate &&
                             `₹${(
@@ -1128,6 +1091,7 @@ useEffect(() => {
 
                 <div className="flex items-center justify-between">
                   <span className="text-2xl font-black text-white">Total</span>
+
                   <span className="text-3xl font-black text-white">
                     {finalPrice <= 0 ? "FREE" : `$${finalPrice.toFixed(2)}`}
                   </span>
@@ -1136,6 +1100,7 @@ useEffect(() => {
                 {finalPrice > 0 && estimatedPhpTotal && (
                   <div className="mt-4 flex items-center justify-between text-sm font-bold text-blue-300">
                     <span>Estimated in PHP</span>
+
                     <span>
                       ₱
                       {estimatedPhpTotal.toLocaleString(undefined, {
@@ -1147,11 +1112,12 @@ useEffect(() => {
                 )}
               </div>
 
-              <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-2">
+              <div className="mt-6 grid gap-4">
                 <div className="rounded-[1.35rem] border border-yellow-400/30 p-5">
                   <p className="text-lg font-black text-yellow-300">
                     Important Reminder
                   </p>
+
                   <p className="mt-3 text-sm leading-6 text-slate-300">
                     Do not submit another payment if your order is already
                     pending or confirmed.
@@ -1162,9 +1128,11 @@ useEffect(() => {
                   <p className="text-lg font-black text-blue-300">
                     Need Support?
                   </p>
+
                   <p className="mt-3 text-sm leading-6 text-slate-300">
                     Our support team is here to help.
                   </p>
+
                   <p className="mt-5 text-base font-black text-blue-300">
                     support@bloxhop.site
                   </p>
@@ -1177,6 +1145,7 @@ useEffect(() => {
     </div>
   );
 }
+
 export default function CheckoutPage() {
   return (
     <Suspense

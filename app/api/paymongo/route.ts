@@ -85,7 +85,6 @@ console.log(
             })),
           payment_method_types: [
   "card",
-  "shopeepay",
   "qrph",
   "dob"
 ],

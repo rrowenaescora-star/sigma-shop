@@ -6,6 +6,7 @@ import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import TrustBadges from "@/components/TrustBadges";
 import SupportChat from "@/components/SupportChat";
+import SaleBot from "@/components/SaleBot";
 
 
 
@@ -126,7 +127,7 @@ export default function Home() {
   const [rateLoading, setRateLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [mounted, setMounted] = useState(false);
-  const [showPromoPopup, setShowPromoPopup] = useState(false);
+
   const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [cartPulse, setCartPulse] = useState(false);
@@ -141,26 +142,11 @@ export default function Home() {
   // Products still show, but if capital is lower than the product price, Add to Cart becomes unavailable.
   const [availableCapital, setAvailableCapital] = useState<number | null>(null);
 
-  const promoTitle = "Limited Time Promo";
-  const promoDiscount = "10% OFF";
-  const promoMessage = "Use your promo before the sale ends!";
 
   const PRODUCTS_PER_PAGE = 18;
 
 useEffect(() => {
   setMounted(true);
-
-  const hasFeaturedHash = window.location.hash;
-
-  if (!hasFeaturedHash) {
-    setShowPromoPopup(true);
-
-    const timer = setTimeout(() => {
-      setShowPromoPopup(false);
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }
 }, []);
 
    useEffect(() => {
@@ -626,56 +612,7 @@ if (foundProduct) {
 
   return (
     <div className="relative min-h-screen bg-[#07111f] text-white">
-      {mounted && showPromoPopup && (
-        <div className="fixed inset-0 z-40 backdrop-blur-md transition-all duration-1000" />
-      )}
-
-     <div
-  className={`fixed z-50 hidden md:block transition-all duration-1000 ease-in-out ease-out hover:scale-120 ${
-          showPromoPopup
-            ? "left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 scale-100"
-            : "-bottom-16 left-5 scale-110"
-        }`}
-      >
-        <div className="relative text-center">
-          <img
-            src="/bloxbot.png"
-            alt="Bloxhop Promo"
-            className={`relative z-20 mx-auto object-contain drop-shadow-2xl transition-all duration-1000 ease-in-out animate-[bloxbotLife_5s_ease-in-out_infinite] ${
-              showPromoPopup ? "w-[380px]" : "w-[170px]"
-            }`}
-          />
-
-          {mounted && showPromoPopup && (
-            <div
-              className={`relative z-10 -mt-32 rounded-[2rem] border border-cyan-400/20 bg-[#0f1b2d]/95 px-6 pb-6 pt-32 shadow-2xl backdrop-blur-md transition-all duration-700 ${
-                showPromoPopup
-                  ? "opacity-100"
-                  : "pointer-events-none opacity-0"
-              }`}
-            >
-              <p className="text-xs font-bold uppercase tracking-[0.25em] text-cyan-300">
-                {promoTitle}
-              </p>
-
-              <h2 className="mt-2 text-4xl font-black text-white">
-                {promoDiscount}
-              </h2>
-
-              <p className="mt-3 text-sm text-slate-300">
-                {promoMessage}
-              </p>
-
-              <button
-                onClick={() => setShowPromoPopup(false)}
-                className="mt-5 w-full rounded-2xl bg-cyan-400 px-5 py-3 font-bold text-slate-950 transition hover:opacity-90"
-              >
-                Shop Now
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
+ <SaleBot /> 
 
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(59,130,246,0.10),transparent_25%),radial-gradient(circle_at_bottom_right,rgba(14,165,233,0.08),transparent_30%)]" />
 

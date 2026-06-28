@@ -226,23 +226,31 @@ export default function SiteFooter() {
 
           <div className="mt-12 border-t border-white/10 pt-8">
             <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-              <button className="flex w-fit items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-slate-300">
-                🇺🇸 English
-                <span className="text-slate-500">⌄</span>
-              </button>
+             <button className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-5 py-3 transition hover:bg-white/10">
+  <img
+    src="https://flagcdn.com/w40/us.png"
+    alt="English"
+    className="h-5 w-7 rounded object-cover"
+  />
 
-              <div className="flex flex-wrap gap-2">
-                {["QR Ph Supported", "GCash", "Maya"].map(
-                  (item) => (
-                    <div
-                      key={item}
-                      className="rounded-lg bg-white px-3 py-2 text-xs font-black text-slate-900"
-                    >
-                      {item}
-                    </div>
-                  )
-                )}
-              </div>
+  <span className="font-semibold text-white">
+    English
+  </span>
+</button>
+<div className="flex flex-col items-end gap-2">
+  <p className="text-xs font-bold uppercase tracking-[0.25em] text-slate-400">
+    Secure Payments
+  </p>
+
+   <div className="transition duration-300 hover:scale-105">
+  <img
+    src="/payments.png"
+    alt="Supported Payment Methods"
+    className="h-20 w-auto object-contain"
+  />
+</div>
+  
+</div>
             </div>
           </div>
         </div>

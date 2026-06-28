@@ -313,9 +313,21 @@ Request an Item
             <div className="flex items-center gap-4 rounded-2xl border border-white/10 bg-[#0a1527] p-4">
               <Users className="h-9 w-9 text-blue-400" />
               <div>
-                <p className="text-2xl font-black">Soon</p>
-                <p className="text-xs text-slate-400">Launch Prep</p>
-              </div>
+  <div className="flex items-center gap-2">
+    <span className="relative flex h-3 w-3">
+      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75"></span>
+      <span className="relative inline-flex h-3 w-3 rounded-full bg-green-500"></span>
+    </span>
+
+    <p className="text-2xl font-black text-green-400">
+      Open
+    </p>
+  </div>
+
+  <p className="ml-5 text-xs text-slate-400">
+    Shop Now
+  </p>
+</div>
             </div>
 
             <div className="flex items-center gap-4 rounded-2xl border border-white/10 bg-[#0a1527] p-4">

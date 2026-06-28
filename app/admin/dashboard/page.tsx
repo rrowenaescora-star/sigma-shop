@@ -2,7 +2,19 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import * as XLSX from "xlsx";
 import AdminHeader from "../admin-header";
+
+type OrderItem = {
+  name?: string;
+  product_name?: string;
+  item_name?: string;
+  title?: string;
+  quantity?: number;
+  qty?: number;
+  price?: number;
+  total?: number;
+};
 
 type Order = {
   id: string;
@@ -11,6 +23,20 @@ type Order = {
   payment_status: string;
   delivery_status: string;
   created_at: string;
+  payer_email?: string;
+  contact_info?: string;
+  customer_email?: string;
+  email?: string;
+  roblox_username?: string;
+  username?: string;
+  game?: string;
+  payment_method?: string;
+  items?: OrderItem[];
+  order_items?: OrderItem[];
+  product_name?: string;
+  item_name?: string;
+  quantity?: number;
+
 };
 
 export default function AdminDashboardPage() {
@@ -23,10 +49,7 @@ export default function AdminDashboardPage() {
   async function fetchOrders() {
     try {
       setLoading(true);
-
-      const res = await fetch("/api/admin/orders", {
-        cache: "no-store",
-      });
+      const res = await fetch("/api/admin/orders", { cache: "no-store" });
 
       if (res.status === 401) {
         router.replace("/admin/login");
@@ -53,9 +76,7 @@ export default function AdminDashboardPage() {
     fetchOrders();
 
     const savedReset = localStorage.getItem("admin-sales-reset-at");
-    if (savedReset) {
-      setSalesResetAt(savedReset);
-    }
+    if (savedReset) setSalesResetAt(savedReset);
   }, []);
 
   const filteredOrders = useMemo(() => {
@@ -64,9 +85,7 @@ export default function AdminDashboardPage() {
     return orders.filter((order) => {
       const created = new Date(order.created_at);
 
-      if (salesResetAt && created < new Date(salesResetAt)) {
-        return false;
-      }
+      if (salesResetAt && created < new Date(salesResetAt)) return false;
 
       if (filter === "today") {
         return (
@@ -99,14 +118,12 @@ export default function AdminDashboardPage() {
     const deliveredOrders = filteredOrders.filter((order) => {
       const status = (order.status || "").toLowerCase();
       const delivery = (order.delivery_status || "").toLowerCase();
-
       return delivery.includes("delivered") || status.includes("completed");
     });
 
     const pendingOrders = filteredOrders.filter((order) => {
       const status = (order.status || "").toLowerCase();
       const delivery = (order.delivery_status || "").toLowerCase();
-
       return status.includes("pending") || delivery.includes("pending") || !delivery;
     });
 
@@ -145,6 +162,102 @@ export default function AdminDashboardPage() {
       conversionRate,
     };
   }, [filteredOrders]);
+
+ function getOrderItems(order: Order) {
+  const items = order.items || order.order_items || [];
+
+  if (items.length > 0) {
+    return items
+      .map((item) => {
+        return (
+          item.name ||
+          item.product_name ||
+          item.item_name ||
+          item.title ||
+          "Unknown Item"
+        );
+      })
+      .join(", ");
+  }
+
+  return order.product_name || order.item_name || "No item data";
+}
+
+function getOrderQuantity(order: Order) {
+  const items = order.items || order.order_items || [];
+
+  if (items.length > 0) {
+    return items.reduce((total, item) => {
+      return total + Number(item.quantity || item.qty || 1);
+    }, 0);
+  }
+
+  return order.quantity || "";
+}
+
+  function exportSalesToExcel() {
+    const rows: Record<string, string | number>[] = filteredOrders.map((order) => ({
+      "Order ID": order.id,
+      Date: new Date(order.created_at).toLocaleString(),
+      Customer: order.roblox_username || order.username || "",
+      Email:
+      order.payer_email ||
+      order.customer_email ||
+      order.email ||
+      order.contact_info ||
+      "",
+      "Item Name": getOrderItems(order),
+      Quantity: getOrderQuantity(order),
+      "Payment Method": order.payment_method || "",
+      "Total Price": Number(order.total_price || 0),
+      Status: order.status || "",
+      "Payment Status": order.payment_status || "",
+      "Delivery Status": order.delivery_status || "",
+    }));
+
+    const summaryRows: Record<string, string | number>[] = [
+      { Metric: "Report Type", Value: filter.toUpperCase() },
+      { Metric: "Generated At", Value: new Date().toLocaleString() },
+      { Metric: "Total Orders", Value: stats.totalOrders },
+      { Metric: "Paid Orders", Value: stats.paidOrders },
+      { Metric: "Pending Orders", Value: stats.pendingOrders },
+      { Metric: "Delivered Orders", Value: stats.deliveredOrders },
+      { Metric: "Unpaid Orders", Value: stats.unpaidOrders },
+      { Metric: "Refund Orders", Value: stats.refundOrders },
+      { Metric: "Gross Sales", Value: stats.grossSales },
+      { Metric: "Possible Sales", Value: stats.possibleSales },
+      { Metric: "Average Order", Value: stats.averageOrderValue },
+      { Metric: "Conversion Rate", Value: `${stats.conversionRate}%` },
+    ];
+
+    const ordersSheet = XLSX.utils.json_to_sheet(rows);
+    const summarySheet = XLSX.utils.json_to_sheet(summaryRows);
+
+    ordersSheet["!cols"] = [
+      { wch: 28 },
+      { wch: 22 },
+      { wch: 20 },
+      { wch: 28 },
+      { wch: 18 },
+      { wch: 45 },
+      { wch: 10 },
+      { wch: 18 },
+      { wch: 14 },
+      { wch: 18 },
+      { wch: 18 },
+      { wch: 18 },
+    ];
+
+    summarySheet["!cols"] = [{ wch: 24 }, { wch: 24 }];
+
+    const workbook = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(workbook, summarySheet, "Dashboard");
+    XLSX.utils.book_append_sheet(workbook, ordersSheet, "Orders");
+
+    const today = new Date().toISOString().split("T")[0];
+    XLSX.writeFile(workbook, `Sigma-Shop-${filter}-Sales-${today}.xlsx`);
+  }
 
   function resetSalesCounter() {
     const confirmed = window.confirm(
@@ -198,6 +311,13 @@ export default function AdminDashboardPage() {
                 : "All Time"}
           </button>
         ))}
+
+        <button
+          onClick={exportSalesToExcel}
+          className="rounded-2xl border border-emerald-400/20 bg-emerald-500/10 px-5 py-3 font-bold text-emerald-300 hover:bg-emerald-500/20"
+        >
+          📊 Export Excel
+        </button>
 
         <button
           onClick={() => setFilter("month")}

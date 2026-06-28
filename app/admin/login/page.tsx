@@ -35,10 +35,39 @@ export default function AdminLoginPage() {
         return;
       }
 
-      // Give Supabase a moment to write the session cookie
-      setTimeout(() => {
-        window.location.href = "/admin/products";
-      }, 800);
+const trustedRes = await fetch("/api/admin/check-trusted-device");
+const trustedData = await trustedRes.json();
+
+if (trustedRes.ok && trustedData.trusted) {
+  setTimeout(() => {
+    window.location.href = "/admin/products";
+  }, 800);
+  return;
+}
+
+const otpRes = await fetch("/api/admin/send-otp", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    email: email.trim(),
+  }),
+});
+
+const otpData = await otpRes.json();
+
+if (!otpRes.ok) {
+  alert(otpData.error || "Failed to send OTP.");
+  return;
+}
+
+localStorage.setItem("admin_otp_email", email.trim());
+
+setTimeout(() => {
+  window.location.href = "/admin/verify-otp";
+}, 800);     
+ 
     } catch (error) {
       console.error(error);
       alert("Login failed.");

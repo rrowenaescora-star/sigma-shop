@@ -1,115 +1,30 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
-function extractEveryThirdCharacter(value: string) {
-  return value
-    .split("")
-    .filter((_, index) => (index + 1) % 3 === 0)
-    .join("");
-}
-
 export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-pathname", pathname);
 
-  if (pathname === "/admin-access") {
-    const key = request.nextUrl.searchParams.get("key");
-
-    if (key === process.env.ADMIN_NFC_KEY_A) {
-      const response = NextResponse.redirect(
-        new URL("/admin/verify-second-key", request.url)
-      );
-
-      response.cookies.set("bloxhop_nfc_step_1", "true", {
-        httpOnly: true,
-        sameSite: "strict",
-        maxAge: 60,
-        path: "/",
-      });
-
-      return response;
-    }
-
-    if (key === process.env.ADMIN_NFC_KEY_B) {
-      const hasStepOne =
-        request.cookies.get("bloxhop_nfc_step_1")?.value === "true";
-
-      if (!hasStepOne) {
-        const url = request.nextUrl.clone();
-        url.pathname = "/";
-        return NextResponse.redirect(url);
-      }
-
-      const response = NextResponse.redirect(
-        new URL("/admin/products", request.url)
-      );
-
-      response.cookies.set("bloxhop_admin_bypass", "true", {
-        httpOnly: true,
-        sameSite: "strict",
-        maxAge: 60 * 5,
-        path: "/",
-      });
-
-      response.cookies.delete("bloxhop_nfc_step_1");
-
-      return response;
-    }
-
-    const url = request.nextUrl.clone();
-    url.pathname = "/";
-    return NextResponse.redirect(url);
-  }
-
   if (!pathname.startsWith("/admin")) {
     return NextResponse.next({
-      request: {
-        headers: requestHeaders,
-      },
+      request: { headers: requestHeaders },
     });
   }
 
-  if (pathname.startsWith("/admin/login-")) {
-    const slug = pathname.replace("/admin/login-", "");
-    const extracted = extractEveryThirdCharacter(slug);
-
-    if (extracted !== process.env.ADMIN_URL_PATTERN_SECRET) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/";
-      return NextResponse.redirect(url);
-    }
-
-    return NextResponse.rewrite(new URL("/admin/login", request.url));
-  }
-
-  if (pathname === "/admin/login") {
+  if (
+    pathname === "/admin/login" ||
+    pathname === "/admin/verify-otp"
+  ) {
     return NextResponse.next({
-      request: {
-        headers: requestHeaders,
-      },
+      request: { headers: requestHeaders },
     });
   }
-if (pathname === "/admin/verify-second-key") {
-  return NextResponse.next({
-    request: {
-      headers: requestHeaders,
-    },
-  });
-}
 
   let response = NextResponse.next({
-    request: {
-      headers: requestHeaders,
-    },
+    request: { headers: requestHeaders },
   });
-
-  const bypass = request.cookies.get("bloxhop_admin_bypass")?.value === "true";
-
-  if (bypass) {
-    return response;
-  }
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -126,9 +41,7 @@ if (pathname === "/admin/verify-second-key") {
           );
 
           response = NextResponse.next({
-            request: {
-              headers: requestHeaders,
-            },
+            request: { headers: requestHeaders },
           });
 
           cookiesToSet.forEach(({ name, value, options }) =>
@@ -146,6 +59,17 @@ if (pathname === "/admin/verify-second-key") {
   if (!session) {
     const url = request.nextUrl.clone();
     url.pathname = "/admin/login";
+    return NextResponse.redirect(url);
+  }
+
+  const otpVerified =
+    request.cookies.get("bloxhop_otp_verified")?.value === "true";
+
+  const trustedDevice = request.cookies.get("bloxhop_trusted_device")?.value;
+
+  if (!otpVerified && !trustedDevice) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/admin/verify-otp";
     return NextResponse.redirect(url);
   }
 

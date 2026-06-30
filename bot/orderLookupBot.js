@@ -1,4 +1,4 @@
-require("dotenv").config({ path: ".env.local" });
+require("dotenv").config({ path: "../.env.local" });
 
 const {
   Client,
@@ -269,6 +269,26 @@ function orderStatusMessage(order) {
     `## 🛒 Items\n${formatItems(order)}\n\n` +
     `## 💰 Total\n**$${Number(order.totalPrice || 0).toFixed(2)}**`
   );
+}
+
+async function analyzeReceiptWithAI(orderId, expectedAmount, imageUrl) {
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_APP_URL}/api/ai/receipt-check`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-receipt-ai-secret": process.env.RECEIPT_AI_SECRET,
+      },
+      body: JSON.stringify({
+        orderId,
+        expectedAmount,
+        imageUrl,
+      }),
+    }
+  );
+
+  return res.json();
 }
 
 async function logSuspicious(message, reason) {
@@ -585,12 +605,22 @@ client.on("interactionCreate", async (interaction) => {
   }
 
   if (interaction.customId === "paid_yes") {
-    return interaction.showModal(openOrderModal("paid"));
+  try {
+    return await interaction.showModal(openOrderModal("paid"));
+  } catch (error) {
+    if (error.code === 40060) return;
+    throw error;
   }
+}
 
-  if (interaction.customId === "track_order") {
-    return interaction.showModal(openOrderModal("track"));
+if (interaction.customId === "track_order") {
+  try {
+    return await interaction.showModal(openOrderModal("track"));
+  } catch (error) {
+    if (error.code === 40060) return;
+    throw error;
   }
+}
 
   if (interaction.customId === "payment_methods") {
     return interaction.reply({
@@ -652,48 +682,149 @@ client.on("messageCreate", async (message) => {
     });
 
     if (hasImage) {
-      const contextOrderId = ticketOrderContext.get(message.channel.id);
+  const contextOrderId = ticketOrderContext.get(message.channel.id);
 
+  const image = message.attachments.find((file) => {
+    const name = file.name?.toLowerCase() || "";
+    const type = file.contentType?.toLowerCase() || "";
+    return type.startsWith("image/") || /\.(png|jpg|jpeg|webp)$/i.test(name);
+  });
+
+  if (!contextOrderId) {
+    await message.reply({
+      content:
+        `⚠️ We received your screenshot, but we do not know your Order ID yet.\n\n` +
+        `Please click **I've Paid** and enter your Order ID first.`,
+      components: [paypalButtons()],
+    });
+    return;
+  }
+
+  await message.reply({
+    content:
+      `# 📸 PAYMENT PROOF RECEIVED\n\n` +
+      `Checking your receipt with AI. Please wait...`,
+  });
+
+  try {
+    const orderData = await lookupOrder(contextOrderId);
+
+    if (!orderData.found || !orderData.order) {
       await message.reply({
         content:
-          `# 📸 PAYMENT PROOF RECEIVED\n\n` +
-          `Staff will review your screenshot shortly.\n\n` +
-          `Estimated verification: **1-10 minutes**.\n\n` +
-          `Please wait for staff confirmation.`,
+          `❌ We could not find your order while checking the receipt.\n\n` +
+          `Please click **I've Paid** and enter your Order ID again.`,
+        components: [paypalButtons()],
       });
-
-      if (!contextOrderId) {
-        await message.reply({
-          content:
-            `⚠️ We received your screenshot, but we do not know your Order ID yet.\n\n` +
-            `Please click **I've Paid** and enter your Order ID first.`,
-          components: [paypalButtons()],
-        });
-        return;
-      }
-
-      try {
-        const staffChannel = await client.channels.fetch(STAFF_REVIEW_CHANNEL_ID);
-
-        if (staffChannel) {
-          await staffChannel.send({
-            content:
-              `# 🧾 NEW MANUAL PAYMENT REVIEW\n\n` +
-              `**Order ID:** #${contextOrderId}\n` +
-              `**Customer:** ${message.author.tag} / <@${message.author.id}>\n` +
-              `**Ticket:** <#${message.channel.id}>\n` +
-              `**Payment Method:** PayPal\n\n` +
-              `Please review the receipt in the customer ticket, then verify or reject the payment.`,
-            components: staffOrderButtons(contextOrderId, "unpaid", message.channel.id),
-          });
-        }
-      } catch (err) {
-        console.error("Failed to send staff review:", err);
-      }
-
       return;
     }
+
+    const order = orderData.order;
+
+    const ai = await analyzeReceiptWithAI(
+      order.id,
+      Number(order.totalPrice || 0),
+      image.url
+    );
+
+    console.log("AI receipt result:", ai);
+
+    if (!ai.success) {
+      await message.reply({
+        content:
+          `❌ AI receipt check failed.\n\n` +
+          `Please upload a clearer PayPal receipt screenshot showing our email, amount, and payment status.`,
+      });
+      return;
+    }
+
+    if (!ai.emailFound) {
+      await message.reply({
+        content:
+          `❌ Receipt rejected.\n\n` +
+          `We could not detect our official PayPal email on your screenshot.\n\n` +
+          `Please upload a clear PayPal receipt showing:\n` +
+          `• Our PayPal email\n` +
+          `• Amount sent\n` +
+          `• Payment status`,
+      });
+      return;
+    }
+
+    if (ai.missingAmount > 0) {
+      await message.reply({
+        content:
+          `⚠️ Payment amount is incomplete.\n\n` +
+          `**Expected:**\n` +
+          `$${Number(ai.expectedAmount).toFixed(2)}\n\n` +
+          `**Received:**\n` +
+          `$${Number(ai.amountReceived).toFixed(2)}\n\n` +
+          `**Missing amount:**\n` +
+          `$${Number(ai.missingAmount).toFixed(2)}\n\n` +
+          `Please send the remaining balance to complete your payment, then upload the new receipt.`,
+      });
+      return;
+    }
+
+    if (ai.overpaidAmount > 0) {
+      await message.reply({
+        content:
+          `⚠️ Overpayment detected.\n\n` +
+          `**Expected:**\n` +
+          `$${Number(ai.expectedAmount).toFixed(2)}\n\n` +
+          `**Received:**\n` +
+          `$${Number(ai.amountReceived).toFixed(2)}\n\n` +
+          `**Overpaid:**\n` +
+          `$${Number(ai.overpaidAmount).toFixed(2)}\n\n` +
+          `Please wait for staff assistance on how to claim the overpayment.`,
+      });
+    }
+
+    await message.reply({
+      content:
+        `✅ AI receipt check passed.\n\n` +
+        `Staff has been notified for final verification.\n\n` +
+        `Estimated verification: **1-10 minutes**.`,
+    });
+
+    const staffChannel = await client.channels.fetch(STAFF_REVIEW_CHANNEL_ID);
+
+    if (staffChannel) {
+      await staffChannel.send({
+        content:
+          `# 🧾 NEW MANUAL PAYMENT REVIEW\n\n` +
+          `**Order ID:** #${contextOrderId}\n` +
+          `**Customer:** ${message.author.tag} / <@${message.author.id}>\n` +
+          `**Ticket:** <#${message.channel.id}>\n` +
+          `**Payment Method:** PayPal\n\n` +
+          `## AI Receipt Report\n` +
+          `**Email Found:** ${ai.emailFound ? "Yes" : "No"}\n` +
+          `**Matched Email:** ${ai.matchedEmail || "Unknown"}\n` +
+          `**Expected:** $${Number(ai.expectedAmount).toFixed(2)}\n` +
+          `**Received:** $${Number(ai.amountReceived).toFixed(2)}\n` +
+          `**Currency:** ${ai.currency || "Unknown"}\n` +
+          `**Status:** ${ai.paymentStatus || "Unknown"}\n` +
+          `**Transaction ID:** ${ai.transactionId || "Unknown"}\n` +
+          `**Confidence:** ${ai.confidence}%\n\n` +
+          `Please review the receipt in the customer ticket, then verify or reject the payment.`,
+        components: staffOrderButtons(contextOrderId, "unpaid", message.channel.id),
+      });
+    }
+
+    return;
+  } catch (err) {
+    console.error("AI receipt check error:", err);
+
+    await message.reply({
+      content:
+        `❌ Something went wrong while checking your receipt.\n\n` +
+        `Please wait for staff assistance.`,
+    });
+
+    return;
   }
+}
+}
 
   const greetingWords = ["hi", "hello", "hey", "yo", "sup", "good morning", "good evening"];
   const supportWords = ["support", "help", "paid", "payment", "order", "track", "paypal"];

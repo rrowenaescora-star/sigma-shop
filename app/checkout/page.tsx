@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Suspense, memo, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useSearchParams } from "next/navigation";
 
@@ -54,6 +54,9 @@ function CheckoutPageContent() {
   const [confirmChecked, setConfirmChecked] = useState(false);
   const [showAllItems, setShowAllItems] = useState(false);
 
+  const [detectedCountry, setDetectedCountry] = useState("PH");
+  const [customerCountry, setCustomerCountry] = useState("PH");
+
   const inputClass =
     "min-w-0 flex-1 rounded-2xl border border-blue-400/40 bg-[#0b1728] px-4 py-4 text-sm text-white outline-none placeholder:text-slate-500 focus:border-blue-300 focus:ring-4 focus:ring-blue-500/20";
 
@@ -62,6 +65,25 @@ function CheckoutPageContent() {
 
   const textareaClass =
     "min-h-[112px] w-full rounded-2xl border border-blue-400/40 bg-[#0b1728] px-4 py-4 text-sm text-white outline-none placeholder:text-slate-500 focus:border-blue-300 focus:ring-4 focus:ring-blue-500/20";
+
+  useEffect(() => {
+    async function detectCountry() {
+      try {
+        const res = await fetch("/api/geo", { cache: "no-store" });
+        const data = await res.json();
+
+        const country = data.country || "PH";
+
+        setDetectedCountry(country);
+        setCustomerCountry(country);
+      } catch {
+        setDetectedCountry("PH");
+        setCustomerCountry("PH");
+      }
+    }
+
+    detectCountry();
+  }, []);
 
   useEffect(() => {
     const orderId = searchParams.get("orderId");
@@ -314,6 +336,9 @@ function CheckoutPageContent() {
     return cartItems.some((item) => isCartItemUnavailable(item));
   }, [cartItems]);
 
+  const isPhilippinesCustomer =
+    detectedCountry === "PH" && customerCountry === "PH";
+
   const isCheckoutDisabled =
     cartItems.length === 0 ||
     !robloxUsername.trim() ||
@@ -545,6 +570,23 @@ function CheckoutPageContent() {
     await saveOrder("Free");
   }
 
+ async function handleManualCheckout() {
+  await saveOrder(
+    "Pending",
+    "Manual International Payment",
+    "/manual-payment",
+  );
+}
+
+  async function handleSmartCheckout() {
+    if (isPhilippinesCustomer) {
+      await handlePayMongoCheckout();
+      return;
+    }
+
+    await handleManualCheckout();
+  }
+
   async function handlePayMongoCheckout() {
     if (cartItems.length === 0) return;
 
@@ -689,11 +731,11 @@ function CheckoutPageContent() {
                       type="button"
                       onClick={verifyRobloxUser}
                       disabled={verifyLoading || !robloxUsername.trim()}
-                      className={`rounded-2xl px-6 py-4 text-sm font-black transition ${
-                        verifyLoading || !robloxUsername.trim()
-                          ? "cursor-not-allowed bg-slate-700 text-slate-300"
-                          : "bg-blue-500 text-white hover:bg-blue-400"
-                      }`}
+                     className={`rounded-2xl px-6 py-4 text-sm font-black transition ${
+  verifyLoading || !robloxUsername.trim()
+    ? "cursor-not-allowed bg-slate-700 text-slate-300"
+    : "cursor-pointer bg-blue-500 text-white hover:bg-blue-400"
+}`}
                     >
                       {verifyLoading ? "Checking..." : "Verify"}
                     </button>
@@ -768,6 +810,33 @@ function CheckoutPageContent() {
 
                 <div>
                   <label className="mb-2 block text-sm font-bold text-white">
+                    Country
+                  </label>
+
+                  <select
+                    value={customerCountry}
+                    onChange={(e) => setCustomerCountry(e.target.value)}
+                    className={fullInputClass}
+                  >
+                    <option value="PH">Philippines</option>
+                    <option value="US">United States</option>
+                    <option value="GB">United Kingdom</option>
+                    <option value="CA">Canada</option>
+                    <option value="AU">Australia</option>
+                    <option value="IN">India</option>
+                    <option value="OTHER">Other Country</option>
+                  </select>
+
+                  <p className="mt-2 text-xs text-slate-400">
+                    Detected country: {detectedCountry}.{" "}
+                    {isPhilippinesCustomer
+                      ? "PayMongo checkout is available."
+                      : "Manual payment will be used for this order."}
+                  </p>
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-bold text-white">
                     Coupon Code Optional
                   </label>
 
@@ -782,7 +851,7 @@ function CheckoutPageContent() {
                     <button
                       type="button"
                       onClick={applyCoupon}
-                      className="rounded-2xl bg-blue-500 px-7 py-4 text-sm font-black text-white hover:bg-blue-400"
+                      className="cursor-pointer rounded-2xl bg-blue-500 px-7 py-4 text-sm font-black text-white hover:bg-blue-400"
                     >
                       Apply
                     </button>
@@ -825,7 +894,7 @@ function CheckoutPageContent() {
               </h2>
 
               <p className="mt-2 text-sm text-slate-300">
-                Review your details, then continue to secure payment.
+                Review your details, then continue to payment.
               </p>
 
               <div className="mt-5 grid gap-3 rounded-2xl border border-blue-500/20 bg-[#081426] p-4 text-sm font-bold text-slate-300 sm:grid-cols-3">
@@ -851,7 +920,9 @@ function CheckoutPageContent() {
 
               <div className="mt-3 rounded-2xl border border-blue-400/20 bg-blue-400/5 px-4 py-3">
                 <p className="text-xs leading-6 text-blue-200">
-                  Payments are securely processed through our payment partners.
+                  {isPhilippinesCustomer
+                    ? "Philippine customers can proceed through PayMongo secure checkout."
+                    : "International customers will proceed through manual payment instructions."}
                 </p>
               </div>
 
@@ -866,11 +937,11 @@ function CheckoutPageContent() {
                 <button
                   type="button"
                   onClick={handleFreeCheckout}
-                  disabled={isCheckoutDisabled}
+                  disabled={isCheckoutDisabled || !confirmChecked}
                   className={`mt-5 w-full rounded-2xl py-4 text-lg font-black transition ${
-                    isCheckoutDisabled
+                    isCheckoutDisabled || !confirmChecked
                       ? "cursor-not-allowed bg-slate-700 text-slate-300"
-                      : "bg-emerald-400 text-black hover:bg-emerald-300"
+                      : "cursor-pointer bg-emerald-400 text-black hover:bg-emerald-300"
                   }`}
                 >
                   {isSubmitting ? "Processing..." : "Claim Free"}
@@ -879,21 +950,29 @@ function CheckoutPageContent() {
                 <div className="mt-5 grid gap-3">
                   <button
                     type="button"
-                    onClick={handlePayMongoCheckout}
+                    onClick={handleSmartCheckout}
                     disabled={!confirmChecked || isCheckoutDisabled}
-                    className={`w-full rounded-2xl border py-4 text-lg font-black transition ${
-                      !confirmChecked || isCheckoutDisabled
-                        ? "cursor-not-allowed border-slate-700 bg-slate-800 text-slate-300"
-                        : "border-blue-400/30 bg-[#10233c] text-white hover:bg-[#18345a]"
-                    }`}
+                   className={`w-full rounded-2xl border py-4 text-lg font-black transition ${
+  !confirmChecked || isCheckoutDisabled
+    ? "cursor-not-allowed border-slate-700 bg-slate-800 text-slate-300"
+    : isPhilippinesCustomer
+      ? "cursor-pointer border-blue-400/30 bg-[#10233c] text-white hover:bg-[#18345a]"
+      : "cursor-pointer border-emerald-400/30 bg-emerald-400 text-black hover:bg-emerald-300"
+}`}
                   >
                     {isSubmitting
-                      ? "Redirecting..."
-                      : "Proceed to Secure Payment"}
+                      ? isPhilippinesCustomer
+                        ? "Redirecting..."
+                        : "Saving Order..."
+                      : isPhilippinesCustomer
+                        ? "Proceed to Secure Payment"
+                        : "Proceed to Manual Payment"}
                   </button>
 
                   <p className="text-center text-xs font-semibold text-slate-400">
-                    Estimated delivery time: Usually within minutes after payment verification.
+                    {isPhilippinesCustomer
+                      ? "Estimated delivery time: Usually within minutes after payment verification."
+                      : "After placing your order, please contact support for manual international payment instructions."}
                   </p>
 
                   <div className="mt-4 flex flex-wrap items-center justify-center gap-4 text-sm font-semibold text-slate-400">
@@ -1064,7 +1143,7 @@ function CheckoutPageContent() {
                 <button
                   type="button"
                   onClick={() => setShowAllItems(!showAllItems)}
-                  className="mt-3 w-full rounded-2xl border border-blue-500/20 px-4 py-3 text-sm font-black text-slate-300 hover:bg-blue-500/10"
+                  className="mt-3 w-full cursor-pointer rounded-2xl border border-blue-500/20 px-4 py-3 text-sm font-black text-slate-300 hover:bg-blue-500/10"
                 >
                   {showAllItems
                     ? "Show Less Items"

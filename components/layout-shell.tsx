@@ -26,6 +26,7 @@ export default function LayoutShell({
     pathname.startsWith("/pet-simulator") ||
     pathname.startsWith("/mm2") ||
     pathname.startsWith("/anime-defenders") ||
+    pathname.startsWith("/manual-payment") ||
     pathname.startsWith("/blade-ball");
 
   const shops = [

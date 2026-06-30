@@ -7,6 +7,9 @@ const {
   ButtonBuilder,
   ButtonStyle,
   PermissionsBitField,
+  ModalBuilder,
+  TextInputBuilder,
+  TextInputStyle,
 } = require("discord.js");
 
 const client = new Client({
@@ -25,6 +28,8 @@ const DUPLICATE_ORDER_LOCK_MS = 5 * 60 * 1000;
 const CLEAN_REPLY_COOLDOWN_MS = 30 * 1000;
 const AUTO_CLOSE_MS = 2 * 60 * 1000;
 const MAX_INVALID_ATTEMPTS = 5;
+
+const PAYPAL_EMAIL = "Johnmonescora456@gmail.com";
 
 const invalidAttempts = new Map();
 const blockedUsers = new Map();
@@ -85,7 +90,7 @@ function staffOrderButtons(orderId, stage = "unpaid") {
         new ButtonBuilder()
           .setCustomId(`staff_reject:${orderId}`)
           .setLabel("Reject Payment")
-          .setStyle(ButtonStyle.Danger)
+          .setStyle(ButtonStyle.Danger),
       ),
     ];
   }
@@ -96,7 +101,7 @@ function staffOrderButtons(orderId, stage = "unpaid") {
         new ButtonBuilder()
           .setCustomId(`staff_claim:${orderId}`)
           .setLabel("Claim Order")
-          .setStyle(ButtonStyle.Primary)
+          .setStyle(ButtonStyle.Primary),
       ),
     ];
   }
@@ -107,7 +112,7 @@ function staffOrderButtons(orderId, stage = "unpaid") {
         new ButtonBuilder()
           .setCustomId(`staff_delivering:${orderId}`)
           .setLabel("Mark Delivering")
-          .setStyle(ButtonStyle.Secondary)
+          .setStyle(ButtonStyle.Secondary),
       ),
     ];
   }
@@ -118,7 +123,7 @@ function staffOrderButtons(orderId, stage = "unpaid") {
         new ButtonBuilder()
           .setCustomId(`staff_delivered:${orderId}`)
           .setLabel("Mark Delivered")
-          .setStyle(ButtonStyle.Success)
+          .setStyle(ButtonStyle.Success),
       ),
     ];
   }
@@ -146,21 +151,16 @@ function supportButtons() {
     new ButtonBuilder()
       .setCustomId("human_support")
       .setLabel("Human Support")
-      .setStyle(ButtonStyle.Danger)
+      .setStyle(ButtonStyle.Danger),
   );
 }
 
-function qrButtons() {
+function paypalButton() {
   return new ActionRowBuilder().addComponents(
     new ButtonBuilder()
-      .setCustomId("gcash_qr")
-      .setLabel("GCash QR")
+      .setCustomId("paypal_payment")
+      .setLabel("PayPal Instructions")
       .setStyle(ButtonStyle.Primary),
-
-    new ButtonBuilder()
-      .setCustomId("maya_qr")
-      .setLabel("Maya QR")
-      .setStyle(ButtonStyle.Primary)
   );
 }
 
@@ -178,11 +178,12 @@ async function updateOrderStaff(orderId, action, staffName) {
         action,
         staffName,
       }),
-    }
+    },
   );
 
   return res.json();
 }
+
 async function sendDeliveredEmail(orderId) {
   const res = await fetch(
     `${process.env.NEXT_PUBLIC_APP_URL}/api/admin/orders/send-delivered-email`,
@@ -194,10 +195,60 @@ async function sendDeliveredEmail(orderId) {
       body: JSON.stringify({
         orderId,
       }),
-    }
+    },
   );
 
   return res.json();
+}
+
+async function lookupOrder(orderId) {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/orders/lookup`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-ticket-secret": process.env.TICKET_LOOKUP_SECRET,
+    },
+    body: JSON.stringify({ orderId }),
+  });
+
+  return res.json();
+}
+
+function formatItems(order) {
+  return Array.isArray(order.items)
+    ? order.items.map((item) => `• ${item.name} x${item.quantity}`).join("\n")
+    : "Items unavailable";
+}
+
+function isOrderPaid(order) {
+  const paymentStatus = String(order.paymentStatus || "").toLowerCase();
+
+  return (
+    Boolean(order.paid_at) ||
+    Boolean(order.paidAt) ||
+    paymentStatus === "paid" ||
+    paymentStatus === "completed" ||
+    paymentStatus === "success"
+  );
+}
+
+function orderStatusMessage(order) {
+  const items = formatItems(order);
+  const paymentStatus = String(order.paymentStatus || "Pending");
+  const deliveryStatus = String(order.deliveryStatus || order.status || "Pending");
+
+  return (
+    `# 📦 ORDER STATUS\n\n` +
+    `**Order ID:** #${order.id}\n` +
+    `**Username:** ${order.username || "Unknown"}\n` +
+    `**Payment Method:** ${order.paymentMethod || "Unknown"}\n` +
+    `**Payment Status:** ${paymentStatus}\n` +
+    `**Delivery Status:** ${deliveryStatus}\n\n` +
+    `## 🛒 Items\n` +
+    `${items}\n\n` +
+    `## 💰 Total\n` +
+    `**$${Number(order.totalPrice || 0).toFixed(2)}**`
+  );
 }
 
 async function logSuspicious(message, reason) {
@@ -214,7 +265,7 @@ async function logSuspicious(message, reason) {
         `**User ID:** ${message.author.id}\n` +
         `**Reason:** ${reason}\n` +
         `**Channel:** <#${message.channel.id}>\n` +
-        `**Time:** <t:${Math.floor(Date.now() / 1000)}:F>`
+        `**Time:** <t:${Math.floor(Date.now() / 1000)}:F>`,
     );
   } catch (err) {
     console.error("Log error:", err);
@@ -224,9 +275,7 @@ async function logSuspicious(message, reason) {
 function getUserAttemptData(userId) {
   const data = invalidAttempts.get(userId);
 
-  if (!data) {
-    return { count: 0, lastAttemptAt: 0, lastOrderId: null };
-  }
+  if (!data) return { count: 0, lastAttemptAt: 0, lastOrderId: null };
 
   if (now() - data.lastAttemptAt > ATTEMPT_RESET_MS) {
     invalidAttempts.delete(userId);
@@ -286,10 +335,46 @@ client.on("ready", () => {
 });
 
 client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isButton()) return;
+  if (!interaction.isButton() && !interaction.isModalSubmit()) return;
 
   const staff = isStaff(interaction.member);
   const userId = interaction.user.id;
+
+  if (interaction.isModalSubmit()) {
+    if (interaction.customId === "track_order_modal") {
+      const orderId = interaction.fields.getTextInputValue("order_id_input").trim();
+
+      await interaction.deferReply({ ephemeral: true });
+
+      try {
+        const data = await lookupOrder(orderId);
+
+        if (!data.found) {
+          return interaction.editReply(
+            `# ❌ ORDER NOT FOUND\n\n` +
+              `Order ID #${orderId} was not found.\n\n` +
+              `Please check your Order ID and try again.`,
+          );
+        }
+
+        const order = data.order;
+
+        return interaction.editReply({
+          content:
+            orderStatusMessage(order) +
+            `\n\n${
+              isOrderPaid(order)
+                ? "✅ Your payment is already verified."
+                : "⚠️ If you have not paid yet, click PayPal Instructions below."
+            }`,
+          components: isOrderPaid(order) ? [] : [paypalButton()],
+        });
+      } catch (error) {
+        console.error(error);
+        return interaction.editReply("❌ Something went wrong while tracking your order.");
+      }
+    }
+  }
 
   if (!staff) {
     const lastClick = lastButtonClick.get(userId) || 0;
@@ -297,7 +382,7 @@ client.on("interactionCreate", async (interaction) => {
     if (now() - lastClick < BUTTON_COOLDOWN_MS) {
       return interaction.reply({
         content: `⚠️ Please wait ${formatTime(
-          BUTTON_COOLDOWN_MS - (now() - lastClick)
+          BUTTON_COOLDOWN_MS - (now() - lastClick),
         )} before clicking again.`,
         ephemeral: true,
       });
@@ -335,7 +420,11 @@ client.on("interactionCreate", async (interaction) => {
           `**Queue Position:** #${queuePosition}\n\n` +
           `📦 Your order is now queued for delivery.\n` +
           `⏱️ Estimated delivery: within 5-30 minutes.\n\n` +
-          `${process.env.DELIVERY_ROLE_ID ? `<@&${process.env.DELIVERY_ROLE_ID}> New verified order is ready for delivery.` : ""}`;
+          `${
+            process.env.DELIVERY_ROLE_ID
+              ? `<@&${process.env.DELIVERY_ROLE_ID}> New verified order is ready for delivery.`
+              : ""
+          }`;
       }
 
       if (action === "staff_reject") {
@@ -375,29 +464,29 @@ client.on("interactionCreate", async (interaction) => {
         nextStage = "done";
         removeFromQueue(orderId);
 
-try {
-  const emailResult = await sendDeliveredEmail(orderId);
+        try {
+          const emailResult = await sendDeliveredEmail(orderId);
 
-  if (!emailResult.success) {
-    console.error("Delivered email failed:", emailResult);
-  }
-} catch (emailError) {
-  console.error("Delivered email error:", emailError);
-}
+          if (!emailResult.success) {
+            console.error("Delivered email failed:", emailResult);
+          }
+        } catch (emailError) {
+          console.error("Delivered email error:", emailError);
+        }
 
         customerMessage =
           `# ✅ ORDER DELIVERED\n\n` +
           `**Order ID:** #${orderId}\n\n` +
           `Thank you for shopping at Bloxhop!\n\n` +
-          `${process.env.VOUCH_CHANNEL_ID ? `⭐ Please leave a vouch here: <#${process.env.VOUCH_CHANNEL_ID}>` : "⭐ Please leave a vouch in our review channel."}\n\n` +
+          `${
+            process.env.VOUCH_CHANNEL_ID
+              ? `⭐ Please leave a vouch here: <#${process.env.VOUCH_CHANNEL_ID}>`
+              : "⭐ Please leave a vouch in our review channel."
+          }\n\n` +
           `This ticket may close automatically in 2 minutes.`;
       }
 
-      const result = await updateOrderStaff(
-        orderId,
-        apiAction,
-        interaction.user.tag
-      );
+      const result = await updateOrderStaff(orderId, apiAction, interaction.user.tag);
 
       if (!result.success) {
         return interaction.followUp({
@@ -417,9 +506,7 @@ try {
         setTimeout(async () => {
           try {
             if (interaction.channel && interaction.channel.deletable) {
-              await interaction.channel.delete(
-                "Order delivered. Auto closing ticket."
-              );
+              await interaction.channel.delete("Order delivered. Auto closing ticket.");
             }
           } catch (err) {
             console.error("Auto close failed:", err);
@@ -440,7 +527,12 @@ try {
 
   if (interaction.customId === "paid_yes") {
     return interaction.reply({
-      content: "📦 Please send your Order ID.\n\nExample:\n`order id: BH12345`",
+      content:
+        "# 👋 BloxHop Manual Payment\n\n" +
+        "Please paste the Order ID you copied from the website.\n\n" +
+        "**Example:**\n" +
+        "`Order ID: BH-26G7K9`\n\n" +
+        "After that, our bot will check your order and staff will guide you.",
       ephemeral: true,
     });
   }
@@ -448,24 +540,49 @@ try {
   if (interaction.customId === "payment_methods") {
     return interaction.reply({
       content:
-        "# 💳 Payment Methods\n\n" +
-        "We currently accept:\n" +
-        "• GCash\n" +
-        "• Maya\n" +
-        "• PayPal\n\n" +
-        "Choose a QR option below if you need it.\n\n" +
-        "⚠️ Only pay through official Bloxhop instructions.",
-      components: [qrButtons()],
+        "# 💳 Payment Method\n\n" +
+        "We currently accept manual international payment through **PayPal** only.\n\n" +
+        "**PayPal Address:**\n" +
+        `\`${PAYPAL_EMAIL}\`\n\n` +
+        "Click the button below to view the PayPal payment instructions.",
+      components: [paypalButton()],
+      ephemeral: true,
+    });
+  }
+
+  if (interaction.customId === "paypal_payment") {
+    return interaction.reply({
+      content:
+        "# 💳 PayPal Manual Payment\n\n" +
+        "**Send payment to:**\n" +
+        `\`${PAYPAL_EMAIL}\`\n\n` +
+        "**Instructions:**\n" +
+        "1. Open PayPal and click **Send** or **Send & Request**.\n" +
+        "2. Enter our PayPal email address.\n" +
+        "3. Send the exact amount shown in your order.\n" +
+        "4. Screenshot your receipt and upload it here in the ticket.\n\n" +
+        "⚠️ Do not send payment without checking your Order ID first.",
+      files: ["./assets/paypal-instructions.png"],
       ephemeral: true,
     });
   }
 
   if (interaction.customId === "track_order") {
-    return interaction.reply({
-      content:
-        "📦 Please send your Order ID to track your order.\n\nExample:\n`order id: BH12345`",
-      ephemeral: true,
-    });
+    const modal = new ModalBuilder()
+      .setCustomId("track_order_modal")
+      .setTitle("Track Your Order");
+
+    const orderIdInput = new TextInputBuilder()
+      .setCustomId("order_id_input")
+      .setLabel("Enter your Order ID")
+      .setStyle(TextInputStyle.Short)
+      .setPlaceholder("Example: 123")
+      .setRequired(true);
+
+    const row = new ActionRowBuilder().addComponents(orderIdInput);
+    modal.addComponents(row);
+
+    return interaction.showModal(modal);
   }
 
   if (interaction.customId === "human_support") {
@@ -473,22 +590,6 @@ try {
       content:
         "👤 A support staff member will assist you shortly.\n\nPlease describe your issue while waiting.",
       ephemeral: false,
-    });
-  }
-
-  if (interaction.customId === "gcash_qr") {
-    return interaction.reply({
-      content: "# 💳 GCash Payment QR\n\nScan the QR code below to pay.",
-      files: ["./assets/gcash-qr.png"],
-      ephemeral: true,
-    });
-  }
-
-  if (interaction.customId === "maya_qr") {
-    return interaction.reply({
-      content: "# 💳 Maya Payment QR\n\nScan the QR code below to pay.",
-      files: ["./assets/maya-qr.png"],
-      ephemeral: true,
     });
   }
 });
@@ -514,7 +615,11 @@ client.on("messageCreate", async (message) => {
         content:
           `# 📸 PAYMENT PROOF RECEIVED\n\n` +
           `Staff will review your screenshot shortly.\n\n` +
-          `${process.env.DELIVERY_ROLE_ID ? `<@&${process.env.DELIVERY_ROLE_ID}> Payment proof needs review.` : ""}\n\n` +
+          `${
+            process.env.DELIVERY_ROLE_ID
+              ? `<@&${process.env.DELIVERY_ROLE_ID}> Payment proof needs review.`
+              : ""
+          }\n\n` +
           `Staff: ask for the customer's Order ID if it is not included.`,
       });
     }
@@ -531,28 +636,21 @@ client.on("messageCreate", async (message) => {
 
     if (!hasOrderId && canSendCleanReply(userId, "support_menu")) {
       await message.reply({
-        content:
-          "# 👋 Welcome to Bloxhop Support\n\n" +
-          "Please choose an option below.",
+        content: "# 👋 Welcome to Bloxhop Support\n\nPlease choose an option below.",
         components: [supportButtons()],
       });
       return;
     }
   }
 
-  if (
-    content.includes("gcash") ||
-    content.includes("maya") ||
-    content.includes("paypal") ||
-    content.includes("qr")
-  ) {
+  if (content.includes("paypal")) {
     if (canSendCleanReply(userId, "payment_menu")) {
       await message.reply({
         content:
-          "# 💳 Payment Help\n\n" +
-          "Choose your payment QR below.\n\n" +
+          "# 💳 PayPal Payment Help\n\n" +
+          "Click the button below to view our PayPal payment instructions.\n\n" +
           "⚠️ Please only pay using official Bloxhop payment details.",
-        components: [qrButtons()],
+        components: [paypalButton()],
       });
     }
     return;
@@ -570,7 +668,7 @@ client.on("messageCreate", async (message) => {
       return message.reply(
         `# ⛔ TEMPORARILY BLOCKED\n\n` +
           `Too many invalid order attempts.\n\n` +
-          `Please try again in **${formatTime(blockedUntil - now())}**.`
+          `Please try again in **${formatTime(blockedUntil - now())}**.`,
       );
     }
 
@@ -582,19 +680,7 @@ client.on("messageCreate", async (message) => {
   await message.reply(`🔎 Checking Order ID #${orderId}...`);
 
   try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_APP_URL}/api/orders/lookup`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-ticket-secret": process.env.TICKET_LOOKUP_SECRET,
-        },
-        body: JSON.stringify({ orderId }),
-      }
-    );
-
-    const data = await res.json();
+    const data = await lookupOrder(orderId);
 
     if (!data.found) {
       if (!staff) {
@@ -605,27 +691,27 @@ client.on("messageCreate", async (message) => {
 
           await logSuspicious(
             message,
-            `Blocked for invalid order spam. Order ID: ${orderId}`
+            `Blocked for invalid order spam. Order ID: ${orderId}`,
           );
 
           return message.reply(
             `# ⛔ TEMPORARILY BLOCKED\n\n` +
               `Too many invalid order attempts.\n\n` +
-              `You can try again in **10 minutes**.`
+              `You can try again in **10 minutes**.`,
           );
         }
 
         if (attemptData.count >= 4) {
           await logSuspicious(
             message,
-            `Final warning for invalid order attempts. Order ID: ${orderId}`
+            `Final warning for invalid order attempts. Order ID: ${orderId}`,
           );
 
           return message.reply(
             `# ⚠️ FINAL WARNING\n\n` +
               `Order ID #${orderId} was not found.\n\n` +
               `Invalid attempts: **${attemptData.count}/${MAX_INVALID_ATTEMPTS}**\n\n` +
-              `One more fake/wrong attempt may temporarily block order lookup.`
+              `One more fake/wrong attempt may temporarily block order lookup.`,
           );
         }
       }
@@ -633,7 +719,7 @@ client.on("messageCreate", async (message) => {
       return message.reply(
         `# ❌ ORDER NOT FOUND\n\n` +
           `Order ID #${orderId} was not found.\n\n` +
-          `Reason: ${data.message || "Unknown error"}`
+          `Reason: ${data.message || "Unknown error"}`,
       );
     }
 
@@ -648,13 +734,13 @@ client.on("messageCreate", async (message) => {
     ) {
       await logSuspicious(
         message,
-        `Different user tried checking locked order. Order ID: ${order.id}`
+        `Different user tried checking locked order. Order ID: ${order.id}`,
       );
 
       return message.reply(
         `# ⚠️ ORDER ALREADY BEING CHECKED\n\n` +
           `This order was recently checked by another user.\n\n` +
-          `Please contact human support if this is your order.`
+          `Please contact human support if this is your order.`,
       );
     }
 
@@ -663,20 +749,9 @@ client.on("messageCreate", async (message) => {
       expiresAt: now() + DUPLICATE_ORDER_LOCK_MS,
     });
 
-    const items = Array.isArray(order.items)
-      ? order.items.map((item) => `• ${item.name} x${item.quantity}`).join("\n")
-      : "Items unavailable";
+    const items = formatItems(order);
 
-    const paymentStatus = String(order.paymentStatus || "").toLowerCase();
-
-    const isPaid =
-      Boolean(order.paid_at) ||
-      Boolean(order.paidAt) ||
-      paymentStatus === "paid" ||
-      paymentStatus === "completed" ||
-      paymentStatus === "success";
-
-    if (!isPaid) {
+    if (!isOrderPaid(order)) {
       return message.reply({
         content:
           `# ⚠️ PAYMENT NOT VERIFIED\n\n` +
@@ -684,9 +759,14 @@ client.on("messageCreate", async (message) => {
           `**Username:** ${order.username || "Unknown"}\n` +
           `**Payment Method:** ${order.paymentMethod || "Unknown"}\n` +
           `**Payment Status:** ${order.paymentStatus || "Pending"}\n\n` +
-          `We could not confirm your payment yet.\n\n` +
-          `If you already paid, upload your payment screenshot and wait for staff review.`,
-        components: staffOrderButtons(order.id, "unpaid"),
+          `## 🛒 Items\n` +
+          `${items}\n\n` +
+          `## 💰 Amount to Pay\n` +
+          `**$${Number(order.totalPrice || 0).toFixed(2)}**\n\n` +
+          `Please send the exact amount through PayPal, then upload your payment screenshot here.\n\n` +
+          `**PayPal Address:**\n` +
+          `\`${PAYPAL_EMAIL}\``,
+        components: [paypalButton(), ...staffOrderButtons(order.id, "unpaid")],
       });
     }
 
@@ -707,7 +787,7 @@ client.on("messageCreate", async (message) => {
         `${items}\n\n` +
         `## 💰 Payment Summary\n` +
         `**Original Total:** $${Number(
-          order.originalTotal || order.totalPrice
+          order.originalTotal || order.totalPrice,
         ).toFixed(2)}\n` +
         `**Coupon:** ${order.couponCode || "None"}\n` +
         `**Discount:** -$${Number(order.couponDiscount || 0).toFixed(2)}\n` +
@@ -716,7 +796,11 @@ client.on("messageCreate", async (message) => {
         "```\n\n" +
         `📦 Your order is now queued for delivery.\n` +
         `⏱️ Estimated delivery: within 5-30 minutes.\n\n` +
-        `${process.env.DELIVERY_ROLE_ID ? `<@&${process.env.DELIVERY_ROLE_ID}> New paid order ready for delivery.` : ""}`,
+        `${
+          process.env.DELIVERY_ROLE_ID
+            ? `<@&${process.env.DELIVERY_ROLE_ID}> New paid order ready for delivery.`
+            : ""
+        }`,
       components: staffOrderButtons(order.id, "verified"),
     });
   } catch (error) {

@@ -21,9 +21,10 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { orderId, expectedAmount, imageUrl } = body;
+    const { orderId, expectedAmount, imageUrl, imageBase64 } = body;
+    const receiptImage = imageBase64 || imageUrl;
 
-    if (!orderId || !expectedAmount || !imageUrl) {
+    if (!orderId || !expectedAmount || !receiptImage) {
       return NextResponse.json(
         { error: "Missing orderId, expectedAmount, or imageUrl" },
         { status: 400 },
@@ -57,7 +58,7 @@ export async function POST(request: Request) {
             },
             {
   type: "input_image",
-  image_url: imageUrl,
+  image_url: receiptImage,
   detail: "auto",
 },
           ],

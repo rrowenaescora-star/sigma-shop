@@ -272,6 +272,13 @@ function orderStatusMessage(order) {
 }
 
 async function analyzeReceiptWithAI(orderId, expectedAmount, imageUrl) {
+  const imageRes = await fetch(imageUrl);
+  const arrayBuffer = await imageRes.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+
+  const contentType = imageRes.headers.get("content-type") || "image/png";
+  const imageBase64 = `data:${contentType};base64,${buffer.toString("base64")}`;
+
   const res = await fetch(
     `${process.env.NEXT_PUBLIC_APP_URL}/api/ai/receipt-check`,
     {
@@ -283,7 +290,7 @@ async function analyzeReceiptWithAI(orderId, expectedAmount, imageUrl) {
       body: JSON.stringify({
         orderId,
         expectedAmount,
-        imageUrl,
+        imageBase64,
       }),
     }
   );

@@ -740,6 +740,7 @@ if (foundProduct) {
         { href: "/pet-simulator", img: "/games/petsim.png", alt: "Pet Simulator", name: "Pet Simulator" },
         { href: "/blade-ball", img: "/games/bladeball.png", alt: "Blade Ball", name: "Blade Ball" },
         { href: "/home", img: "/games/bloxfruits.png", alt: "Blox Fruits", name: "Blox Fruits" },
+	{ href: "/grow-a-garden-2", img: "/games/grow-a-garden-2.png", alt: "Grow a Garden 2", name: "Grow a Garden 2" },
       ].map((shop) => (
         <Link
           key={shop.name}

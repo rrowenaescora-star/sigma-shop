@@ -555,6 +555,7 @@ export default function AdminProductsPage() {
     <option value="pet-simulator">Pet Simulator</option>
     <option value="blade-ball">Blade Ball</option>
     <option value="anime-defender">Anime Defender</option>
+     <option value="grow-a-garden-2">Grow a Garden 2</option>
   </select>
 
   <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">

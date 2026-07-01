@@ -280,7 +280,7 @@ async function analyzeReceiptWithAI(orderId, expectedAmount, imageUrl) {
   const imageBase64 = `data:${contentType};base64,${buffer.toString("base64")}`;
 
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_APP_URL}/api/ai/receipt-check`,
+    `${process.env.RECEIPT_AI_URL}/api/receipt-check`,
     {
       method: "POST",
       headers: {
@@ -745,47 +745,45 @@ client.on("messageCreate", async (message) => {
       return;
     }
 
-    if (!ai.emailFound) {
-      await message.reply({
-        content:
-          `❌ Receipt rejected.\n\n` +
-          `We could not detect our official PayPal email on your screenshot.\n\n` +
-          `Please upload a clear PayPal receipt showing:\n` +
-          `• Our PayPal email\n` +
-          `• Amount sent\n` +
-          `• Payment status`,
-      });
-      return;
-    }
 
-    if (ai.missingAmount > 0) {
-      await message.reply({
-        content:
-          `⚠️ Payment amount is incomplete.\n\n` +
-          `**Expected:**\n` +
-          `$${Number(ai.expectedAmount).toFixed(2)}\n\n` +
-          `**Received:**\n` +
-          `$${Number(ai.amountReceived).toFixed(2)}\n\n` +
-          `**Missing amount:**\n` +
-          `$${Number(ai.missingAmount).toFixed(2)}\n\n` +
-          `Please send the remaining balance to complete your payment, then upload the new receipt.`,
-      });
-      return;
-    }
+if (ai.decision?.status === "low_confidence") {
+  await message.reply({
+    content:
+      `# ⚠️ ${ai.decision.title}\n\n` +
+      `${ai.decision.message}\n\n` +
+      `Staff has been notified for manual review.`,
+  });
+}
+    if (ai.decision?.status === "invalid_email") {
+  await message.reply({
+    content:
+      `# ❌ ${ai.decision.title}\n\n` +
+      `${ai.decision.message}`,
+  });
+  return;
+}
 
-    if (ai.overpaidAmount > 0) {
-      await message.reply({
-        content:
-          `⚠️ Overpayment detected.\n\n` +
-          `**Expected:**\n` +
-          `$${Number(ai.expectedAmount).toFixed(2)}\n\n` +
-          `**Received:**\n` +
-          `$${Number(ai.amountReceived).toFixed(2)}\n\n` +
-          `**Overpaid:**\n` +
-          `$${Number(ai.overpaidAmount).toFixed(2)}\n\n` +
-          `Please wait for staff assistance on how to claim the overpayment.`,
-      });
-    }
+    if (ai.decision?.status === "underpaid") {
+  await message.reply({
+    content:
+      `# ⚠️ ${ai.decision.title}\n\n` +
+      `${ai.decision.message}\n\n` +
+      `**Expected:** $${Number(ai.expectedAmount).toFixed(2)}\n` +
+      `**Received:** $${Number(ai.amountReceived).toFixed(2)}\n` +
+      `**Missing:** $${Number(ai.missingAmount).toFixed(2)}`,
+  });
+  return;
+}
+if (ai.decision?.status === "overpaid") {
+  await message.reply({
+    content:
+      `# ⚠️ ${ai.decision.title}\n\n` +
+      `${ai.decision.message}\n\n` +
+      `**Expected:** $${Number(ai.expectedAmount).toFixed(2)}\n` +
+      `**Received:** $${Number(ai.amountReceived).toFixed(2)}\n` +
+      `**Overpaid:** $${Number(ai.overpaidAmount).toFixed(2)}`,
+  });
+}
 
     await message.reply({
       content:

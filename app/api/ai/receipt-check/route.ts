@@ -1,5 +1,8 @@
 import OpenAI from "openai";
 import { NextResponse } from "next/server";
+import { buildReceiptResult } from "@/lib/receipt-engine";
+import { getReceiptDecision } from "@/lib/receipt-decision";
+
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -75,22 +78,25 @@ export async function POST(request: Request) {
     const missing = toMoney(Math.max(expected - received, 0));
     const overpaid = toMoney(Math.max(received - expected, 0));
 
-    return NextResponse.json({
-      success: true,
-      orderId,
-      expectedAmount: expected,
-      emailFound: Boolean(ai.email_found),
-      matchedEmail: ai.matched_email || null,
-      amountReceived: received,
-      currency: ai.currency || null,
-      paymentStatus: ai.payment_status || "unknown",
-      transactionId: ai.transaction_id || null,
-      confidence: Number(ai.confidence || 0),
-      missingAmount: missing,
-      overpaidAmount: overpaid,
-      isExactAmount: Math.abs(received - expected) < 0.01,
-      raw: ai,
-    });
+    const result = buildReceiptResult({
+  orderId,
+  expectedAmount,
+  amountReceived: received,
+  emailFound: Boolean(ai.email_found),
+  matchedEmail: ai.matched_email || null,
+  currency: ai.currency || null,
+  paymentStatus: ai.payment_status || "unknown",
+  transactionId: ai.transaction_id || null,
+  confidence: Number(ai.confidence || 0),
+  raw: ai,
+});
+
+const decision = getReceiptDecision(result);
+
+return NextResponse.json({
+  ...result,
+  decision,
+});
   } catch (error) {
     console.error("Receipt AI error:", error);
 

@@ -801,22 +801,28 @@ if (ai.decision?.status === "overpaid") {
 
     if (staffChannel) {
       await staffChannel.send({
-        content:
-          `# 🧾 NEW MANUAL PAYMENT REVIEW\n\n` +
-          `**Order ID:** #${contextOrderId}\n` +
-          `**Customer:** ${message.author.tag} / <@${message.author.id}>\n` +
-          `**Ticket:** <#${message.channel.id}>\n` +
-          `**Payment Method:** PayPal\n\n` +
-          `## AI Receipt Report\n` +
-          `**Email Found:** ${ai.emailFound ? "Yes" : "No"}\n` +
-          `**Matched Email:** ${ai.matchedEmail || "Unknown"}\n` +
-          `**Expected:** $${Number(ai.expectedAmount).toFixed(2)}\n` +
-          `**Received:** $${Number(ai.amountReceived).toFixed(2)}\n` +
-          `**Currency:** ${ai.currency || "Unknown"}\n` +
-          `**Status:** ${ai.paymentStatus || "Unknown"}\n` +
-          `**Transaction ID:** ${ai.transactionId || "Unknown"}\n` +
-          `**Confidence:** ${ai.confidence}%\n\n` +
-          `Please review the receipt in the customer ticket, then verify or reject the payment.`,
+      content:
+  `# 🧾 NEW MANUAL PAYMENT REVIEW\n\n` +
+  `**Order ID:** #${contextOrderId}\n` +
+  `**Customer:** ${message.author.tag} / <@${message.author.id}>\n` +
+  `**Ticket:** <#${message.channel.id}>\n` +
+  `**Payment Method:** ${ai.receiptType || "Unknown"}\n\n` +
+
+  `## AI Receipt Report\n` +
+  `**Amount:** ${receiptInfo.amount || "Unknown"}\n` +
+  `**Email:** ${receiptInfo.email || "Unknown"}\n` +
+  `**Transaction ID:** ${receiptInfo.transactionId || "Unknown"}\n` +
+  `**Payment Status:** ${ai.paymentResult?.status || "Unknown"}\n` +
+  `**Fraud Risk:** ${fraudScore.risk ?? 0}%\n` +
+  `**Risk Level:** ${fraudScore.level || "Unknown"}\n` +
+  `**Total Paid:** ${paymentSession.totalPaid || 0}\n` +
+  `**Receipts Uploaded:** ${(paymentSession.receipts || []).length}\n\n` +
+
+  `### 🤖 AI Recommendation\n` +
+  `**${botResponse.title || "Unknown"}**\n` +
+  `${botResponse.message || "No recommendation"}\n\n` +
+
+  `Please review the receipt in the customer ticket, then verify or reject the payment.`,
         components: staffOrderButtons(contextOrderId, "unpaid", message.channel.id),
       });
     }

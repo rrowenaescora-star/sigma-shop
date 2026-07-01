@@ -809,6 +809,7 @@ if (ai.decision?.status === "overpaid") {
   `**Payment Method:** ${ai.receiptType || "Unknown"}\n\n` +
 
   `## AI Receipt Report\n` +
+  `**Expected Amount:** $${Number(order.totalPrice || 0).toFixed(2)}\n` +
   `**Amount:** ${receiptInfo.amount || "Unknown"}\n` +
   `**Email:** ${receiptInfo.email || "Unknown"}\n` +
   `**Transaction ID:** ${receiptInfo.transactionId || "Unknown"}\n` +
@@ -816,6 +817,11 @@ if (ai.decision?.status === "overpaid") {
   `**Fraud Risk:** ${fraudScore.risk ?? 0}%\n` +
   `**Risk Level:** ${fraudScore.level || "Unknown"}\n` +
   `**Total Paid:** ${paymentSession.totalPaid || 0}\n` +
+`**Remaining Balance:** $${Math.max(
+  Number(order.totalPrice || 0) -
+    Number(paymentSession.totalPaid || 0),
+  0
+).toFixed(2)}\n` +
   `**Receipts Uploaded:** ${(paymentSession.receipts || []).length}\n\n` +
 
   `### 🤖 AI Recommendation\n` +

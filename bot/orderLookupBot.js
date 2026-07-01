@@ -1,5 +1,5 @@
 require("dotenv").config({ path: "../.env.local" });
-
+const Tesseract = require("tesseract.js");
 const {
   Client,
   GatewayIntentBits,
@@ -275,6 +275,8 @@ async function analyzeReceiptWithAI(orderId, expectedAmount, imageUrl) {
   const imageRes = await fetch(imageUrl);
   const arrayBuffer = await imageRes.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
+  const ocrResult = await Tesseract.recognize(buffer, "eng");
+const ocrText = ocrResult.data.text;
 
   const contentType = imageRes.headers.get("content-type") || "image/png";
   const imageBase64 = `data:${contentType};base64,${buffer.toString("base64")}`;
@@ -287,11 +289,11 @@ async function analyzeReceiptWithAI(orderId, expectedAmount, imageUrl) {
         "Content-Type": "application/json",
         "x-receipt-ai-secret": process.env.RECEIPT_AI_SECRET,
       },
-      body: JSON.stringify({
-        orderId,
-        expectedAmount,
-        imageBase64,
-      }),
+     body: JSON.stringify({
+  orderId,
+  expectedAmount,
+  ocrText,
+}),
     }
   );
 

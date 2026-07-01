@@ -1,5 +1,5 @@
 require("dotenv").config({ path: "../.env.local" });
-
+const Tesseract = require("tesseract.js");
 const {
   Client,
   GatewayIntentBits,
@@ -276,8 +276,8 @@ async function analyzeReceiptWithAI(orderId, expectedAmount, imageUrl) {
   const arrayBuffer = await imageRes.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
 
-  const contentType = imageRes.headers.get("content-type") || "image/png";
-  const imageBase64 = `data:${contentType};base64,${buffer.toString("base64")}`;
+  const ocrResult = await Tesseract.recognize(buffer, "eng");
+  const ocrText = ocrResult.data.text;
 
   const res = await fetch(
     `${process.env.RECEIPT_AI_URL}/api/receipt-check`,
@@ -290,7 +290,7 @@ async function analyzeReceiptWithAI(orderId, expectedAmount, imageUrl) {
       body: JSON.stringify({
         orderId,
         expectedAmount,
-        imageBase64,
+        ocrText,
       }),
     }
   );
@@ -729,18 +729,19 @@ client.on("messageCreate", async (message) => {
     const order = orderData.order;
 
     const ai = await analyzeReceiptWithAI(
-      order.id,
-      Number(order.totalPrice || 0),
-      image.url
-    );
+  order.id,
+  Number(order.totalPrice || 0),
+  image.url
+);
 
-    console.log("AI receipt result:", ai);
+console.log("AI receipt result:", ai);
 
-    if (!ai.success) {
-	const receiptInfo = ai.receiptInfo || {};
+const receiptInfo = ai.receiptInfo || {};
 const fraudScore = ai.fraudScore || {};
 const paymentSession = ai.paymentSession || {};
 const botResponse = ai.botResponse || {};
+
+if (!ai.success) {
       await message.reply({
         content:
           `❌ AI receipt check failed.\n\n` +
@@ -790,22 +791,11 @@ if (ai.decision?.status === "overpaid") {
 }
 
     await message.reply({
-  content:
-    `# ✅ Receipt Check Result\n\n` +
-    `**Status:** ${ai.paymentResult?.status || "Unknown"}\n` +
-    `**Receipt Type:** ${ai.receiptType || "Unknown"}\n` +
-    `**Amount Detected:** ${receiptInfo.amount || "Unknown"}\n` +
-    `**Email Detected:** ${receiptInfo.email || "Unknown"}\n` +
-    `**Transaction ID:** ${receiptInfo.transactionId || "Unknown"}\n\n` +
-    `## Payment Memory\n` +
-    `**Total Paid:** ${paymentSession.totalPaid || 0}\n` +
-    `**Receipts Uploaded:** ${(paymentSession.receipts || []).length}\n\n` +
-    `## Fraud Check\n` +
-    `**Risk:** ${fraudScore.risk ?? 0}%\n` +
-    `**Level:** ${fraudScore.level || "Unknown"}\n\n` +
-    `${botResponse.message || "Staff has been notified for final verification."}\n\n` +
-    `Estimated verification: **1-10 minutes**.`,
-});
+      content:
+        `✅ AI receipt check passed.\n\n` +
+        `Staff has been notified for final verification.\n\n` +
+        `Estimated verification: **1-10 minutes**.`,
+    });
 
     const staffChannel = await client.channels.fetch(STAFF_REVIEW_CHANNEL_ID);
 

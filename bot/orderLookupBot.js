@@ -107,11 +107,11 @@ function supportButtons() {
   );
 }
 
-function paypalButtons() {
+function paymentButtons() {
   return new ActionRowBuilder().addComponents(
     new ButtonBuilder()
-      .setCustomId("paypal_payment")
-      .setLabel("PayPal Instructions")
+      .setCustomId("payment_instructions")
+      .setLabel("Payment Instructions")
       .setStyle(ButtonStyle.Primary),
 
     new ButtonBuilder()
@@ -120,7 +120,6 @@ function paypalButtons() {
       .setStyle(ButtonStyle.Success)
   );
 }
-
 function staffOrderButtons(orderId, stage = "unpaid", ticketChannelId = "") {
   const suffix = ticketChannelId ? `:${ticketChannelId}` : "";
 
@@ -287,11 +286,12 @@ async function analyzeReceiptWithAI(orderId, expectedAmount, imageUrl) {
         "Content-Type": "application/json",
         "x-receipt-ai-secret": process.env.RECEIPT_AI_SECRET,
       },
-      body: JSON.stringify({
-        orderId,
-        expectedAmount,
-        ocrText,
-      }),
+     body: JSON.stringify({
+  orderId,
+  expectedAmount,
+  expectedCurrency: "USD",
+  ocrText,
+}),
     }
   );
 
@@ -432,7 +432,7 @@ client.on("interactionCreate", async (interaction) => {
                 ? "✅ Your payment is already verified."
                 : "⚠️ If you have not paid yet, click PayPal Instructions below."
             }`,
-          components: isOrderPaid(order) ? [] : [paypalButtons()],
+          components: isOrderPaid(order) ? [] : [paymentButtons()],
         });
       }
 
@@ -451,9 +451,9 @@ client.on("interactionCreate", async (interaction) => {
             `**Username:** ${order.username || "Unknown"}\n\n` +
             `## 🛒 Items\n${formatItems(order)}\n\n` +
             `## 💰 Amount to Pay\n**$${Number(order.totalPrice || 0).toFixed(2)}**\n\n` +
-            `Please upload your PayPal receipt screenshot in this ticket.\n\n` +
-            `After you upload it, staff will verify your payment.\n\n` +
-            `**PayPal Address:**\n\`${PAYPAL_EMAIL}\``,
+            `Please upload your payment receipt screenshot in this ticket.\n\n` +
+`Supported receipts: PayPal, GCash, or Maya.\n\n` +
+`After you upload it, staff will verify your payment.`,
         });
       }
     } catch (error) {
@@ -632,33 +632,30 @@ if (interaction.customId === "track_order") {
   if (interaction.customId === "payment_methods") {
     return interaction.reply({
       content:
-        "# 💳 Payment Method\n\n" +
-        "We currently accept manual international payment through **PayPal** only.\n\n" +
-        "**PayPal Address:**\n" +
-        `\`${PAYPAL_EMAIL}\`\n\n` +
-        "Click PayPal Instructions below, then click **I've Paid** after sending payment.",
-      components: [paypalButtons()],
+        "# 💳 Payment Methods\n\n" +
+"We currently accept manual payment through **PayPal, GCash, and Maya**.\n\n" +
+"After sending payment, click **I've Paid**, enter your Order ID, then upload your receipt.",
+      components: [paymentButtons()],
       ephemeral: true,
     });
   }
 
-  if (interaction.customId === "paypal_payment") {
-    return interaction.reply({
-      content:
-        "# 💳 PayPal Manual Payment\n\n" +
-        "**Send payment to:**\n" +
-        `\`${PAYPAL_EMAIL}\`\n\n` +
-        "**Instructions:**\n" +
-        "1. Open PayPal and click **Send** or **Send & Request**.\n" +
-        "2. Enter our PayPal email address.\n" +
-        "3. Send the exact amount shown in your order.\n" +
-        "4. Screenshot your receipt.\n" +
-        "5. Click **I've Paid**, enter your Order ID, then upload your receipt in this ticket.\n\n" +
-        "⚠️ Do not send payment without checking your Order ID first.",
-      files: ["./assets/paypal-instructions.png"],
-      components: [paypalButtons()],
-      ephemeral: true,
-    });
+ if (interaction.customId === "payment_instructions") {
+   return interaction.reply({
+  content:
+    "# 💳 Payment Instructions\n\n" +
+    "We currently support:\n\n" +
+    "• PayPal\n" +
+    "• GCash\n" +
+    "• Maya\n\n" +
+    "After completing your payment:\n" +
+    "1. Click **I've Paid**.\n" +
+    "2. Enter your Order ID.\n" +
+    "3. Upload your payment receipt screenshot.\n\n" +
+    "Our AI will automatically analyze your receipt before staff review.",
+  components: [paymentButtons()],
+  ephemeral: true,
+});
   }
 
   if (interaction.customId === "human_support") {
@@ -702,7 +699,7 @@ client.on("messageCreate", async (message) => {
       content:
         `⚠️ We received your screenshot, but we do not know your Order ID yet.\n\n` +
         `Please click **I've Paid** and enter your Order ID first.`,
-      components: [paypalButtons()],
+      components: [paymentButtons()],
     });
     return;
   }
@@ -721,7 +718,7 @@ client.on("messageCreate", async (message) => {
         content:
           `❌ We could not find your order while checking the receipt.\n\n` +
           `Please click **I've Paid** and enter your Order ID again.`,
-        components: [paypalButtons()],
+        components: [paymentButtons()],
       });
       return;
     }
@@ -745,7 +742,7 @@ if (!ai.success) {
       await message.reply({
         content:
           `❌ AI receipt check failed.\n\n` +
-          `Please upload a clearer PayPal receipt screenshot showing our email, amount, and payment status.`,
+         `Please upload a clearer payment receipt screenshot showing the amount, payment status, and transaction ID.`,
       });
       return;
     }
@@ -953,15 +950,19 @@ if (ai.decision?.status === "overpaid") {
       return message.reply({
         content:
           `# ⚠️ PAYMENT NOT VERIFIED\n\n` +
-          `**Order ID:** #${order.id}\n` +
-          `**Username:** ${order.username || "Unknown"}\n` +
-          `**Payment Method:** ${order.paymentMethod || "Unknown"}\n` +
-          `**Payment Status:** ${order.paymentStatus || "Pending"}\n\n` +
-          `## 🛒 Items\n${formatItems(order)}\n\n` +
-          `## 💰 Amount to Pay\n**$${Number(order.totalPrice || 0).toFixed(2)}**\n\n` +
-          `Please send the exact amount through PayPal, then upload your payment screenshot here.\n\n` +
-          `**PayPal Address:**\n\`${PAYPAL_EMAIL}\``,
-        components: [paypalButtons()],
+`**Order ID:** #${order.id}\n` +
+`**Username:** ${order.username || "Unknown"}\n` +
+`**Payment Method:** ${order.paymentMethod || "Unknown"}\n` +
+`**Payment Status:** ${order.paymentStatus || "Pending"}\n\n` +
+`## 🛒 Items\n${formatItems(order)}\n\n` +
+`## 💰 Amount to Pay\n**$${Number(order.totalPrice || 0).toFixed(2)}**\n\n` +
+`Please send the exact amount using one of our supported payment methods, then upload your payment receipt in this ticket.\n\n` +
+`### Supported Payment Methods\n` +
+`• PayPal\n` +
+`• GCash\n` +
+`• Maya\n\n` +
+`After uploading your receipt, our AI will automatically analyze it before staff reviews your payment.`,
+        components: [paymentButtons()],
       });
     }
 

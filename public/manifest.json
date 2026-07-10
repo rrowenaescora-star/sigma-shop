@@ -1,0 +1,25 @@
+{
+  "name": "Bloxhop Wallet",
+  "short_name": "Bloxhop Wallet",
+  "description": "Check your Bloxhop Wallet balance and add credit.",
+  "start_url": "/wallet",
+  "scope": "/wallet",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#0f172a",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

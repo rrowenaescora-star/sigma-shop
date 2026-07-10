@@ -20,7 +20,7 @@ function hashSessionToken(token: string) {
 export async function POST(request: Request) {
   try {
     const paymongoSecretKey = process.env.PAYMONGO_SECRET_KEY;
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+    const siteUrl = process.env.NEXT_PUBLIC_APP_URL;
 
     if (!paymongoSecretKey) {
       throw new Error("Missing PAYMONGO_SECRET_KEY");
@@ -147,11 +147,10 @@ if (topUpError || !topUp) {
                 },
               ],
               payment_method_types: [
-                "card",
-                "gcash",
-                "grab_pay",
-                "paymaya",
-              ],
+  "card",
+  "qrph",
+  "dob",
+],
               reference_number: `wallet-topup-${topUp.id}`,
               send_email_receipt: true,
               show_description: true,

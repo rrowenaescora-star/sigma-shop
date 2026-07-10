@@ -27,7 +27,7 @@ export async function POST(request: Request) {
     }
 
     if (!siteUrl) {
-      throw new Error("Missing NEXT_PUBLIC_SITE_URL");
+      throw new Error("Missing NEXT_PUBLIC_APP_URL");
     }
 
     const cookieStore = await cookies();

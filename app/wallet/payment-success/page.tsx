@@ -12,7 +12,7 @@ export default function WalletPaymentSuccessPage() {
       setSeconds((current) => {
         if (current <= 1) {
           window.clearInterval(countdown);
-          router.replace("/");
+          router.replace("/wallet/dashboard");
           return 0;
         }
 
@@ -44,7 +44,7 @@ export default function WalletPaymentSuccessPage() {
 
         <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
           <p className="text-sm text-slate-600">
-            Returning to Bloxhop in{" "}
+            Returning to your wallet in{" "}
             <span className="font-bold text-slate-950">{seconds}</span>{" "}
             seconds.
           </p>
@@ -52,10 +52,10 @@ export default function WalletPaymentSuccessPage() {
 
         <button
           type="button"
-          onClick={() => router.replace("/")}
+          onClick={() => router.replace("/wallet/dashboard")}
           className="mt-6 w-full rounded-xl bg-slate-950 px-5 py-3.5 text-sm font-bold text-white transition hover:bg-slate-800"
         >
-          Return to Bloxhop
+          Return to Wallet
         </button>
 
         <p className="mt-4 text-xs leading-5 text-slate-400">

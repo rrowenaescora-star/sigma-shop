@@ -3,29 +3,34 @@ import { NextResponse } from "next/server";
 
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
+type PayMongoPayment = {
+  id?: string;
+  attributes?: {
+    amount?: number;
+    currency?: string;
+    status?: string;
+  };
+};
+
+type PayMongoCheckoutSession = {
+  id?: string;
+  attributes?: {
+    livemode?: boolean;
+    metadata?: {
+      topup_id?: string;
+      wallet_id?: string;
+      amount_centavos?: string;
+    };
+    payments?: PayMongoPayment[];
+  };
+};
+
 type PayMongoWebhookPayload = {
   data?: {
-    type?: string;
-    livemode?: boolean;
-    data?: {
-      id?: string;
-      attributes?: {
-        reference_number?: string;
-        metadata?: {
-          topup_id?: string;
-          wallet_id?: string;
-          amount_centavos?: string;
-        };
-        payments?: Array<{
-          id?: string;
-          attributes?: {
-            amount?: number;
-            net_amount?: number;
-            currency?: string;
-            status?: string;
-          };
-        }>;
-      };
+    attributes?: {
+      type?: string;
+      livemode?: boolean;
+      data?: PayMongoCheckoutSession;
     };
   };
 };
@@ -85,13 +90,16 @@ function verifySignature(params: {
 export async function POST(request: Request) {
   try {
     const webhookSecret =
-  process.env.PAYMONGO_WALLET_WEBHOOK_SECRET;
+      process.env.PAYMONGO_WALLET_WEBHOOK_SECRET;
 
     if (!webhookSecret) {
-      throw new Error("Missing PAYMONGO_WEBHOOK_SECRET");
+      throw new Error(
+        "Missing PAYMONGO_WALLET_WEBHOOK_SECRET",
+      );
     }
 
-    const signatureHeader = request.headers.get("paymongo-signature");
+    const signatureHeader =
+      request.headers.get("paymongo-signature");
 
     if (!signatureHeader) {
       return NextResponse.json(
@@ -113,7 +121,13 @@ export async function POST(request: Request) {
       );
     }
 
-    const livemode = payload.data?.livemode === true;
+    const eventAttributes = payload.data?.attributes;
+    const checkoutSession = eventAttributes?.data;
+    const checkoutAttributes = checkoutSession?.attributes;
+
+    const livemode =
+      eventAttributes?.livemode === true ||
+      checkoutAttributes?.livemode === true;
 
     if (
       !verifySignature({
@@ -123,30 +137,38 @@ export async function POST(request: Request) {
         livemode,
       })
     ) {
+      console.error("Invalid PayMongo wallet webhook signature", {
+        livemode,
+        hasLiveSignature: signatureHeader.includes("li="),
+        hasTestSignature: signatureHeader.includes("te="),
+      });
+
       return NextResponse.json(
         { error: "Invalid webhook signature." },
         { status: 401 },
       );
     }
 
-    if (payload.data?.type !== "checkout_session.payment.paid") {
+    if (
+      eventAttributes?.type !==
+      "checkout_session.payment.paid"
+    ) {
       return NextResponse.json({
         received: true,
         ignored: true,
       });
     }
 
-    const checkoutSession = payload.data.data;
-    const attributes = checkoutSession?.attributes;
-    const payment = attributes?.payments?.find(
+    const payment = checkoutAttributes?.payments?.find(
       (item) => item.attributes?.status === "paid",
     );
 
-    const topUpId = attributes?.metadata?.topup_id;
+    const topUpId =
+      checkoutAttributes?.metadata?.topup_id;
     const checkoutSessionId = checkoutSession?.id;
     const paymentId = payment?.id;
     const amountCentavos = Number(
-      attributes?.metadata?.amount_centavos,
+      checkoutAttributes?.metadata?.amount_centavos,
     );
 
     if (
@@ -155,9 +177,17 @@ export async function POST(request: Request) {
       !paymentId ||
       !Number.isInteger(amountCentavos) ||
       amountCentavos <= 0 ||
-      payment?.attributes?.currency !== "PHP"
+      payment?.attributes?.currency !== "PHP" ||
+      payment.attributes.amount !== amountCentavos
     ) {
-      console.error("Incomplete wallet top-up webhook payload");
+      console.error("Incomplete wallet webhook data", {
+        topUpId,
+        checkoutSessionId,
+        paymentId,
+        amountCentavos,
+        paymentAmount: payment?.attributes?.amount,
+        currency: payment?.attributes?.currency,
+      });
 
       return NextResponse.json(
         { error: "Incomplete payment data." },
@@ -165,13 +195,14 @@ export async function POST(request: Request) {
       );
     }
 
-    const { data: topUp, error: topUpError } = await supabaseAdmin
-      .from("wallet_topups")
-      .select(
-        "id, wallet_id, checkout_session_id, amount_centavos, status",
-      )
-      .eq("id", topUpId)
-      .maybeSingle();
+    const { data: topUp, error: topUpError } =
+      await supabaseAdmin
+        .from("wallet_topups")
+        .select(
+          "id, wallet_id, checkout_session_id, amount_centavos, status",
+        )
+        .eq("id", topUpId)
+        .maybeSingle();
 
     if (topUpError) {
       console.error("Wallet top-up lookup error:", topUpError);
@@ -195,7 +226,11 @@ export async function POST(request: Request) {
     ) {
       console.error("Wallet top-up payment mismatch", {
         topUpId,
-        checkoutSessionId,
+        storedCheckoutSessionId:
+          topUp.checkout_session_id,
+        receivedCheckoutSessionId: checkoutSessionId,
+        storedAmount: topUp.amount_centavos,
+        receivedAmount: amountCentavos,
       });
 
       return NextResponse.json(
@@ -212,7 +247,10 @@ export async function POST(request: Request) {
       });
 
     if (creditError) {
-      console.error("Wallet credit function error:", creditError);
+      console.error(
+        "Wallet credit function error:",
+        creditError,
+      );
 
       return NextResponse.json(
         { error: "Unable to credit the wallet." },
@@ -232,7 +270,10 @@ export async function POST(request: Request) {
       credited: true,
     });
   } catch (error) {
-    console.error("PayMongo wallet webhook error:", error);
+    console.error(
+      "PayMongo wallet webhook error:",
+      error,
+    );
 
     return NextResponse.json(
       { error: "Unable to process the webhook." },

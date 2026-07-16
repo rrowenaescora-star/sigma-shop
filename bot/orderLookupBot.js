@@ -43,6 +43,36 @@ const lastUserQuestion = new Map();
 const orderLocks = new Map();
 const orderQueue = [];
 const ticketOrderContext = new Map();
+const activePaymentReferences = new Map();
+
+function generatePaymentReference() {
+  const characters = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let randomPart = "";
+
+  for (let index = 0; index < 6; index += 1) {
+    randomPart += characters.charAt(
+      Math.floor(Math.random() * characters.length)
+    );
+  }
+
+  return `NurseOS-${randomPart}`;
+}
+
+function createNewPaymentReference(orderId) {
+  const reference = generatePaymentReference();
+
+  activePaymentReferences.set(String(orderId), {
+    reference,
+    createdAt: Date.now(),
+    used: false,
+  });
+
+  return reference;
+}
+
+function getActivePaymentReference(orderId) {
+  return activePaymentReferences.get(String(orderId)) || null;
+}
 
 function now() {
   return Date.now();
@@ -110,13 +140,13 @@ function supportButtons() {
 function paymentButtons() {
   return new ActionRowBuilder().addComponents(
     new ButtonBuilder()
-      .setCustomId("payment_instructions")
-      .setLabel("Payment Instructions")
-      .setStyle(ButtonStyle.Primary),
+      .setLabel("💰 Pay with PayPal")
+      .setStyle(ButtonStyle.Link)
+      .setURL("https://www.paypal.com/ncp/payment/9QWKW3YWJWH2A"),
 
     new ButtonBuilder()
       .setCustomId("paid_yes")
-      .setLabel("I've Paid")
+      .setLabel("✅ I've Paid")
       .setStyle(ButtonStyle.Success)
   );
 }
@@ -270,8 +300,18 @@ function orderStatusMessage(order) {
   );
 }
 
-async function analyzeReceiptWithAI(orderId, expectedAmount, imageUrl) {
+async function analyzeReceiptWithAI(
+  orderId,
+  expectedAmount,
+  imageUrl,
+  expectedReference = null
+) {
   const imageRes = await fetch(imageUrl);
+
+  if (!imageRes.ok) {
+    throw new Error(`Failed to download receipt: ${imageRes.status}`);
+  }
+
   const arrayBuffer = await imageRes.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
 
@@ -286,18 +326,22 @@ async function analyzeReceiptWithAI(orderId, expectedAmount, imageUrl) {
         "Content-Type": "application/json",
         "x-receipt-ai-secret": process.env.RECEIPT_AI_SECRET,
       },
-     body: JSON.stringify({
-  orderId,
-  expectedAmount,
-  expectedCurrency: "USD",
-  ocrText,
-}),
+      body: JSON.stringify({
+        orderId,
+        expectedAmount,
+        expectedCurrency: "USD",
+        expectedReference,
+        ocrText,
+      }),
     }
   );
 
+  if (!res.ok) {
+    throw new Error(`Receipt API returned ${res.status}`);
+  }
+
   return res.json();
 }
-
 async function logSuspicious(message, reason) {
   try {
     const logChannelId = process.env.ADMIN_LOG_CHANNEL_ID;
@@ -629,35 +673,35 @@ if (interaction.customId === "track_order") {
   }
 }
 
-  if (interaction.customId === "payment_methods") {
-    return interaction.reply({
-      content:
-        "# 💳 Payment Methods\n\n" +
-"We currently accept manual payment through **PayPal, GCash, and Maya**.\n\n" +
-"After sending payment, click **I've Paid**, enter your Order ID, then upload your receipt.",
-      components: [paymentButtons()],
-      ephemeral: true,
-    });
-  }
+if (interaction.customId === "payment_methods") {
+  return interaction.reply({
+    content:
+      "# 💳 NurseOS Payment\n\n" +
+      "Please read the instructions carefully before paying.\n\n" +
+      "• Pay the **EXACT** amount shown on your order.\n" +
+      "• After payment, click **I've Paid**.\n" +
+      "• Enter your Order ID.\n" +
+      "• Upload the PayPal confirmation screenshot.\n\n" +
+      "Our AI will automatically verify your payment before it is sent to staff.",
+    components: [paymentButtons()],
+    ephemeral: true,
+  });
+}
 
- if (interaction.customId === "payment_instructions") {
-   return interaction.reply({
-  content:
-    "# 💳 Payment Instructions\n\n" +
-    "We currently support:\n\n" +
-    "• PayPal\n" +
-    "• GCash\n" +
-    "• Maya\n\n" +
-    "After completing your payment:\n" +
-    "1. Click **I've Paid**.\n" +
-    "2. Enter your Order ID.\n" +
-    "3. Upload your payment receipt screenshot.\n\n" +
-    "Our AI will automatically analyze your receipt before staff review.",
-  components: [paymentButtons()],
-  ephemeral: true,
-});
-  }
-
+if (interaction.customId === "payment_instructions") {
+  return interaction.reply({
+    content:
+      "# 💳 Payment Instructions\n\n" +
+      "1. Click **Pay with PayPal** below.\n\n" +
+      "2. Pay the **EXACT** amount of your order.\n\n" +
+      "3. After completing the payment, return here and click **I've Paid**.\n\n" +
+      "4. Enter your Order ID.\n\n" +
+      "5. Upload the PayPal confirmation screenshot.\n\n" +
+      "Our AI will automatically review your payment before staff verification.",
+    components: [paymentButtons()],
+    ephemeral: true,
+  });
+}
   if (interaction.customId === "human_support") {
     return interaction.reply({
       content:
@@ -725,10 +769,13 @@ client.on("messageCreate", async (message) => {
 
     const order = orderData.order;
 
-    const ai = await analyzeReceiptWithAI(
+   const activeReference = getActivePaymentReference(order.id);
+
+const ai = await analyzeReceiptWithAI(
   order.id,
   Number(order.totalPrice || 0),
-  image.url
+  image.url,
+  activeReference?.reference || null
 );
 
 console.log("AI receipt result:", ai);
@@ -756,24 +803,100 @@ if (ai.decision?.status === "low_confidence") {
       `Staff has been notified for manual review.`,
   });
 }
-    if (ai.decision?.status === "invalid_email") {
+  if (
+  ai.decision?.status === "invalid_receipt" ||
+  ai.decision?.status === "duplicate"
+) {
   await message.reply({
     content:
       `# ❌ ${ai.decision.title}\n\n` +
-      `${ai.decision.message}`,
+      `${ai.decision.message}\n\n` +
+      `Please upload the official NurseOS PayPal confirmation page showing:\n` +
+      `• Thank you for your purchase\n` +
+      `• NurseOS\n` +
+      `• The exact order amount\n` +
+      `• Paid with: PayPal`,
   });
+
   return;
 }
+if (ai.decision?.status === "invalid_reference") {
+  const activeReference = getActivePaymentReference(order.id);
 
-    if (ai.decision?.status === "underpaid") {
   await message.reply({
     content:
-      `# ⚠️ ${ai.decision.title}\n\n` +
+      `# ❌ PAYMENT REFERENCE NOT FOUND\n\n` +
       `${ai.decision.message}\n\n` +
-      `**Expected:** $${Number(ai.expectedAmount).toFixed(2)}\n` +
-      `**Received:** $${Number(ai.amountReceived).toFixed(2)}\n` +
-      `**Missing:** $${Number(ai.missingAmount).toFixed(2)}`,
+      `Use this exact reference for your follow-up payment:\n\n` +
+      `\`\`\`\n${
+        activeReference?.reference ||
+        ai.expectedReference ||
+        "Reference unavailable"
+      }\n\`\`\`\n` +
+      `After paying, upload the new PayPal confirmation screenshot.`,
+    components: [paymentButtons()],
   });
+
+  return;
+}
+if (ai.decision?.status === "duplicate") {
+  await message.reply({
+    content:
+      `# ❌ DUPLICATE RECEIPT\n\n` +
+      `This payment confirmation has already been uploaded and counted.\n\n` +
+      `Please upload the confirmation from your new follow-up payment.`,
+  });
+
+  return;
+}
+if (ai.decision?.status === "invalid_reference") {
+  const reference =
+    ai.expectedReference ||
+    ai.paymentSession?.activeReference ||
+    "Reference unavailable";
+
+  await message.reply({
+    content:
+      `# ❌ PAYMENT REFERENCE NOT FOUND\n\n` +
+      `Your follow-up receipt does not contain the active reference for this order.\n\n` +
+      `Use this exact reference:\n\n` +
+      `\`\`\`\n${reference}\n\`\`\`\n` +
+      `Complete the follow-up payment, then upload the new confirmation screenshot.`,
+    components: [paymentButtons()],
+  });
+
+  return;
+}
+if (ai.decision?.status === "underpaid") {
+  const reference =
+    ai.paymentReference ||
+    ai.paymentSession?.activeReference ||
+    "Reference unavailable";
+
+  await message.reply({
+    content:
+      `# ❌ PAYMENT INCOMPLETE\n\n` +
+      `Your receipt was accepted, but the order is not fully paid yet.\n\n` +
+      `**Order Total:** $${Number(
+        ai.expectedAmount
+      ).toFixed(2)}\n` +
+      `**Latest Receipt:** $${Number(
+        ai.currentReceiptAmount || 0
+      ).toFixed(2)}\n` +
+      `**Total Paid So Far:** $${Number(
+        ai.totalPaid || ai.amountReceived || 0
+      ).toFixed(2)}\n` +
+      `**Remaining Balance:** $${Number(
+        ai.missingAmount || 0
+      ).toFixed(2)}\n\n` +
+      `## Payment Reference\n` +
+      `Use this same reference for every follow-up payment:\n\n` +
+      `\`\`\`\n${reference}\n\`\`\`\n` +
+      `Pay only the remaining balance, then upload the new PayPal confirmation screenshot.\n\n` +
+      `This reference will remain active until the order is fully paid.`,
+    components: [paymentButtons()],
+  });
+
   return;
 }
 if (ai.decision?.status === "overpaid") {

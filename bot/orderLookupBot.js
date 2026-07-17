@@ -968,27 +968,47 @@ if (ai.decision?.status === "overpaid") {
 }
 }
 
-  const greetingWords = ["hi", "hello", "hey", "yo", "sup", "good morning", "good evening"];
-  const supportWords = ["support", "help", "paid", "payment", "order", "track", "paypal"];
 
-  const isGreeting = greetingWords.some(
-    (word) => content === word || content.startsWith(`${word} `)
-  );
-  const needsSupport = supportWords.some((word) => content.includes(word));
+const normalizedMessage = message.content
+  .toLowerCase()
+  .trim()
+  .replace(/\s+/g, " ");
 
-  if (isGreeting || needsSupport) {
-    const hasOrderId = /order\s*id[:\s#-]*(.+)/i.test(message.content);
+const supportMenuTriggers = new Set([
+  "support",
+  "help",
+  "help me",
+  "support menu",
+  "payment help",
+  "order help",
+  "track my order",
+  "payment methods",
+]);
 
-    if (!hasOrderId && canSendCleanReply(userId, "support_menu")) {
-      await message.reply({
-        content:
-          "# 👋 Welcome to Bloxhop Support\n\n" +
-          "How can we help you today? Please choose an option below.",
-        components: [supportButtons()],
-      });
-      return;
-    }
-  }
+const shouldOpenSupportMenu =
+  supportMenuTriggers.has(normalizedMessage);
+
+const hasOrderId =
+  /order\s*id[:\s#-]*(.+)/i.test(message.content);
+
+const channelAlreadyHasOrder =
+  ticketOrderContext.has(message.channel.id);
+
+if (
+  shouldOpenSupportMenu &&
+  !hasOrderId &&
+  !channelAlreadyHasOrder &&
+  canSendCleanReply(userId, "support_menu")
+) {
+  await message.reply({
+    content:
+      "# 👋 Welcome to Bloxhop Support\n\n" +
+      "How can we help you today? Please choose an option below.",
+    components: [supportButtons()],
+  });
+
+  return;
+}
 
   const match = message.content.match(/order\s*id[:\s#-]*(.+)/i);
   if (!match) return;

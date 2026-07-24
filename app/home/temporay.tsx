@@ -784,7 +784,12 @@ if (foundProduct) {
 
   <div className="invisible absolute left-0 top-full z-50 mt-0.5 w-50 translate-y-2  border border-white/10 bg-[#0b1628]/80 p-3 opacity-0 shadow-[0_20px_70px_rgba(0,0,0,0.45)] backdrop-blur-xl transition-all duration-700 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
     <div className="grid gap-2">
-      {[                        
+      {[
+        { href: "/mm2", img: "/games/mm2.png", alt: "MM2", name: "MM2" },
+        { href: "/adopt-me", img: "/games/adoptme.png", alt: "Adopt Me", name: "Adopt Me" },
+        { href: "/pet-simulator", img: "/games/petsim.png", alt: "Pet Simulator", name: "Pet Simulator" },
+        { href: "/blade-ball", img: "/games/bladeball.png", alt: "Blade Ball", name: "Blade Ball" },
+        { href: "/anime-defenders", img: "/games/animedefender.png", alt: "Anime Defender", name: "Anime Defender" },
 	{ href: "/grow-a-garden-2", img: "/games/grow-a-garden-2.png", alt: "Grow a Garden 2", name: "Grow a Garden 2" },
       ].map((shop) => (
         <Link

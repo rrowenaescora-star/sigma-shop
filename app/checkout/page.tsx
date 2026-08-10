@@ -14,11 +14,34 @@ type Product = {
   stock_quantity?: number | null;
   image_url?: string | null;
   is_active?: boolean;
+  game?: string | null;
 };
 
 type CartItem = Product & {
   quantity: number;
 };
+
+const floatingItemPositions = [
+  { top: "8%", left: "3%", size: "h-24 w-24", duration: "13s", delay: "-2s" },
+  { top: "30%", left: "7%", size: "h-36 w-36", duration: "17s", delay: "-8s" },
+  { top: "66%", left: "2%", size: "h-32 w-32", duration: "15s", delay: "-5s" },
+  { top: "84%", left: "13%", size: "h-24 w-24", duration: "12s", delay: "-7s" },
+  { top: "10%", right: "4%", size: "h-36 w-36", duration: "18s", delay: "-10s" },
+  { top: "40%", right: "8%", size: "h-24 w-24", duration: "14s", delay: "-4s" },
+  { top: "68%", right: "3%", size: "h-32 w-32", duration: "16s", delay: "-12s" },
+  { top: "86%", right: "15%", size: "h-24 w-24", duration: "11s", delay: "-3s" },
+];
+
+const floatingProductNames = [
+  ["black dragon"],
+  ["beer", "bear"],
+  ["unicorn"],
+  ["racoon", "raccoon"],
+  ["dark blade"],
+  ["budha", "buddha"],
+  ["permanent dragon"],
+  ["permanent gravity"],
+];
 
 function CheckoutPageContent() {
   const searchParams = useSearchParams();
@@ -52,6 +75,7 @@ function CheckoutPageContent() {
   const [productValidationMessage, setProductValidationMessage] = useState("");
   const [cartLoaded, setCartLoaded] = useState(false);
   const [confirmChecked, setConfirmChecked] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [showAllItems, setShowAllItems] = useState(false);
 
   const [detectedCountry, setDetectedCountry] = useState("PH");
@@ -335,6 +359,21 @@ function CheckoutPageContent() {
   const hasUnavailableCartItems = useMemo(() => {
     return cartItems.some((item) => isCartItemUnavailable(item));
   }, [cartItems]);
+
+  const floatingProducts = useMemo(() => {
+    const withImages = latestProducts.filter(
+      (product) => product.image_url && product.is_active !== false,
+    );
+
+    return floatingProductNames
+      .map((aliases) =>
+        withImages.find((product) => {
+          const normalizedName = product.name.trim().toLowerCase();
+          return aliases.some((alias) => normalizedName.includes(alias));
+        }),
+      )
+      .filter((product): product is Product => Boolean(product));
+  }, [latestProducts]);
 
   const isPhilippinesCustomer =
     detectedCountry === "PH" && customerCountry === "PH";
@@ -646,10 +685,36 @@ function CheckoutPageContent() {
   }
 
   return (
-    <div className="min-h-screen bg-[#06101d] text-white">
+    <div className="relative isolate min-h-screen overflow-x-clip bg-[#06101d] text-white">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.16),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(37,99,235,0.10),transparent_32%)]" />
 
-      <div className="relative mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+      <div aria-hidden="true" className="pointer-events-none fixed inset-0 hidden overflow-hidden lg:block">
+        {floatingProducts.map((product, index) => {
+          const position = floatingItemPositions[index];
+
+          return (
+            <div
+              key={`${product.game}-${product.id}`}
+              className={`checkout-floating-item absolute ${position.size}`}
+              style={{
+                top: position.top,
+                left: position.left,
+                right: position.right,
+                animationDuration: position.duration,
+                animationDelay: position.delay,
+              }}
+            >
+              <img
+                src={product.image_url || ""}
+                alt=""
+                className="h-full w-full object-contain opacity-75"
+              />
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="relative z-10 mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         <header className="mb-6 flex w-full flex-wrap items-center justify-between gap-4 border-b border-blue-500/20 px-1 pb-5">
           <div>
             <p className="text-2xl font-black tracking-tight text-white">
@@ -900,7 +965,7 @@ function CheckoutPageContent() {
               <div className="mt-5 grid gap-3 rounded-2xl border border-blue-500/20 bg-[#081426] p-4 text-sm font-bold text-slate-300 sm:grid-cols-3">
                 <p>✓ Secure Checkout</p>
                 <p>✓ Order Confirmation</p>
-                <p>✓ Fast Delivery</p>
+                <p>✓ Digital Fulfillment</p>
               </div>
 
               <label className="mt-5 flex items-start gap-3 rounded-2xl border border-blue-500/20 bg-[#0b1728] p-4">
@@ -917,6 +982,39 @@ function CheckoutPageContent() {
                   details are correct.
                 </span>
               </label>
+
+              <div className="mt-3 flex items-start gap-3 rounded-2xl border border-blue-500/20 bg-[#0b1728] p-4">
+                <input
+                  type="checkbox"
+                  id="terms-acceptance"
+                  checked={termsAccepted}
+                  onChange={(e) => setTermsAccepted(e.target.checked)}
+                  className="mt-1 h-5 w-5 shrink-0 accent-blue-500"
+                />
+
+                <label
+                  htmlFor="terms-acceptance"
+                  className="text-sm leading-6 text-slate-300"
+                >
+                  I have read and agree to Bloxhop&apos;s{" "}
+                  <Link href="/terms" className="font-semibold text-blue-300 hover:underline">
+                    Terms of Service
+                  </Link>
+                  ,{" "}
+                  <Link href="/privacy-policy" className="font-semibold text-blue-300 hover:underline">
+                    Privacy Policy
+                  </Link>
+                  ,{" "}
+                  <Link href="/refund-policy" className="font-semibold text-blue-300 hover:underline">
+                    Refund Policy
+                  </Link>
+                  , and{" "}
+                  <Link href="/delivery" className="font-semibold text-blue-300 hover:underline">
+                    Delivery Policy
+                  </Link>
+                  . I understand that my order is subject to these policies.
+                </label>
+              </div>
 
               <div className="mt-3 rounded-2xl border border-blue-400/20 bg-blue-400/5 px-4 py-3">
                 <p className="text-xs leading-6 text-blue-200">
@@ -937,9 +1035,9 @@ function CheckoutPageContent() {
                 <button
                   type="button"
                   onClick={handleFreeCheckout}
-                  disabled={isCheckoutDisabled || !confirmChecked}
+                  disabled={isCheckoutDisabled || !confirmChecked || !termsAccepted}
                   className={`mt-5 w-full rounded-2xl py-4 text-lg font-black transition ${
-                    isCheckoutDisabled || !confirmChecked
+                    isCheckoutDisabled || !confirmChecked || !termsAccepted
                       ? "cursor-not-allowed bg-slate-700 text-slate-300"
                       : "cursor-pointer bg-emerald-400 text-black hover:bg-emerald-300"
                   }`}
@@ -951,9 +1049,9 @@ function CheckoutPageContent() {
                   <button
                     type="button"
                     onClick={handleSmartCheckout}
-                    disabled={!confirmChecked || isCheckoutDisabled}
+                    disabled={!confirmChecked || !termsAccepted || isCheckoutDisabled}
                    className={`w-full rounded-2xl border py-4 text-lg font-black transition ${
-  !confirmChecked || isCheckoutDisabled
+  !confirmChecked || !termsAccepted || isCheckoutDisabled
     ? "cursor-not-allowed border-slate-700 bg-slate-800 text-slate-300"
     : isPhilippinesCustomer
       ? "cursor-pointer border-blue-400/30 bg-[#10233c] text-white hover:bg-[#18345a]"

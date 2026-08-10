@@ -80,11 +80,11 @@ export default function SupportChat() {
     }
 
     if (includesAny(message, ["after payment", "what happens after payment", "how fulfillment works", "order fulfillment"])) {
-      return "After payment confirmation, your order is reviewed, fulfillment begins, and most orders are completed within 5–30 minutes. You can track your order anytime using the Track Order page.";
+      return "After successful payment confirmation, your order is reviewed and digital fulfillment begins. Actual timing varies by product availability, order volume, verification, customer availability, and technical circumstances. You can check updates on the Track Order page.";
     }
 
     if (includesAny(message, ["how long", "delivery", "deliver", "fulfillment", "fulfilment", "time", "when will i receive", "pending"])) {
-      return "Most orders are fulfilled within 5–30 minutes after payment confirmation. In rare cases, it may take up to 3 hours because of stock, verification, or high order volume.";
+      return "Most orders are processed shortly after successful payment confirmation. Actual delivery time may vary because of product availability, order volume, transaction verification, customer availability, platform limitations, or technical circumstances.";
     }
 
     if (includesAny(message, ["wrong username", "wrong name", "username", "roblox name", "misspelled", "incorrect"])) {

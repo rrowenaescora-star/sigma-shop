@@ -2,123 +2,30 @@ import LegalPageShell from "@/components/legal-page-shell";
 
 export const metadata = {
   title: "Terms of Service | Bloxhop",
-  description: "Terms of Service for Bloxhop.",
+  description: "Terms governing orders, payment, digital fulfillment, verification, refunds, and use of Bloxhop.",
 };
 
 export default function TermsPage() {
   return (
     <LegalPageShell title="Terms of Service">
       <div className="space-y-5 text-white/90 leading-7">
-	<p className="text-sm text-white/70">
-          Effective Date: April 24, 2026
-        </p>
-        <p>
-          By using Bloxhop, you agree to the following Terms of Service.
-          Please read them carefully before placing an order.
-        </p>
+        <p className="text-sm text-white/70">Effective Date: April 24, 2026</p>
+        <p>By using Bloxhop or placing an order, you agree to these Terms of Service and the policies referenced below.</p>
 
-        <section>
-          <h2 className="text-xl font-semibold mb-2">1. Digital Products and Services</h2>
-          <p>
-            All products and services sold on Bloxhop are digital only.
-            No physical shipment is required.
-          </p>
-          <p>
-            Fulfillment is completed through digital delivery, online coordination,
-            account fulfillment, or service access after payment confirmation.
-          </p>
-        </section>
-
-        <section>
-          <h2 className="text-xl font-semibold mb-2">2. Customer Responsibility</h2>
-          <p>
-            Customers are responsible for providing accurate account details,
-            contact information, and order instructions during checkout.
-          </p>
-          <p>
-            Bloxhop is not responsible for delays, failed fulfillment, or losses caused by
-            incorrect information submitted by the customer.
-          </p>
-        </section>
-
-        <section>
-          <h2 className="text-xl font-semibold mb-2">3. Delivery Time</h2>
-          <p>
-            Standard fulfillment time is typically 5 to 30 minutes.
-            During high-demand periods, payment verification checks,
-            or support delays, fulfillment may take up to 3 hours.
-          </p>
-        </section>
-
-        <section>
-          <h2 className="text-xl font-semibold mb-2">4. Refund Policy</h2>
-          <p>
-            Refunds are only reviewed for non-delivery, duplicate payment,
-            or fulfillment issues caused by our side.
-          </p>
-          <p>
-            Completed and successfully fulfilled digital services are non-refundable.
-          </p>
-        </section>
-
-        <section>
-          <h2 className="text-xl font-semibold mb-2">5. Payment Processing</h2>
-          <p>
-            Payments are securely processed through trusted third-party payment providers.
-            Bloxhop does not store full payment card details.
-          </p>
-          <p>
-            Orders may be placed on hold for fraud prevention,
-            payment verification, or security review.
-          </p>
-        </section>
-
-        <section>
-          <h2 className="text-xl font-semibold mb-2">6. Order Refusal and Cancellation</h2>
-          <p>
-            We reserve the right to refuse, delay, suspend, or cancel orders involving
-            suspicious activity, fraud risk, payment verification issues,
-            abuse, or violations of these Terms of Service.
-          </p>
-        </section>
-
-        <section>
-          <h2 className="text-xl font-semibold mb-2">7. Limitation of Liability</h2>
-          <p>
-            Bloxhop is not liable for delays caused by third-party payment providers,
-            platform outages, customer input errors, or circumstances outside our control.
-          </p>
-        </section>
-
-        <section>
-          <h2 className="text-xl font-semibold mb-2">8. Compliance and Applicable Law</h2>
-          <p>
-            These Terms are governed by applicable laws and regulations of the Philippines.
-            By using this website, customers agree to comply with all applicable laws,
-            payment regulations, and anti-fraud requirements.
-          </p>
-        </section>
-
-        <section>
-          <h2 className="text-xl font-semibold mb-2">9. Changes to Terms</h2>
-          <p>
-            Bloxhop may update these Terms of Service at any time without prior notice.
-            Continued use of the website after updates means acceptance of the revised terms.
-          </p>
-        </section>
-
-        <section>
-          <h2 className="text-xl font-semibold mb-2">10. Contact</h2>
-          <p>
-            For questions regarding these Terms of Service, contact:
-            support@bloxhop.site
-          </p>
-<p>
-	Business Location:
-  <br />
-  Cebu City, Cebu, Philippines
-</p>
-        </section>
+        <section><h2 className="mb-2 text-xl font-semibold">1. About Bloxhop</h2><p>Bloxhop Online Store is an independent online business based in the Philippines that provides digital gaming-related products and services. Bloxhop is not affiliated with, endorsed by, sponsored by, or officially connected with Roblox Corporation, Blox Fruits, Gamer Robot Inc., or other game developers or publishers unless expressly stated. Third-party trademarks, game names, logos, and related intellectual property belong to their respective owners.</p></section>
+        <section><h2 className="mb-2 text-xl font-semibold">2. Products and Services</h2><p>Product descriptions, prices, availability, delivery methods, and customer requirements are shown on the relevant product pages. Unless a product page specifically states otherwise, products and services are fulfilled digitally rather than shipped physically.</p></section>
+        <section><h2 className="mb-2 text-xl font-semibold">3. Orders</h2><p>Orders are accepted for fulfillment after successful payment confirmation and any applicable transaction or security review. Bloxhop may reject, cancel, delay, or suspend a transaction where there is reasonable suspicion of fraud, unauthorized payment, incorrect information, prohibited activity, product unavailability, or a violation of these Terms.</p></section>
+        <section><h2 className="mb-2 text-xl font-semibold">4. Customer Information</h2><p>Customers must provide accurate information needed to process and deliver an order, including the correct gaming username or identifier where required. Bloxhop does not normally require customers to provide their passwords for order fulfillment.</p></section>
+        <section><h2 className="mb-2 text-xl font-semibold">5. KYC AND TRANSACTION VERIFICATION</h2><p>Bloxhop may conduct reasonable identity, transaction, and risk verification when necessary for fraud prevention, payment-provider requirements, applicable legal requirements, or suspicious, unusual, disputed, unauthorized, or high-risk transactions.</p><p className="mt-2">Depending on the circumstances, Bloxhop may request a full name, email address, phone number, order information, payment or transaction reference, proof of payment, government-issued identification where reasonably necessary, or other information reasonably necessary for verification. Verification requests will be proportionate to the circumstances and may be required before an order is fulfilled or a refund is processed.</p><p className="mt-2">Bloxhop will never ask customers to provide passwords, private keys, authentication codes, or unrelated account credentials for transaction verification. If verification cannot be completed, Bloxhop may delay, reject, cancel, or refund a transaction where appropriate.</p></section>
+        <section><h2 className="mb-2 text-xl font-semibold">6. Prohibited Transactions</h2><p>Bloxhop may not be used for fraudulent transactions, unauthorized or stolen payment methods, compromised accounts, account theft, money laundering, illegal goods or services, counterfeit goods, intellectual-property infringement, gambling or betting, or activities prohibited by applicable law or payment-provider rules.</p></section>
+        <section><h2 className="mb-2 text-xl font-semibold">7. Pricing and Payment</h2><p>Prices are displayed in Philippine pesos unless otherwise stated. Payments are processed through available third-party payment providers, which may include Xendit when offered at checkout. Payment providers process payment information under their own terms, privacy policies, and security controls.</p></section>
+        <section><h2 className="mb-2 text-xl font-semibold">8. Delivery</h2><p>Orders begin processing after successful payment confirmation. Delivery timing is an estimate and may vary. Please review the <a className="text-sky-300 hover:underline" href="/delivery">Delivery Policy</a> for fulfillment methods, timing factors, and customer requirements.</p></section>
+        <section><h2 className="mb-2 text-xl font-semibold">9. Refunds</h2><p>Refund eligibility and the request process are described in the <a className="text-sky-300 hover:underline" href="/refund-policy">Refund Policy</a>. Nothing in these Terms limits rights that cannot legally be excluded under applicable consumer-protection law.</p></section>
+        <section><h2 className="mb-2 text-xl font-semibold">10. Chargebacks and Disputes</h2><p>Customers should contact Bloxhop first regarding a legitimate transaction or delivery problem. Bloxhop may provide relevant transaction, delivery, verification, and communication records to payment providers when necessary to investigate a dispute or chargeback.</p></section>
+        <section><h2 className="mb-2 text-xl font-semibold">11. Intellectual Property</h2><p>Bloxhop respects intellectual-property rights and does not intentionally offer products that infringe third-party rights. If a complaint arises, Bloxhop may investigate and remove, suspend, or discontinue the relevant listing.</p></section>
+        <section><h2 className="mb-2 text-xl font-semibold">12. Suspension and Cancellation</h2><p>Bloxhop may suspend or cancel transactions when reasonably necessary for fraud prevention, security, legal or payment-provider compliance, investigation of suspicious activity, or prevention of prohibited transactions.</p></section>
+        <section><h2 className="mb-2 text-xl font-semibold">13. Applicable Law and Updates</h2><p>These Terms are governed by applicable Philippine law. Bloxhop may update them to reflect operational, legal, or compliance changes; the current version will be posted on this page.</p></section>
+        <section><h2 className="mb-2 text-xl font-semibold">14. Contact</h2><p><a className="text-sky-300 hover:underline" href="mailto:support@bloxhop.site">support@bloxhop.site</a><br />+63 945 339 2304<br />Bloxhop Online Store<br />Cebu City, Cebu, Philippines</p></section>
       </div>
     </LegalPageShell>
   );

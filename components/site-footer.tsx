@@ -50,7 +50,7 @@ export default function SiteFooter() {
 
   <div className="flex items-center gap-2">
     <Phone className="h-4 w-4" />
-    <span>+63 9453392304</span>
+    <span>+63 945 339 2304</span>
   </div>
 
   <div className="flex items-center gap-2">
@@ -343,7 +343,18 @@ export default function SiteFooter() {
               </section>
 
               <section>
-                <h3 className="mb-2 text-lg font-bold text-white">5. Cookies and Analytics</h3>
+                <h3 className="mb-2 text-lg font-bold text-white">5. KYC and Transaction Verification</h3>
+                <p>
+                  Bloxhop may request additional identity or transaction information when
+                  reasonably necessary for fraud prevention, legal compliance, payment-provider
+                  requirements, suspicious activity review, or dispute handling. Requests are
+                  risk-based and proportionate, and verification information is handled according
+                  to applicable privacy requirements.
+                </p>
+              </section>
+
+              <section>
+                <h3 className="mb-2 text-lg font-bold text-white">6. Cookies and Analytics</h3>
                 <p>
                   The website may use cookies, local storage, analytics tools, and similar
                   technologies to remember cart data, improve website performance, detect
@@ -354,18 +365,17 @@ export default function SiteFooter() {
               </section>
 
               <section>
-                <h3 className="mb-2 text-lg font-bold text-white">6. Sharing of Information</h3>
+                <h3 className="mb-2 text-lg font-bold text-white">7. Sharing of Information</h3>
                 <p>
                   Bloxhop does not sell customer personal information. Information may be
-                  shared only when needed with payment processors, hosting providers,
-                  email or support tools, fraud prevention services, delivery/support team
-                  members, legal authorities, or business service providers who help operate
-                  the store.
+                  shared only when needed with payment processors such as Xendit when available,
+                  banks, fraud or security providers, hosting and support providers, professional
+                  advisers, and government or regulatory authorities where legally required.
                 </p>
               </section>
 
               <section>
-                <h3 className="mb-2 text-lg font-bold text-white">7. Data Retention</h3>
+                <h3 className="mb-2 text-lg font-bold text-white">8. Data Retention</h3>
                 <p>
                   Customer information may be retained for order history, customer support,
                   fraud prevention, refund review, dispute handling, accounting, tax records,
@@ -375,7 +385,7 @@ export default function SiteFooter() {
               </section>
 
               <section>
-                <h3 className="mb-2 text-lg font-bold text-white">8. Customer Rights and Requests</h3>
+                <h3 className="mb-2 text-lg font-bold text-white">9. Customer Rights and Requests</h3>
                 <p>
                   Customers may contact Bloxhop to request support regarding their personal
                   information, including correction, access, or deletion requests where
@@ -385,7 +395,7 @@ export default function SiteFooter() {
               </section>
 
               <section>
-                <h3 className="mb-2 text-lg font-bold text-white">9. Customer Responsibility</h3>
+                <h3 className="mb-2 text-lg font-bold text-white">10. Customer Responsibility</h3>
                 <p>
                   Customers are responsible for providing accurate contact details, account
                   information, usernames, and delivery instructions. Incorrect or incomplete
@@ -394,7 +404,7 @@ export default function SiteFooter() {
               </section>
 
               <section>
-                <h3 className="mb-2 text-lg font-bold text-white">10. Contact for Privacy Concerns</h3>
+                <h3 className="mb-2 text-lg font-bold text-white">11. Contact for Privacy Concerns</h3>
                 <div className="mt-5 flex flex-wrap items-center gap-6 border-t border-white/10 pt-5 text-sky">
 
   <a
@@ -407,7 +417,7 @@ export default function SiteFooter() {
 
   <div className="flex items-center gap-2">
     <Phone className="h-4 w-4 text-blue-400" />
-    <span>+63 453392304</span>
+    <span>+63 945 339 2304</span>
   </div>
 
   <div className="flex items-center gap-2">
@@ -471,6 +481,18 @@ export default function SiteFooter() {
                   Bloxhop may hold, delay, cancel, or request additional verification for
                   orders involving suspicious activity, payment review, stock issues, pricing
                   errors, duplicate transactions, customer information problems, or fraud risk.
+                </p>
+              </section>
+
+              <section>
+                <h3 className="mb-2 text-lg font-bold text-white">KYC and Transaction Verification</h3>
+                <p>
+                  Bloxhop may conduct proportionate identity, transaction, or risk verification
+                  for fraud prevention, legal or payment-provider requirements, and suspicious,
+                  unusual, disputed, unauthorized, or high-risk transactions. Bloxhop will never
+                  request passwords, private keys, authentication codes, or unrelated credentials.
+                  Incomplete verification may result in a transaction being delayed, rejected,
+                  cancelled, or refunded where appropriate.
                 </p>
               </section>
 
@@ -558,7 +580,7 @@ export default function SiteFooter() {
 
   <div className="flex items-center gap-2">
     <Phone className="h-4 w-4 text-blue-400" />
-    <span>+63 9453392304</span>
+    <span>+63 945 339 2304</span>
   </div>
 
   <div className="flex items-center gap-2">
@@ -603,12 +625,13 @@ export default function SiteFooter() {
                 <ul className="ml-6 mt-2 list-disc space-y-1">
                   <li>Completed and successfully fulfilled digital products or services</li>
                   <li>Wrong username, wrong contact details, or incorrect order information from the customer</li>
-                  <li>Change of mind after purchase</li>
+                  <li>Change of mind after successful digital fulfillment</li>
                   <li>Customer failure to respond to support or delivery coordination</li>
                   <li>Violations of Terms of Service</li>
                   <li>Third-party platform restrictions, outages, or account issues outside our control</li>
                   <li>Chargeback abuse, fraud risk, or suspicious activity</li>
                 </ul>
+                <p className="mt-2">These conditions do not limit rights that cannot legally be excluded under applicable consumer-protection law.</p>
               </section>
 
               <section>
@@ -623,9 +646,9 @@ export default function SiteFooter() {
               <section>
                 <h3 className="mb-2 text-lg font-bold text-white">5. Processing Time</h3>
                 <p>
-                  Review time may vary depending on the order details. Approved refunds are
-                  returned through the original payment method when possible. Banks and payment
-                  providers may require additional processing time before funds appear.
+                  Approved refunds will be initiated within 14 calendar days or within any shorter
+                  period required by applicable law or the relevant payment channel. Banks and
+                  payment providers may require additional processing time before funds appear.
                 </p>
               </section>
 
@@ -643,7 +666,7 @@ export default function SiteFooter() {
 
   <div className="flex items-center gap-2">
     <Phone className="h-4 w-4 text-blue-400" />
-    <span>+63 9453392304</span>
+    <span>+63 945 339 2304</span>
   </div>
 
   <div className="flex items-center gap-2">
@@ -662,11 +685,11 @@ export default function SiteFooter() {
               <p className="text-slate-400">Effective Date: April 24, 2026</p>
 
               <section>
-                <h3 className="mb-2 text-lg font-bold text-white">1. Digital Delivery Only</h3>
+                <h3 className="mb-2 text-lg font-bold text-white">1. Digital Fulfillment</h3>
                 <p>
-                  Bloxhop sells digital products and online services only. No physical items
-                  are shipped. Delivery may be completed through online fulfillment, in-game
-                  coordination, service access, or customer support assistance.
+                  Orders are fulfilled digitally rather than through physical shipping unless a
+                  product page specifically states otherwise. Delivery may be completed through
+                  online fulfillment, in-game coordination, service access, or support assistance.
                 </p>
               </section>
 
@@ -675,16 +698,17 @@ export default function SiteFooter() {
                 <p>
                   Customers must provide accurate account details, Roblox username or game
                   username, email address, and contact details. Incorrect information may cause
-                  delays, failed delivery, or additional verification.
+                  delays, failed delivery, or additional verification. Bloxhop does not normally
+                  require a customer password.
                 </p>
               </section>
 
               <section>
                 <h3 className="mb-2 text-lg font-bold text-white">3. Delivery Timing</h3>
                 <p>
-                  Delivery timing may depend on product type, payment confirmation, order volume,
-                  customer response, stock status, and support availability. Some orders may require
-                  manual review before fulfillment begins.
+                  Most orders are processed shortly after successful payment confirmation. Actual
+                  delivery time may vary depending on product availability, order volume, transaction
+                  verification, customer availability, platform limitations, and technical circumstances.
                 </p>
               </section>
 
@@ -721,7 +745,7 @@ export default function SiteFooter() {
 
   <div className="flex items-center gap-2">
     <Phone className="h-4 w-4 text-blue-400" />
-    <span>+63 9453392304</span>
+    <span>+63 945 339 2304</span>
   </div>
 
   <div className="flex items-center gap-2">
@@ -754,7 +778,7 @@ export default function SiteFooter() {
 
   <div className="flex items-center gap-2 text-blue-400">
     <Phone className="h-4 w-4 text-blue-400" />
-    <span>+63 9453392304</span>
+    <span>+63 945 339 2304</span>
   </div>
 
   <div className="flex items-center gap-2 text-blue-400">
@@ -814,7 +838,7 @@ export default function SiteFooter() {
               <section>
                 <h3 className="mb-2 text-lg font-bold text-white">How can I contact Bloxhop?</h3>
                 <p>
-                  Email support@bloxhop.site, call +63 9453392304, or join Discord for support.
+                  Email support@bloxhop.site, call +63 945 339 2304, or join Discord for support.
                 </p>
               </section>
             </>

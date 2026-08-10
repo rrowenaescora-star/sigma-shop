@@ -1,6 +1,5 @@
 "use client";
 
-import PremiumHero from "@/components/premium-hero";
 import Link from "next/link";
 import { useState } from "react";
 import {
@@ -58,22 +57,22 @@ const trustCards = [
   {
     icon: Zap,
     title: "Digital Delivery",
-    text: "Orders are fulfilled digitally after review.",
+    text: "Orders are processed and delivered digitally after successful payment confirmation.",
   },
   {
     icon: ShieldCheck,
-    title: "Secure Checkout",
-    text: "Protected checkout and payment flow.",
+    title: "Secure Payments",
+    text: "Payments are processed through available third-party payment providers.",
   },
   {
     icon: Package,
-    title: "Track Your Order",
-    text: "Use tracking for order status updates.",
+    title: "Order Tracking",
+    text: "Check your order status through our online order-tracking system.",
   },
   {
     icon: Headphones,
-    title: "Customer Service",
-    text: "Support for order and delivery concerns.",
+    title: "Customer Support",
+    text: "Help is available for orders, delivery issues, refunds, and transaction concerns.",
   },
 ];
 
@@ -90,8 +89,8 @@ const whyCards = [
   },
   {
     icon: Rocket,
-    title: "Fast Delivery",
-    text: "3-5 Minutes",
+    title: "Digital Fulfillment",
+    text: "Timing varies by product, availability, verification, and order volume.",
   },
   {
     icon: ShieldCheck,
@@ -178,15 +177,14 @@ export default function LandingPage() {
         <div className="relative z-10 mx-auto grid max-w-[1500px] items-center gap-8 px-5 py-12 sm:px-6 lg:right-[50px] lg:grid-cols-[0.9fr_1.1fr] lg:py-16">
           <div>
             <h1 className="mt-5 max-w-3xl text-4xl font-black leading-[1.05] tracking-tight sm:text-5xl md:text-6xl">
-              Trusted Bloxhop Marketplace,
+              Bloxhop — Independent Digital Gaming Marketplace
               <span className="mt-1 block bg-gradient-to-r from-blue-400 via-blue-300 to-white bg-clip-text text-transparent">
-                Fast & Secure Delivery
+                Digital products with clear online fulfillment
               </span>
             </h1>
 
             <p className="mt-5 max-w-2xl text-base leading-7 text-slate-300">
-              Shop at Bloxhop items with secure checkout, fast delivery
-              coordination, live order tracking, and active customer support.
+              Shop digital gaming-related products through a simple online checkout and digital fulfillment experience.
             </p>
 
             <div className="mt-7 flex flex-wrap gap-4">
@@ -222,9 +220,9 @@ Request an Item
               </div>
 
               <div>
-                <p className="text-xl font-black">Trusted By Players</p>
+                <p className="text-xl font-black">Independent Online Store</p>
                 <p className="text-sm text-[15px] font-medium leading-9 text-slate-300">
-                  Fast support and organized delivery system.
+                  Order tracking and customer support are available.
                 </p>
               </div>
             </div>
@@ -358,14 +356,14 @@ Request an Item
           <div id="how-it-works" className="mt-7">
             <h2 className="mb-4 text-2xl font-black">How It Works</h2>
 
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
               <div className="flex min-h-[128px] items-center gap-5 rounded-2xl border border-white/10 bg-[#0a1527] p-5">
                 <p className="shrink-0 text-5xl font-black text-blue-400">1</p>
                 <ClipboardList className="h-9 w-9 shrink-0 text-slate-300" />
                 <div>
-                  <h3 className="font-black">Place Your Order</h3>
+                  <h3 className="font-black">Choose a Product</h3>
                   <p className="mt-1 text-xs leading-5 text-slate-400">
-                    Choose your item and complete the checkout.
+                    Review its description, price, delivery method, and requirements.
                   </p>
                 </div>
               </div>
@@ -374,9 +372,9 @@ Request an Item
                 <p className="shrink-0 text-5xl font-black text-blue-400">2</p>
                 <Box className="h-9 w-9 shrink-0 text-slate-300" />
                 <div>
-                  <h3 className="font-black">We Deliver</h3>
+                  <h3 className="font-black">Checkout</h3>
                   <p className="mt-1 text-xs leading-5 text-slate-400">
-                    Orders are reviewed and fulfilled digitally.
+                    Provide the required order information and complete payment.
                   </p>
                 </div>
               </div>
@@ -385,11 +383,17 @@ Request an Item
                 <p className="shrink-0 text-5xl font-black text-blue-400">3</p>
                 <BadgeCheck className="h-9 w-9 shrink-0 text-slate-300" />
                 <div>
-                  <h3 className="font-black">Enjoy Your Items</h3>
+                  <h3 className="font-black">Payment Confirmation</h3>
                   <p className="mt-1 text-xs leading-5 text-slate-400">
-                    Track your order or contact support if needed.
+                    Your order begins processing after successful payment confirmation.
                   </p>
                 </div>
+              </div>
+
+              <div className="flex min-h-[128px] items-center gap-5 rounded-2xl border border-white/10 bg-[#0a1527] p-5">
+                <p className="shrink-0 text-5xl font-black text-blue-400">4</p>
+                <Package className="h-9 w-9 shrink-0 text-slate-300" />
+                <div><h3 className="font-black">Digital Fulfillment</h3><p className="mt-1 text-xs leading-5 text-slate-400">Your order is delivered using the method specified on the product page.</p></div>
               </div>
             </div>
           </div>
@@ -485,44 +489,47 @@ Request an Item
               </button>
             </div>
 
-            <div className="grid gap-5 md:grid-cols-2">
-              {faqs.map((faq, index) => (
-                <div
-                  key={faq.q}
-                  className="overflow-hidden rounded-xl border border-white/10 bg-[#0a1527]"
-                >
-                  <button
-                    onClick={() =>
-                      setOpenFaq(openFaq === index ? null : index)
-                    }
-                    className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm font-bold"
-                  >
-                    <span>{faq.q}</span>
-                    <ChevronDown
-                      className={`h-4 w-4 shrink-0 transition ${
-                        openFaq === index ? "rotate-180" : ""
-                      }`}
-                    />
-                  </button>
+            <div className="grid items-start gap-5 md:grid-cols-2">
+              {[0, 1].map((column) => (
+                <div key={column} className="flex flex-col gap-5">
+                  {faqs.map((faq, index) =>
+                    index % 2 === column ? (
+                      <div
+                        key={faq.q}
+                        className="overflow-hidden rounded-xl border border-white/10 bg-[#0a1527]"
+                      >
+                        <button
+                          onClick={() => setOpenFaq(openFaq === index ? null : index)}
+                          aria-expanded={openFaq === index}
+                          className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm font-bold"
+                        >
+                          <span>{faq.q}</span>
+                          <ChevronDown
+                            className={`h-4 w-4 shrink-0 transition-transform duration-300 ${
+                              openFaq === index ? "rotate-180" : ""
+                            }`}
+                          />
+                        </button>
 
-                  <div
-                    className={`overflow-hidden transition-all duration-300 ${
-                      openFaq === index
-                        ? "max-h-40 opacity-100"
-                        : "max-h-0 opacity-0"
-                    }`}
-                  >
-                    <p className="px-4 pb-4 text-xs leading-5 text-slate-400">
-                      {faq.a}
-                    </p>
-                  </div>
+                        <div
+                          className={`grid transition-[grid-template-rows,opacity] duration-300 ease-in-out ${
+                            openFaq === index
+                              ? "grid-rows-[1fr] opacity-100"
+                              : "grid-rows-[0fr] opacity-0"
+                          }`}
+                        >
+                          <div className="overflow-hidden">
+                            <p className="px-4 pb-4 text-xs leading-5 text-slate-400">
+                              {faq.a}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ) : null,
+                  )}
                 </div>
               ))}
             </div>
-          </section>
-
-          <section className="mt-10">
-            <PremiumHero />
           </section>
 
           <section className="mt-8">
@@ -538,10 +545,10 @@ Request an Item
                 </h3>
 
                <p className="mt-6 text-sm leading-8 text-slate-400 md:text-[15px]">
-  		 Bloxhop Online Store is a Roblox marketplace offering products and services for
- 		 Blox Fruits, MM2, Adopt Me, Blade Ball, Pet Simulator, and Anime
- 		 Defenders. Buy Roblox items with fast delivery, secure checkout,
-		  order tracking, and customer support for players worldwide.
+		 Bloxhop Online Store is an independent digital gaming marketplace offering
+		 products and services for Blox Fruits and Grow a Garden 2. Shop digital
+		 gaming-related products with online checkout, order tracking, and customer
+		 support for players worldwide.
 		</p>
 
                 <p className="mt-5 text-sm leading-8 text-slate-400 md:text-[15px]">

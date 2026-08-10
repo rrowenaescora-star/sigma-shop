@@ -856,7 +856,7 @@ alt="Grow a Garden 2"
 
   <div className="hidden items-center gap-3 md:flex">
     <div className="rounded-2xl border border-pink-400/20 bg-gradient-to-r from-pink-500/10 to-purple-500/10 px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-pink-200 shadow-[0_0_25px_rgba(236,72,153,0.18)]">
-      ⚡ Fast Delivery
+      ⚡ Digital Fulfillment
     </div>
 
     <div className="rounded-2xl border border-cyan-400/20 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-cyan-200 shadow-[0_0_25px_rgba(34,211,238,0.18)]">
@@ -1169,12 +1169,12 @@ alt="Grow a Garden 2"
   <div className="mx-auto grid max-w-4xl gap-4">
     {[
       {
-        q: "How does Bloxhop's Blox Fruits delivery work?",
-        a: "Bloxhop's order process is designed to be simple and organized:\n\nSelect your preferred products from the store and review your cart before checkout.\n\nEnter and verify your Roblox username to help ensure accurate account details.\n\nComplete checkout using the available payment methods shown on the website.\n\nAfter payment confirmation, submitted order details are reviewed and prepared by our team.\n\nCustomers should follow any instructions or updates provided after checkout.\n\nProcessing times may vary depending on queue volume, product availability, and order status.",
+        q: "How does Grow a garden 2 delivery work?",
+        a: "Grow a garden's order process is designed to be simple and organized:\n\nSelect your preferred products from the store and review your cart before checkout.\n\nEnter and verify your Roblox username to help ensure accurate account details.\n\nComplete checkout using the available payment methods shown on the website.\n\nAfter payment confirmation, submitted order details are reviewed and prepared by our team.\n\nCustomers should follow any instructions or updates provided after checkout.\n\nProcessing times may vary depending on queue volume, product availability, and order status.",
       },
       {
         q: "How long does delivery usually take?",
-        a: "Most orders are completed within 5 to 30 minutes. During busy periods, delivery may take longer, up to a few hours.",
+        a: "Most orders are processed shortly after successful payment confirmation. Actual fulfillment time may vary depending on product availability, order volume, transaction verification, customer availability, platform limitations, and technical circumstances.",
       },
       {
         q: "What should I do if I entered the wrong Roblox username?",
@@ -1199,6 +1199,7 @@ alt="Grow a Garden 2"
       >
         <button
           onClick={() => setOpenFaq(openFaq === index ? null : index)}
+          aria-expanded={openFaq === index}
           className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left"
         >
           <span className="text-base font-black text-white md:text-lg">
@@ -1223,13 +1224,21 @@ alt="Grow a Garden 2"
 </svg>
         </button>
 
-        {openFaq === index && (
-          <div className="border-t border-white/5 px-6 pb-5 pt-1">
-            <p className="text-sm leading-7 text-slate-400">
-              {item.a}
-            </p>
+        <div
+          className={`grid transition-[grid-template-rows,opacity] duration-300 ease-in-out ${
+            openFaq === index
+              ? "grid-rows-[1fr] opacity-100"
+              : "grid-rows-[0fr] opacity-0"
+          }`}
+        >
+          <div className="overflow-hidden">
+            <div className="border-t border-white/5 px-6 pb-5 pt-1">
+              <p className="text-sm leading-7 text-slate-400">
+                {item.a}
+              </p>
+            </div>
           </div>
-        )}
+        </div>
       </div>
     ))}
   </div>

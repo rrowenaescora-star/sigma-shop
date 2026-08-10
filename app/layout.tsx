@@ -6,34 +6,27 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://bloxhop.site"),
 
   title: {
-    default:
-      "Bloxhop | Buy Blox Fruits, MM2, Adopt Me, Blade Ball & Pet Simulator Items",
+    default: "Bloxhop — Independent Digital Gaming Marketplace",
     template: "%s | Bloxhop",
   },
 
   description:
-    "Buy Roblox items and services for Blox Fruits, MM2, Adopt Me, Blade Ball, Pet Simulator, and Anime Defenders. Fast delivery, secure checkout, order tracking, and reliable support.",
+    "Bloxhop is an independent digital gaming marketplace providing digital gaming-related products, online checkout, digital fulfillment, and customer support.",
 
   keywords: [
     "Bloxhop",
     "Blox Fruits Shop",
     "Buy Blox Fruits Items",
-    "MM2 Shop",
-    "Buy MM2 Godlys",
-    "Adopt Me Shop",
-    "Buy Adopt Me Pets",
-    "Blade Ball Shop",
-    "Pet Simulator Shop",
-    "Anime Defenders Shop",
-    "Roblox Marketplace",
+    "Grow a Garden 2 Shop",
+    "Buy Grow a Garden 2 Items",
+    "Digital Gaming Marketplace",
     "Roblox Items Store",
   ],
 
   openGraph: {
-    title:
-      "Bloxhop | Buy Roblox Items for Blox Fruits, MM2, Adopt Me & More",
+    title: "Bloxhop — Independent Digital Gaming Marketplace",
     description:
-      "Buy Roblox items and services with fast delivery, secure checkout, order tracking, and reliable support.",
+      "Bloxhop is an independent digital gaming marketplace providing digital gaming-related products, online checkout, digital fulfillment, and customer support.",
     url: "https://bloxhop.site",
     siteName: "Bloxhop",
     images: [

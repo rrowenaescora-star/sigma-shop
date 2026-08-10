@@ -13,7 +13,7 @@ const badges = [
   },
   {
     icon: Headphones,
-    title: "Trusted Support",
+    title: "Customer Support",
     text: "Get help with orders, delivery, and checkout.",
   },
   {

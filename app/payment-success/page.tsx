@@ -22,8 +22,7 @@ export default function PaymentSuccessPage() {
 
             <p className="mt-5 text-base leading-7 text-slate-300 md:text-lg">
               Your order has been saved and is now being reviewed by our team.
-              Most orders are fulfilled within 5–30 minutes after payment
-              confirmation.
+              Most orders are processed shortly after payment confirmation. Actual fulfillment time may vary.
             </p>
           </div>
 

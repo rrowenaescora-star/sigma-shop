@@ -36,7 +36,7 @@ export default function PremiumHero() {
       <div className="relative z-10 mx-auto grid max-w-[1500px] items-center gap-10 px-6 py-20 lg:grid-cols-[1fr_1fr]">
         <div>
           <div className="inline-flex rounded-full border border-blue-400/30 bg-blue-500/10 px-4 py-2 text-sm font-bold text-blue-300">
-            Trusted Roblox Marketplace
+            Independent Digital Gaming Marketplace
           </div>
 
           <h1 className="mt-6 max-w-3xl text-5xl font-black leading-[1.02] tracking-tight md:text-7xl">

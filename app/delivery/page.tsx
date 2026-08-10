@@ -1,64 +1,18 @@
 import LegalPageShell from "@/components/legal-page-shell";
 
+export const metadata = { title: "Delivery Policy | Bloxhop", description: "Digital fulfillment methods, estimated timing, and customer requirements for Bloxhop orders." };
+
 export default function DeliveryPage() {
   return (
     <LegalPageShell title="Delivery Policy">
-      <div className="space-y-4 text-white/90 leading-7">
-	<p className="text-sm text-white/70">
-          Effective Date: April 24, 2026
-        </p>
-        <p>
-          All products and services sold on Bloxhop are digital only.
-        </p>
-
-        <p>
-          No physical shipment is required.
-        </p>
-
-        <p>
-          Delivery is completed through digital access, online coordination,
-          account fulfillment, or service fulfillment after payment confirmation.
-        </p>
-
-        <p>
-          Estimated delivery time is typically between <strong>5 to 30 minutes</strong>.
-        </p>
-
-        <p>
-          During high-demand periods, payment verification checks, or customer information review,
-          fulfillment may take up to <strong>3 hours</strong>.
-        </p>
-
-        <p>
-          Delivery Process:
-        </p>
-
-        <ul className="list-disc ml-6 space-y-2">
-          <li>Customer completes checkout and submits accurate account and contact information</li>
-          <li>Payment is reviewed and confirmed by our payment provider</li>
-          <li>Our team begins digital fulfillment, service coordination, or account delivery</li>
-          <li>Customer receives fulfillment confirmation by email, direct coordination, or completed service access</li>
-        </ul>
-
-        <p>
-          If your order is not completed within the stated delivery period,
-          please check your email first, including spam or promotions folders.
-        </p>
-
-        <p>
-          If delivery is still delayed, contact support@bloxhop.site with your Order ID for immediate assistance.
-          Eligible delayed orders may qualify for support review or refund consideration based on our Refund Policy.
-        </p>
-
-        <p>
-  For delivery assistance, contact: support@bloxhop.site
-</p>
-
-<p>
-  Business Location:
-  <br />
-  Cebu City, Cebu, Philippines
-</p>
+      <div className="space-y-5 text-white/90 leading-7">
+        <p className="text-sm text-white/70">Effective Date: April 24, 2026</p>
+        <section><h2 className="mb-2 text-xl font-semibold">1. Digital Fulfillment</h2><p>Orders are fulfilled digitally rather than through physical shipping unless a product page specifically states otherwise. The delivery method may include in-game coordination, digital access, online service fulfillment, or another method described on the product page.</p></section>
+        <section><h2 className="mb-2 text-xl font-semibold">2. Processing</h2><p>Orders begin processing after successful payment confirmation. Some transactions may require a reasonable security or transaction-verification review before fulfillment.</p></section>
+        <section><h2 className="mb-2 text-xl font-semibold">3. Estimated Delivery</h2><p>Most orders are processed shortly after payment confirmation. Actual delivery time may vary depending on product availability, order volume, transaction verification, customer availability, game or platform limitations, and technical circumstances.</p></section>
+        <section><h2 className="mb-2 text-xl font-semibold">4. Customer Requirements</h2><p>Customers may need to provide a correct gaming username, account identifier, contact information, or other requirements stated on the product page. Bloxhop does not normally require a customer&apos;s password. Customers should never send passwords, private keys, authentication codes, or unrelated credentials.</p></section>
+        <section><h2 className="mb-2 text-xl font-semibold">5. Delivery Problems</h2><p>Bloxhop will make reasonable efforts to resolve delayed, failed, or incorrect delivery. Customers should check their contact channels and order tracking, then contact support with the order number and relevant details. If Bloxhop cannot fulfill an order, it may be eligible for a refund under the <a className="text-sky-300 hover:underline" href="/refund-policy">Refund Policy</a>.</p></section>
+        <section><h2 className="mb-2 text-xl font-semibold">6. Contact</h2><p><a className="text-sky-300 hover:underline" href="mailto:support@bloxhop.site">support@bloxhop.site</a><br />+63 945 339 2304<br />Cebu City, Cebu, Philippines</p></section>
       </div>
     </LegalPageShell>
   );

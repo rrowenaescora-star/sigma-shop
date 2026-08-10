@@ -12,7 +12,7 @@ type SaleBotProps = {
 };
 
 export default function SaleBot({
-  enabled = true,
+  enabled = false,
   title = "Limited Time Promo",
   discount = "10% OFF",
   message = "Use your promo before the sale ends!",

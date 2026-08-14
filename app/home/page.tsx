@@ -326,9 +326,9 @@ useEffect(() => {
   function getUnavailableReason(product: Product) {
     const quantity = Number(product.stock_quantity ?? 0);
 
-    if (product.is_active === false) return "Currently unavailable";
+    if (product.is_active === false) return "Out of Stock";
     if (quantity <= 0 || product.stock === "Out of Stock") return "Out of stock";
-    if (isCapitalUnavailable(product)) return "Currently unavailable";
+    if (isCapitalUnavailable(product)) return "Out of Stock";
 
     return "Unavailable";
   }
@@ -978,7 +978,7 @@ if (foundProduct) {
                                   : "bg-emerald-500/15 text-emerald-300"
                               }`}
                             >
-                              {outOfStock ? unavailableReason : stockLabel}
+                              {outOfStock ? unavailableReason : stockLabel === "Limited" && quantity > 0 ? `Low Stock · ${quantity} left` : stockLabel}
                             </span>
 
                             <div className="relative z-10 flex h-full items-center justify-center p-5">
@@ -1008,7 +1008,7 @@ if (foundProduct) {
                                 <div className="space-y-1">
                                   {quantity <= 3 && (
                                     <p className="text-sm font-bold text-yellow-300">
-                                      Only a few left — high demand
+                                      Only {quantity} left - running low
                                     </p>
                                   )}
                                 </div>

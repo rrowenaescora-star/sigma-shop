@@ -324,9 +324,9 @@ setProducts(mm2Products);
   function getUnavailableReason(product: Product) {
     const quantity = Number(product.stock_quantity ?? 0);
 
-    if (product.is_active === false) return "Currently unavailable";
+    if (product.is_active === false) return "Out of Stock";
     if (quantity <= 0 || product.stock === "Out of Stock") return "Out of stock";
-    if (isCapitalUnavailable(product)) return "Currently unavailable";
+    if (isCapitalUnavailable(product)) return "Out of Stock";
 
     return "Unavailable";
   }
@@ -863,6 +863,13 @@ alt="Grow a Garden 2"
       🛡 Secure Checkout
     </div>
   </div>
+              <div className="mb-5 flex flex-wrap items-center gap-3 text-xs font-bold">
+                <span className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1 text-emerald-300">In Stock</span>
+                <span className="rounded-full border border-yellow-400/20 bg-yellow-500/10 px-3 py-1 text-yellow-300">Low Stock</span>
+                <span className="rounded-full border border-red-400/20 bg-red-500/10 px-3 py-1 text-red-300">Out of Stock</span>
+                <span className="text-slate-400">Live stock updates help show when items are running low.</span>
+              </div>
+
 </div>
 
               {loadingProducts ? (
@@ -926,7 +933,7 @@ alt="Grow a Garden 2"
                                   : "bg-emerald-500/15 text-emerald-300"
                               }`}
                             >
-                              {outOfStock ? unavailableReason : stockLabel}
+                              {outOfStock ? unavailableReason : stockLabel === "Limited" && quantity > 0 ? `Low Stock · ${quantity} left` : stockLabel}
                             </span>
 
                             <div className="relative z-10 flex h-full items-center justify-center p-5">
@@ -956,7 +963,7 @@ alt="Grow a Garden 2"
                                 <div className="space-y-1">
                                   {quantity <= 3 && (
                                     <p className="text-sm font-bold text-yellow-300">
-                                      Only a few left — high demand
+                                      Only {quantity} left - running low
                                     </p>
                                   )}
                                 </div>

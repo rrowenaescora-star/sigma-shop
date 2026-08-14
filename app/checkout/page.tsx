@@ -76,7 +76,6 @@ function CheckoutPageContent() {
   const [cartLoaded, setCartLoaded] = useState(false);
   const [confirmChecked, setConfirmChecked] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
-  const [showAllItems, setShowAllItems] = useState(false);
 
   const [detectedCountry, setDetectedCountry] = useState("PH");
   const [customerCountry, setCustomerCountry] = useState("PH");
@@ -618,12 +617,58 @@ function CheckoutPageContent() {
 }
 
   async function handleSmartCheckout() {
-    if (isPhilippinesCustomer) {
-      await handlePayMongoCheckout();
+    await handleShopifyCheckout();
+  }
+
+  async function handleShopifyCheckout() {
+    if (cartItems.length === 0) return;
+
+    if (!robloxUsername.trim() || !contactInfo.trim()) {
+      alert("Please fill in your account/service information and email first.");
       return;
     }
 
-    await handleManualCheckout();
+    if (!isVerified || !robloxUserId) {
+      alert("Please verify your account/service username first.");
+      return;
+    }
+
+    const valid = await validateCartBeforeSubmit();
+
+    if (!valid) return;
+
+    setIsSubmitting(true);
+
+    try {
+      const res = await fetch("/api/shopify/checkout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          items: cartItems,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.error || "Failed to start Shopify checkout.");
+        return;
+      }
+
+      if (!data.checkoutUrl) {
+        alert("Missing checkout URL.");
+        return;
+      }
+
+      window.location.href = data.checkoutUrl;
+    } catch (error) {
+      console.error(error);
+      alert("Something went wrong while starting Shopify checkout.");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   async function handlePayMongoCheckout() {
@@ -714,34 +759,39 @@ function CheckoutPageContent() {
         })}
       </div>
 
+      <div className="sticky top-0 z-40 w-full border-b border-blue-500/20 bg-[#06101d]/95 backdrop-blur-xl">
+        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <p className="text-2xl font-black tracking-tight text-white">
+                BLOXHOP
+              </p>
+              <p className="text-sm text-slate-400">
+                Secure checkout for Blox Fruits items and online service
+                fulfillment.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <Link
+                href="/home"
+                className="rounded-2xl border border-slate-700/70 bg-slate-950/40 px-4 py-2 text-sm font-bold text-white hover:bg-slate-800/70"
+              >
+                Back to Store
+              </Link>
+
+              <Link
+                href="/track-order"
+                className="rounded-2xl bg-blue-500 px-4 py-2 text-sm font-black text-white shadow-[0_0_25px_rgba(59,130,246,0.35)] hover:bg-blue-400"
+              >
+                Track Order
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="relative z-10 mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        <header className="mb-6 flex w-full flex-wrap items-center justify-between gap-4 border-b border-blue-500/20 px-1 pb-5">
-          <div>
-            <p className="text-2xl font-black tracking-tight text-white">
-              BLOXHOP
-            </p>
-            <p className="text-sm text-slate-400">
-              Secure checkout for Blox Fruits items and online service
-              fulfillment.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            <Link
-              href="/home"
-              className="rounded-2xl border border-slate-700/70 bg-slate-950/40 px-4 py-2 text-sm font-bold text-white hover:bg-slate-800/70"
-            >
-              Back to Store
-            </Link>
-
-            <Link
-              href="/track-order"
-              className="rounded-2xl bg-blue-500 px-4 py-2 text-sm font-black text-white shadow-[0_0_25px_rgba(59,130,246,0.35)] hover:bg-blue-400"
-            >
-              Track Order
-            </Link>
-          </div>
-        </header>
 
         <main className="grid items-start gap-8 lg:grid-cols-[1fr_420px]">
           <section className="space-y-6">
@@ -894,9 +944,7 @@ function CheckoutPageContent() {
 
                   <p className="mt-2 text-xs text-slate-400">
                     Detected country: {detectedCountry}.{" "}
-                    {isPhilippinesCustomer
-                      ? "PayMongo checkout is available."
-                      : "Manual payment will be used for this order."}
+                    Shopify checkout will be used for this order.
                   </p>
                 </div>
 
@@ -1018,9 +1066,7 @@ function CheckoutPageContent() {
 
               <div className="mt-3 rounded-2xl border border-blue-400/20 bg-blue-400/5 px-4 py-3">
                 <p className="text-xs leading-6 text-blue-200">
-                  {isPhilippinesCustomer
-                    ? "Philippine customers can proceed through PayMongo secure checkout."
-                    : "International customers will proceed through manual payment instructions."}
+                  All customers will proceed through Shopify secure checkout.
                 </p>
               </div>
 
@@ -1053,24 +1099,14 @@ function CheckoutPageContent() {
                    className={`w-full rounded-2xl border py-4 text-lg font-black transition ${
   !confirmChecked || !termsAccepted || isCheckoutDisabled
     ? "cursor-not-allowed border-slate-700 bg-slate-800 text-slate-300"
-    : isPhilippinesCustomer
-      ? "cursor-pointer border-blue-400/30 bg-[#10233c] text-white hover:bg-[#18345a]"
-      : "cursor-pointer border-emerald-400/30 bg-emerald-400 text-black hover:bg-emerald-300"
+    : "cursor-pointer border-blue-400/30 bg-[#10233c] text-white hover:bg-[#18345a]"
 }`}
                   >
-                    {isSubmitting
-                      ? isPhilippinesCustomer
-                        ? "Redirecting..."
-                        : "Saving Order..."
-                      : isPhilippinesCustomer
-                        ? "Proceed to Secure Payment"
-                        : "Proceed to Manual Payment"}
+                    {isSubmitting ? "Redirecting..." : "Proceed to Shopify Checkout"}
                   </button>
 
                   <p className="text-center text-xs font-semibold text-slate-400">
-                    {isPhilippinesCustomer
-                      ? "Estimated delivery time: Usually within minutes after payment verification."
-                      : "After placing your order, please contact support for manual international payment instructions."}
+                    After payment approval in Shopify, your order continues through our normal fulfillment flow.
                   </p>
 
                   <div className="mt-4 flex flex-wrap items-center justify-center gap-4 text-sm font-semibold text-slate-400">
@@ -1119,7 +1155,7 @@ function CheckoutPageContent() {
             </div>
           </section>
 
-          <aside className="lg:sticky lg:top-6 lg:self-start">
+          <aside className="lg:sticky lg:top-28 lg:self-start">
             <div className="rounded-[1.75rem] border border-blue-500/20 bg-slate-950/30 p-5 sm:p-6">
               <div className="flex items-start justify-between gap-4">
                 <div>
@@ -1154,11 +1190,7 @@ function CheckoutPageContent() {
                   </div>
                 ) : (
                   <div
-                    className={`divide-y divide-blue-500/10 ${
-                      showAllItems
-                        ? "max-h-[360px] overflow-y-auto"
-                        : "max-h-[360px] overflow-hidden"
-                    }`}
+                    className="max-h-[300px] divide-y divide-blue-500/10 overflow-y-auto"
                   >
                     {cartItems.map((item) => (
                       <div
@@ -1236,18 +1268,6 @@ function CheckoutPageContent() {
                   </div>
                 )}
               </div>
-
-              {cartItems.length > 3 && (
-                <button
-                  type="button"
-                  onClick={() => setShowAllItems(!showAllItems)}
-                  className="mt-3 w-full cursor-pointer rounded-2xl border border-blue-500/20 px-4 py-3 text-sm font-black text-slate-300 hover:bg-blue-500/10"
-                >
-                  {showAllItems
-                    ? "Show Less Items"
-                    : `Show All Items (${cartItems.length})`}
-                </button>
-              )}
 
               <div className="mt-6 border-t border-blue-500/20 pt-6">
                 <div className="space-y-3 text-base">

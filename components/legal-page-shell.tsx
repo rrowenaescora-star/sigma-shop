@@ -83,7 +83,7 @@ export default function LegalPageShell({
               Bloxhop Legal
             </p>
 
-            <h1 className="mt-3 text-4xl font-black tracking-tight text-white md:text-5xl">
+            <h1 className="mt-3 text-4xl font-black tracking-tight text-blue-200 md:text-5xl">
               {title}
             </h1>
 

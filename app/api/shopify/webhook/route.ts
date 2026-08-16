@@ -62,32 +62,69 @@ export async function POST(request: Request) {
   try {
     const rawBody = await request.text();
     const hmacHeader = request.headers.get("x-shopify-hmac-sha256");
+    const topic = request.headers.get("x-shopify-topic") || "";
+
+    console.log("Shopify webhook received", {
+      topic,
+      hasSignature: Boolean(hmacHeader),
+      bodyLength: rawBody.length,
+    });
 
     if (!verifyShopifyWebhook(rawBody, hmacHeader)) {
+      console.warn("Shopify webhook signature check failed");
       return NextResponse.json(
         { error: "Invalid Shopify webhook signature." },
         { status: 401 },
       );
     }
 
-    const topic = request.headers.get("x-shopify-topic") || "";
-
     if (!topic.toLowerCase().includes("paid")) {
+      console.log("Shopify webhook ignored because topic is not paid-related", {
+        topic,
+      });
       return NextResponse.json({ ok: true, ignored: true });
     }
 
-    const payload = JSON.parse(rawBody);
-    const orderId = extractOrderId(payload);
-
-    if (!orderId) {
+    let payload: any;
+    try {
+      payload = JSON.parse(rawBody);
+    } catch (error) {
+      console.warn("Shopify webhook JSON parse failed", {
+        error: error instanceof Error ? error.message : String(error),
+      });
       return NextResponse.json(
-        { error: "Missing Bloxhop order ID in Shopify order notes." },
-        { status: 400 },
+        { ok: true, ignored: true, reason: "invalid-json" },
+        { status: 200 },
       );
     }
 
-    const paidAt = payload?.processed_at || payload?.created_at || new Date().toISOString();
-    const totalPrice = Number(payload?.current_total_price || payload?.total_price || 0);
+    const orderId = extractOrderId(payload);
+
+    if (!orderId) {
+      console.warn("Shopify webhook missing Bloxhop order reference", {
+        topic,
+        note: payload?.note || null,
+        noteAttributes: payload?.note_attributes || null,
+        orderNumber: payload?.order_number || null,
+        name: payload?.name || null,
+      });
+      return NextResponse.json(
+        {
+          ok: true,
+          ignored: true,
+          reason: "missing-bloxhop-order-id",
+        },
+        { status: 200 },
+      );
+    }
+
+    const paidAt =
+      payload?.processed_at ||
+      payload?.created_at ||
+      new Date().toISOString();
+    const totalPrice = Number(
+      payload?.current_total_price || payload?.total_price || 0,
+    );
     const email = payload?.email || null;
     const financialStatus = String(payload?.financial_status || "").toLowerCase();
 
@@ -110,6 +147,12 @@ export async function POST(request: Request) {
         { status: 500 },
       );
     }
+
+    console.log("Shopify webhook matched and updated admin order", {
+      orderId,
+      topic,
+      financialStatus,
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {

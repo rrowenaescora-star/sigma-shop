@@ -74,6 +74,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const items: CartItem[] = Array.isArray(body.items) ? body.items : [];
+    const orderId = body.orderId ? String(body.orderId) : "";
 
     if (items.length === 0) {
       return NextResponse.json(
@@ -161,6 +162,14 @@ export async function POST(req: Request) {
     }>(cartMutation, {
       input: {
         lines: cartLines,
+        attributes: orderId
+          ? [
+              {
+                key: "bloxhop_order_id",
+                value: orderId,
+              },
+            ]
+          : [],
       },
     });
 

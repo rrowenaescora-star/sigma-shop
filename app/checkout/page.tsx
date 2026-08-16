@@ -77,9 +77,6 @@ function CheckoutPageContent() {
   const [confirmChecked, setConfirmChecked] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
 
-  const [detectedCountry, setDetectedCountry] = useState("PH");
-  const [customerCountry, setCustomerCountry] = useState("PH");
-
   const inputClass =
     "min-w-0 flex-1 rounded-2xl border border-blue-400/40 bg-[#0b1728] px-4 py-4 text-sm text-white outline-none placeholder:text-slate-500 focus:border-blue-300 focus:ring-4 focus:ring-blue-500/20";
 
@@ -88,25 +85,6 @@ function CheckoutPageContent() {
 
   const textareaClass =
     "min-h-[112px] w-full rounded-2xl border border-blue-400/40 bg-[#0b1728] px-4 py-4 text-sm text-white outline-none placeholder:text-slate-500 focus:border-blue-300 focus:ring-4 focus:ring-blue-500/20";
-
-  useEffect(() => {
-    async function detectCountry() {
-      try {
-        const res = await fetch("/api/geo", { cache: "no-store" });
-        const data = await res.json();
-
-        const country = data.country || "PH";
-
-        setDetectedCountry(country);
-        setCustomerCountry(country);
-      } catch {
-        setDetectedCountry("PH");
-        setCustomerCountry("PH");
-      }
-    }
-
-    detectCountry();
-  }, []);
 
   useEffect(() => {
     const orderId = searchParams.get("orderId");
@@ -374,9 +352,6 @@ function CheckoutPageContent() {
       .filter((product): product is Product => Boolean(product));
   }, [latestProducts]);
 
-  const isPhilippinesCustomer =
-    detectedCountry === "PH" && customerCountry === "PH";
-
   const isCheckoutDisabled =
     cartItems.length === 0 ||
     !robloxUsername.trim() ||
@@ -640,6 +615,35 @@ function CheckoutPageContent() {
     setIsSubmitting(true);
 
     try {
+      const orderResponse = await fetch("/api/orders", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          robloxUsername,
+          robloxUserId,
+          robloxDisplayName,
+          contactInfo,
+          notes,
+          items: cartItems,
+          totalPrice: Number(finalPrice.toFixed(2)),
+          paymentMethod: "Shopify",
+          paymentStatus: "Pending",
+          payerEmail: contactInfo,
+          couponCode: appliedCoupon || undefined,
+          couponDiscount: Number(discount.toFixed(2)),
+          originalTotal: Number(totalPrice.toFixed(2)),
+        }),
+      });
+
+      const orderResult = await orderResponse.json();
+
+      if (!orderResponse.ok) {
+        alert(orderResult.error || "Order save failed before Shopify checkout.");
+        return;
+      }
+
       const res = await fetch("/api/shopify/checkout", {
         method: "POST",
         headers: {
@@ -647,6 +651,7 @@ function CheckoutPageContent() {
         },
         body: JSON.stringify({
           items: cartItems,
+          orderId: orderResult.order.id,
         }),
       });
 
@@ -662,7 +667,8 @@ function CheckoutPageContent() {
         return;
       }
 
-      window.location.href = data.checkoutUrl;
+      localStorage.setItem("real-last-order", JSON.stringify(orderResult.order));
+      window.location.href = `${data.checkoutUrl}&note=order-${orderResult.order.id}`;
     } catch (error) {
       console.error(error);
       alert("Something went wrong while starting Shopify checkout.");
@@ -920,31 +926,6 @@ function CheckoutPageContent() {
                   <p className="mt-2 text-xs text-slate-400">
                     Order updates and delivery notifications will be sent to
                     this email.
-                  </p>
-                </div>
-
-                <div>
-                  <label className="mb-2 block text-sm font-bold text-white">
-                    Country
-                  </label>
-
-                  <select
-                    value={customerCountry}
-                    onChange={(e) => setCustomerCountry(e.target.value)}
-                    className={fullInputClass}
-                  >
-                    <option value="PH">Philippines</option>
-                    <option value="US">United States</option>
-                    <option value="GB">United Kingdom</option>
-                    <option value="CA">Canada</option>
-                    <option value="AU">Australia</option>
-                    <option value="IN">India</option>
-                    <option value="OTHER">Other Country</option>
-                  </select>
-
-                  <p className="mt-2 text-xs text-slate-400">
-                    Detected country: {detectedCountry}.{" "}
-                    Shopify checkout will be used for this order.
                   </p>
                 </div>
 

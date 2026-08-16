@@ -95,6 +95,36 @@ export async function POST(req: Request) {
     }
 
     // SAVE ORDER
+    const recentWindowMs = 5 * 60 * 1000;
+    const recentSince = new Date(Date.now() - recentWindowMs).toISOString();
+
+    const { data: recentOrders, error: recentOrdersError } = await supabase
+      .from("orders")
+      .select("*")
+      .eq("roblox_username", robloxUsername)
+      .eq("contact_info", contactInfo)
+      .eq("payment_method", paymentMethod || "Manual Order")
+      .gte("created_at", recentSince)
+      .order("created_at", { ascending: false })
+      .limit(1);
+
+    if (recentOrdersError) {
+      return NextResponse.json(
+        { error: "Failed to check for duplicate orders." },
+        { status: 500 }
+      );
+    }
+
+    const existingOrder = recentOrders?.[0];
+
+    if (existingOrder) {
+      return NextResponse.json({
+        success: true,
+        order: existingOrder,
+        deduped: true,
+      });
+    }
+
     const { data: order, error } = await supabase
       .from("orders")
       .insert({

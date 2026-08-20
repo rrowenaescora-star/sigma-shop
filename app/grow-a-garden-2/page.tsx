@@ -7,6 +7,8 @@ import { createClient } from "@/lib/supabase/client";
 import TrustBadges from "@/components/TrustBadges";
 import SupportChat from "@/components/SupportChat";
 import SaleBot from "@/components/SaleBot";
+import ProductFilterSidebar from "@/components/ProductFilterSidebar";
+import PageTransitionLink from "@/components/page-transition-link";
 
 
 type Product = {
@@ -112,12 +114,11 @@ function ProductSkeletonCard() {
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [message, setMessage] = useState(
-    "Shop safely with secure checkout, fast digital delivery, order tracking, and active Discord community support."
-  );
-  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [cartReady, setCartReady] = useState(false);
+const [isCartOpen, setIsCartOpen] = useState(false);
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [availabilityFilter, setAvailabilityFilter] = useState<"all" | "in-stock">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOption, setSortOption] = useState("default");
   const [currencyView, setCurrencyView] = useState<"USD" | "PHP" | "INR">("USD");
@@ -130,7 +131,6 @@ export default function Home() {
   const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [cartPulse, setCartPulse] = useState(false);
-  const [highlightedProductId, setHighlightedProductId] = useState<string | null>(null);
   const [popupProduct, setPopupProduct] = useState<Product | null>(null);
   const [flyingCardProduct, setFlyingCardProduct] = useState<Product | null>(null);
   const [cartHit, setCartHit] = useState(false);
@@ -152,6 +152,7 @@ useEffect(() => {
     if (savedCart) {
       setCartItems(JSON.parse(savedCart));
     }
+    setCartReady(true);
 
     loadProducts();
   }, []);
@@ -204,16 +205,24 @@ useEffect(() => {
       }
     }
 
+    function syncDetailCart() {
+      const savedCart = localStorage.getItem("real-cart");
+      setCartItems(savedCart ? JSON.parse(savedCart) : []);
+    }
+
     window.addEventListener("storage", syncCart);
+    window.addEventListener("bloxhop-cart-updated", syncDetailCart);
 
     return () => {
       window.removeEventListener("storage", syncCart);
+      window.removeEventListener("bloxhop-cart-updated", syncDetailCart);
     };
   }, []);
 
   useEffect(() => {
+    if (!cartReady) return;
     localStorage.setItem("real-cart", JSON.stringify(cartItems));
-  }, [cartItems]);
+  }, [cartItems, cartReady]);
 
   useEffect(() => {
     async function loadRate() {
@@ -267,7 +276,7 @@ useEffect(() => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedCategory, searchQuery, sortOption]);
+  }, [selectedCategory, availabilityFilter, searchQuery, sortOption]);
 
   async function loadProducts() {
     try {
@@ -277,7 +286,6 @@ useEffect(() => {
       const result = await response.json();
 
       if (!response.ok) {
-        setMessage(result.error || "Failed to load products.");
         return;
       }
 
@@ -290,7 +298,6 @@ setProducts(mm2Products);
 
     } catch (error) {
       console.error(error);
-      setMessage("Something went wrong while loading products.");
     } finally {
       setLoadingProducts(false);
     }
@@ -340,18 +347,9 @@ setProducts(mm2Products);
     return Math.round(((compareAt - current) / compareAt) * 100);
   }
 
-  function getSavingsAmount(product: Product) {
-    const compareAt = Number(product.compare_at_price ?? 0);
-    const current = Number(product.price ?? 0);
-
-    if (!compareAt || compareAt <= current) return null;
-
-    return compareAt - current;
-  }
 
   function handleBuy(product: Product) {
     if (isUnavailable(product)) {
-      setMessage(`${product.name} is currently unavailable.`);
       return;
     }
 
@@ -360,7 +358,6 @@ setProducts(mm2Products);
 
     if (existingItem) {
       if (existingItem.quantity >= availableStock) {
-        setMessage(`Max stock reached for ${product.name}.`);
         return;
       }
 
@@ -374,9 +371,6 @@ setProducts(mm2Products);
     } else {
       setCartItems((prev) => [...prev, { ...product, quantity: 1 }]);
     }
-
-    setMessage(`${product.name} added to cart.`);
-    
   }
 
   function increaseQuantity(id: number) {
@@ -408,12 +402,10 @@ setProducts(mm2Products);
 
   function removeFromCart(id: number) {
     setCartItems((prev) => prev.filter((item) => item.id !== id));
-    setMessage("Item removed from cart.");
   }
 
   function clearCart() {
     setCartItems([]);
-    setMessage("Cart cleared.");
   }
 function formatMoney(usdAmount: number) {
   if (currencyView === "USD") return `$${usdAmount.toFixed(2)}`;
@@ -453,7 +445,7 @@ function formatMoney(usdAmount: number) {
 
     if (currencyView === "USD") {
       return (
-        <p className="text-2xl font-extrabold text-emerald-300">
+        <p className="text-xl font-extrabold leading-none text-emerald-300">
           ${usd.toFixed(2)}
         </p>
       );
@@ -461,7 +453,7 @@ function formatMoney(usdAmount: number) {
 
     if (currencyView === "PHP") {
       return (
-        <p className="text-2xl font-extrabold text-emerald-300">
+        <p className="text-xl font-extrabold leading-none text-emerald-300">
           {php
             ? `₱${php.toLocaleString(undefined, {
                 minimumFractionDigits: 2,
@@ -474,7 +466,7 @@ function formatMoney(usdAmount: number) {
 
 	if (currencyView === "INR") {
     return (
-       <p className="text-2xl font-extrabold text-emerald-300">
+       <p className="text-xl font-extrabold leading-none text-emerald-300">
         {inr
           ? `₹${inr.toLocaleString(undefined, {
             minimumFractionDigits: 2,
@@ -487,7 +479,7 @@ function formatMoney(usdAmount: number) {
 
     return (
       <div>
-        <p className="text-2xl font-extrabold text-emerald-300">
+        <p className="text-xl font-extrabold leading-none text-emerald-300">
           ${usd.toFixed(2)}
         </p>
         <p className="mt-1 text-sm text-emerald-200">
@@ -538,7 +530,10 @@ function formatMoney(usdAmount: number) {
         (product.category || "").toLowerCase().includes(query) ||
         (product.tag || "").toLowerCase().includes(query);
 
-      return matchesCategory && matchesSearch;
+      const matchesAvailability =
+        availabilityFilter === "all" || !isUnavailable(product);
+
+      return matchesCategory && matchesAvailability && matchesSearch;
     });
 
     const sorted = [...filtered];
@@ -554,7 +549,7 @@ function formatMoney(usdAmount: number) {
     }
 
     return sorted;
-  }, [products, selectedCategory, searchQuery, sortOption]);
+  }, [products, selectedCategory, availabilityFilter, searchQuery, sortOption]);
 
   const totalPages = Math.max(
     1,
@@ -584,7 +579,6 @@ useEffect(() => {
         block: "center",
       });
 
-      setHighlightedProductId(id);
  const foundProduct = products.find(
   (product) =>
     (product.slug || product.name).toLowerCase().replace(/\s+/g, "-") === id
@@ -593,10 +587,6 @@ useEffect(() => {
 if (foundProduct) {
   setPopupProduct(foundProduct);
 }
-
-      setTimeout(() => {
-        setHighlightedProductId(null);
-      }, 2500);
     }
   }, 300);
 }, [loadingProducts, paginatedProducts]);
@@ -621,9 +611,9 @@ if (foundProduct) {
         <div className="absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_12%_22%,rgba(255,255,255,0.24)_0_1px,transparent_2px),radial-gradient(circle_at_32%_70%,rgba(255,255,255,0.16)_0_1px,transparent_2px),radial-gradient(circle_at_74%_35%,rgba(255,255,255,0.20)_0_1px,transparent_2px),radial-gradient(circle_at_88%_78%,rgba(255,255,255,0.14)_0_1px,transparent_2px)] animate-[starDrift_18s_linear_infinite]" />
       </div>
 
-     <div className="relative w-full px-0">
+     <div className="relative w-full px-0 pt-[140px]">
     
-<div className="sticky top-0 z-50 mb-6">
+<div className="fixed inset-x-0 top-0 z-50">
   <div className="overflow-hidden border-b border-blue-500/10 bg-[#07111f]/95 shadow-[0_15px_50px_rgba(0,0,0,0.45)] backdrop-blur-xl">
     <div className="absolute inset-0 hidden md:block">
       <img
@@ -843,37 +833,25 @@ alt="Grow a Garden 2"
   </div>
 </div>
 
-<div className="mx-auto max-w-[1850px] px-4 md:px-6 lg:px-8">
-          <main className="min-w-0">
-          <section className="min-h-[1400px] xl:min-h-[1750px] p-2 md:p-4">
-		
-              
-
-              <div className="relative mb-5 flex items-center justify-between overflow-hidden rounded-3xl border border-white/5 bg-white/[0.02] px-4 py-3 backdrop-blur-sm">
-  <div className="text-sm text-sky-100">
-    {message}
-  </div>
-
-  <div className="hidden items-center gap-3 md:flex">
-    <div className="rounded-2xl border border-pink-400/20 bg-gradient-to-r from-pink-500/10 to-purple-500/10 px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-pink-200 shadow-[0_0_25px_rgba(236,72,153,0.18)]">
-      ⚡ Digital Fulfillment
-    </div>
-
-    <div className="rounded-2xl border border-cyan-400/20 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-cyan-200 shadow-[0_0_25px_rgba(34,211,238,0.18)]">
-      🛡 Secure Checkout
-    </div>
-  </div>
-              <div className="mb-5 flex flex-wrap items-center gap-3 text-xs font-bold">
-                <span className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1 text-emerald-300">In Stock</span>
-                <span className="rounded-full border border-yellow-400/20 bg-yellow-500/10 px-3 py-1 text-yellow-300">Low Stock</span>
-                <span className="rounded-full border border-red-400/20 bg-red-500/10 px-3 py-1 text-red-300">Out of Stock</span>
-                <span className="text-slate-400">Live stock updates help show when items are running low.</span>
-              </div>
-
-</div>
-
+<div className="grid w-full max-w-none lg:grid-cols-[320px_minmax(0,1fr)]">
+          <ProductFilterSidebar
+            totalItems={products.length}
+            inStockItems={products.filter((product) => !isUnavailable(product)).length}
+            categories={categories.map((category) => ({
+              name: category,
+              count: category === "All"
+                ? products.length
+                : products.filter((product) => (product.category || "").trim() === category).length,
+            }))}
+            selectedCategory={selectedCategory}
+            availabilityFilter={availabilityFilter}
+            onCategoryChange={setSelectedCategory}
+            onAvailabilityChange={setAvailabilityFilter}
+          />
+          <main className="min-w-0 px-4 md:px-6 lg:px-8">
+          <section className="p-2 md:p-4">
               {loadingProducts ? (
-               <div className="grid auto-rows-fr grid-cols-2 gap-3 sm:gap-5 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6">
+               <div className="grid auto-rows-fr grid-cols-2 gap-8 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6">
                   {Array.from({ length: PRODUCTS_PER_PAGE }).map((_, index) => (
                     <ProductSkeletonCard key={index} />
                   ))}
@@ -884,13 +862,12 @@ alt="Grow a Garden 2"
                 </div>
               ) : (
                 <>
-                  <div className="grid auto-rows-fr grid-cols-2 gap-3 sm:gap-5 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6">
+                  <div className="grid auto-rows-fr grid-cols-2 gap-8 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6">
                     {paginatedProducts.map((product) => {
                       const stockLabel = getStockLabel(product);
                       const outOfStock = isUnavailable(product);
                       const quantity = Number(product.stock_quantity ?? 0);
                       const discountPercent = getDiscountPercent(product);
-                      const savingsAmount = getSavingsAmount(product);
                       const unavailableReason = getUnavailableReason(product);
 
                       return (
@@ -902,20 +879,20 @@ alt="Grow a Garden 2"
   style={{
     animationDelay: `${(product.id % 15) * 30}ms`,
   }}
-                         className={`scroll-mt-40 group relative flex min-h-[470px] animate-[productAppear_.45s_ease-out] flex-col overflow-hidden rounded-[2rem] border bg-[#07111f] shadow-[0_18px_50px_rgba(0,0,0,0.45)] transition-all duration-500 ease-out hover:-translate-y-2 hover:border-pink-400/35 hover:shadow-[0_25px_80px_rgba(236,72,153,0.20)] ${
-  highlightedProductId ===
-  (product.slug || product.name).toLowerCase().replace(/\s+/g, "-")
-    ? "z-40 scale-110 border-blue-300 shadow-[0_0_90px_rgba(59,130,246,0.75)]"
-    : "border-slate-600/60"
-}`}
+                         className={`scroll-mt-40 group relative flex w-full min-w-0 aspect-[3/4] animate-[productAppear_.45s_ease-out] flex-col overflow-hidden rounded-2xl border bg-[#07111f] shadow-[0_18px_50px_rgba(0,0,0,0.45)] transition-all duration-500 ease-out hover:-translate-y-2 hover:border-slate-500/80 border-slate-600/60`}
                         >
+                          <PageTransitionLink
+                            href={`/products/${encodeURIComponent(product.slug || String(product.id))}`}
+                            ariaLabel={`View ${product.name}`}
+                            className="absolute inset-0 z-10"
+                          />
                           <div className="pointer-events-none absolute inset-0 opacity-0 transition duration-500 group-hover:opacity-100">
                             <div className="absolute -left-24 top-16 h-40 w-40 rounded-full bg-pink-500/10 blur-3xl" />
                             <div className="absolute -right-24 bottom-16 h-40 w-40 rounded-full bg-purple-500/10 blur-3xl" />
                             <div className="absolute inset-0 bg-[linear-gradient(115deg,transparent_25%,rgba(255,255,255,0.07)_45%,transparent_65%)] translate-x-[-120%] group-hover:translate-x-[120%] transition-transform duration-1000" />
                           </div>
 
-                          <div className="relative h-[230px] overflow-hidden border-b border-slate-700/70 bg-gradient-to-br from-emerald-500/20 via-[#07111f] to-blue-700/20">
+                          <div className="relative h-[42%] min-h-[125px] shrink-0 overflow-hidden border-b border-slate-700/70 bg-gradient-to-br from-emerald-500/20 via-[#07111f] to-blue-700/20">
                             <div className="absolute inset-0 bg-[radial-gradient(circle_at_left,rgba(16,185,129,0.18),transparent_40%),radial-gradient(circle_at_right,rgba(37,99,235,0.20),transparent_40%)]" />
 
                             {discountPercent ? (
@@ -941,7 +918,7 @@ alt="Grow a Garden 2"
                                 <img
                                   src={product.image_url}
                                   alt={product.name}
-                                  className="h-[205px] w-[205px] object-contain transition-transform duration-500 ease-out group-hover:scale-110"
+                                  className="h-[78%] w-[78%] max-h-[170px] max-w-[170px] object-contain transition-transform duration-500 ease-out group-hover:scale-110"
                                 />
                               ) : (
                                 <div className="h-28 w-28 rounded-[2rem] bg-gradient-to-br from-blue-400 to-sky-300 shadow-[0_0_60px_rgba(59,130,246,0.20)]" />
@@ -949,59 +926,34 @@ alt="Grow a Garden 2"
                             </div>
                           </div>
 
-                          <div className="flex flex-1 flex-col bg-[#07111f] p-5">
-                            <h3 className="truncate text-xl font-black text-white">
+                          <div className="flex min-h-0 flex-1 flex-col bg-[#07111f] p-3">
+                            <h3 className="shrink-0 truncate text-base font-black text-white">
                               {product.name}
                             </h3>
 
-                            <p className="mt-1 text-sm font-semibold text-blue-400">
+                            <p className="mt-0.5 shrink-0 text-xs font-semibold text-blue-400">
                               {product.category || "General"}
                             </p>
-
-                            <div className="mt-4">
-                              {!outOfStock && quantity > 0 ? (
-                                <div className="space-y-1">
-                                  {quantity <= 3 && (
-                                    <p className="text-sm font-bold text-yellow-300">
-                                      Only {quantity} left - running low
-                                    </p>
-                                  )}
-                                </div>
-                              ) : (
-                                <p className="text-sm font-semibold text-red-300">
-                                  {unavailableReason}
-                                </p>
-                              )}
-                            </div>
+                            {!outOfStock && quantity > 0 && quantity <= 3 ? (
+                              <p className="mt-2 shrink-0 text-xs font-bold text-yellow-300">
+                                Only {quantity} left - running low
+                              </p>
+                            ) : outOfStock ? (
+                              <p className="mt-2 shrink-0 text-xs font-semibold text-red-300">
+                                {unavailableReason}
+                              </p>
+                            ) : null}
 
                           
-  <div className="flex items-center justify-between gap-3">
-    <div>
-      {renderPrice(product)}
+  <div className="mt-2 flex shrink-0 items-baseline gap-2">
+    {renderPrice(product)}
 
-      {product.compare_at_price &&
-        Number(product.compare_at_price) > Number(product.price) && (
-          <p className="mt-1 text-sm font-bold text-slate-500 line-through decoration-slate-400">
-            {formatMoney(Number(product.compare_at_price))}
-          </p>
-        )}
-    </div>
-
-    {savingsAmount && (
-      <span className="flex h-[40px] w-[100px] items-center justify-center rounded-xl bg-emerald-500/20 px-2 text-center text-xs font-black leading-tight text-emerald-300">
-        {currencyView === "USD" && `Save $${savingsAmount.toFixed(2)}`}
-        {currencyView === "PHP" && usdToPhpRate &&
-          `Save ₱${(savingsAmount * usdToPhpRate).toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })}`}
-        {currencyView === "INR" && usdToInrRate &&
-          `Save ₹${(savingsAmount * usdToInrRate).toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })}`}
-      </span>
-    )}
+    {product.compare_at_price &&
+      Number(product.compare_at_price) > Number(product.price) && (
+        <span className="relative inline-block text-xs font-semibold text-slate-500 after:absolute after:left-[-0.1em] after:top-1/2 after:h-px after:w-[calc(100%+0.2em)] after:-rotate-12 after:bg-rose-400/90">
+          {formatMoney(Number(product.compare_at_price))}
+        </span>
+      )}
   </div>
 
                             
@@ -1021,7 +973,7 @@ alt="Grow a Garden 2"
     }, 500);
   }, 500);
 }}
-  className={`mt-5 flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-4 text-base font-bold transition ${
+  className={`relative z-20 mt-auto mb-1 flex h-8 w-full shrink-0 items-center justify-center gap-1.5 rounded-lg px-3 py-0 text-[11px] font-bold transition ${
     outOfStock
       ? "cursor-not-allowed bg-slate-700 text-slate-300"
       : addingProductId === product.id
@@ -1070,11 +1022,11 @@ alt="Grow a Garden 2"
                 </>
               )}
             </section>
-	                  <div className="mt-8 flex flex-wrap items-center justify-center gap-2">
+	                  <div className="mt-6 flex flex-wrap items-center justify-center gap-1.5">
                     <button
                       onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                       disabled={currentPage === 1}
-                      className={`rounded-2xl px-4 py-2 text-sm font-bold transition-all duration-300 ease-out ${
+                      className={`h-8 rounded-lg px-3 text-xs font-bold transition-all duration-300 ease-out ${
                         currentPage === 1
                           ? "cursor-not-allowed bg-slate-700 text-slate-400"
                           : "border border-slate-700/60 bg-[#10213a]/70 text-white hover:bg-[#142846]/80 hover:border-blue-400/30"
@@ -1088,7 +1040,7 @@ alt="Grow a Garden 2"
                         <button
                           key={pageNumber}
                           onClick={() => setCurrentPage(pageNumber)}
-                          className={`rounded-2xl px-4 py-2 text-sm font-bold transition ${
+                          className={`flex h-8 w-8 items-center justify-center rounded-lg p-0 text-xs font-bold transition ${
                             currentPage === pageNumber
                               ? "bg-blue-500 text-white"
                               : "bg-[#142846]/80 text-white hover:bg-[#1b3558]/90"
@@ -1104,7 +1056,7 @@ alt="Grow a Garden 2"
                         setCurrentPage((prev) => Math.min(prev + 1, totalPages))
                       }
                       disabled={currentPage === totalPages}
-                      className={`rounded-2xl px-4 py-2 text-sm font-bold transition ${
+                      className={`h-8 rounded-lg px-3 text-xs font-bold transition ${
                         currentPage === totalPages
                           ? "cursor-not-allowed bg-slate-700 text-slate-400"
                           : "bg-[#142846]/80 text-white hover:bg-[#1b3558]/90"
@@ -1113,10 +1065,6 @@ alt="Grow a Garden 2"
                       Next
                     </button>
                   </div>
-          </main>
-
-
-
           <section className="mx-auto mt-20 max-w-5xl px-4 pb-24 text-center">
             <p className="text-xs font-black uppercase tracking-[0.3em] text-blue-400">
               Bloxhop Online Store
@@ -1156,8 +1104,6 @@ alt="Grow a Garden 2"
               </div>
             </div>
           </section>
-        </div>
-      </div>
 <section className="mx-auto mt-24 max-w-7xl px-4 pb-28">
   <div className="mb-10 text-center">
     <p className="text-sm font-black uppercase tracking-[0.3em] text-blue-400">
@@ -1250,6 +1196,9 @@ alt="Grow a Garden 2"
     ))}
   </div>
 </section>
+          </main>
+        </div>
+      </div>
       <>
 <section className="relative w-full overflow-hidden border-t border-white/10 bg-[#07111f]">
 
@@ -1444,17 +1393,10 @@ alt="Grow a Garden 2"
 ) : null}
 
            
-            <div className="mt-4 grid grid-cols-2 gap-3">
-              <button
-                onClick={clearCart}
-                className="rounded-2xl bg-[#142846]/80 py-3 font-semibold hover:bg-[#1b3558]/80"
-              >
-                Clear
-              </button>
-
-              <Link
+            <div className="mt-4">
+<Link
                 href="/checkout"
-                className={`rounded-2xl py-3 text-center font-bold transition ${
+                className={`flex h-10 w-full items-center justify-center whitespace-nowrap rounded-xl px-3 text-sm font-bold transition ${
                   cartItems.length === 0
                     ? "pointer-events-none bg-slate-700 text-slate-300"
                     : "bg-blue-500 text-white hover:bg-blue-400"
@@ -1559,7 +1501,7 @@ alt="Grow a Garden 2"
 )}
 {flyingCardProduct && (
   <div className="pointer-events-none fixed inset-0 z-[160] flex items-center justify-center">
-    <div className="animate-[vacuumCard_.9s_ease-in-out_forwards] w-[420px] overflow-hidden rounded-[2rem] border border-blue-300/30 bg-gradient-to-br from-[#081225] via-[#0b1730] to-[#06101d] p-4 shadow-[0_0_90px_rgba(59,130,246,0.7)]">
+    <div className="animate-[vacuumCard_.9s_ease-in-out_forwards] w-[420px] overflow-hidden rounded-[2rem] border border-blue-300/30 bg-gradient-to-br from-[#081225] via-[#0b1730] to-[#06101d] p-4">
       <div className="flex h-[230px] items-center justify-center rounded-[1.5rem] bg-gradient-to-br from-blue-500/20 via-[#07111f] to-cyan-400/10 p-5">
         {flyingCardProduct.image_url && (
           <img
@@ -1582,7 +1524,7 @@ alt="Grow a Garden 2"
 )}
 {popupProduct && (
   <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 px-4 backdrop-blur-md">
-    <div className="relative w-full max-w-lg overflow-hidden rounded-[2.5rem] border border-blue-300/30 bg-gradient-to-br from-[#081225] via-[#0b1730] to-[#06101d] p-1 shadow-[0_0_120px_rgba(59,130,246,0.65)]">
+    <div className="relative w-full max-w-lg overflow-hidden rounded-[2.5rem] border border-blue-300/30 bg-gradient-to-br from-[#081225] via-[#0b1730] to-[#06101d] p-1">
       <div className="absolute -left-24 -top-24 h-56 w-56 rounded-full bg-blue-500/30 blur-3xl" />
       <div className="absolute -right-24 bottom-10 h-56 w-56 rounded-full bg-cyan-400/20 blur-3xl" />
       <div className="absolute inset-0 bg-[linear-gradient(115deg,transparent_25%,rgba(255,255,255,0.09)_45%,transparent_65%)]" />
@@ -1668,3 +1610,24 @@ alt="Grow a Garden 2"
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -49,7 +49,10 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: "Satoshi", sans-serif;
+  font-family: var(--font-plus-jakarta-sans), "Satoshi", sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
 }
 @keyframes shimmer {
   0% {
@@ -157,7 +160,6 @@ body {
   }
 
   to {
-    opacity: 1;
     transform: translateY(0) scale(1);
   }
 }
@@ -243,4 +245,62 @@ body {
   .checkout-floating-item {
     animation: none;
   }
+}
+
+
+
+@keyframes productPageEnter {
+  from {
+    transform: translateY(22px) scale(0.985);
+  }
+  to {
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes productHeaderEnter {
+  from {
+    transform: translateY(-14px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.product-page-enter {
+  animation: productPageEnter 460ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.product-header-enter {
+  animation: productHeaderEnter 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+html,
+body {
+  transition: transform 180ms ease;
+}
+
+html.page-transition-out body {
+  transform: translateY(8px);
+}
+
+
+
+
+/* Global interactive cursor rule */
+a[href],
+button:not(:disabled),
+[role="button"],
+select:not(:disabled),
+summary,
+input[type="checkbox"]:not(:disabled),
+input[type="radio"]:not(:disabled),
+label[for] {
+  cursor: pointer;
+}
+
+button:disabled,
+select:disabled,
+input:disabled {
+  cursor: not-allowed;
 }

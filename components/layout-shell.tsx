@@ -29,7 +29,8 @@ export default function LayoutShell({
     pathname.startsWith("/manual-payment") ||
     pathname.startsWith("/grow-a-garden-2") ||
     pathname.startsWith("/wallet") ||
-    pathname.startsWith("/blade-ball");
+    pathname.startsWith("/blade-ball") ||
+    pathname.startsWith("/products");
 
   const shops = [
     { href: "/home", img: "/games/bloxfruits.png", alt: "Blox Fruits", name: "Blox Fruits" },

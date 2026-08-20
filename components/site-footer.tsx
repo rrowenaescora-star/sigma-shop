@@ -73,7 +73,7 @@ export default function SiteFooter() {
                 </a>
 
                 <a
-                  href="https://www.youtube.com/"
+                  href="https://www.youtube.com/@Bloxhoponlinestore"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex h-11 w-16 items-center justify-center rounded-xl bg-white/5 text-lg text-white transition hover:bg-white/10"
@@ -82,7 +82,7 @@ export default function SiteFooter() {
                 </a>
 
                 <a
-                  href="https://www.tiktok.com/"
+                  href="https://www.tiktok.com/@bloxhopolinestore"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex h-11 w-16 items-center justify-center rounded-xl bg-white/5 text-lg text-white transition hover:bg-white/10"
@@ -117,7 +117,7 @@ export default function SiteFooter() {
                 </li>
                 <li>
                   <a
-                    href="https://www.youtube.com/"
+                    href="https://www.youtube.com/@Bloxhoponlinestore"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="transition hover:text-white"
@@ -127,7 +127,7 @@ export default function SiteFooter() {
                 </li>
                 <li>
                   <a
-                    href="https://www.tiktok.com/"
+                    href="https://www.tiktok.com/@bloxhopolinestore"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="transition hover:text-white"

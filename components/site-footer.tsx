@@ -33,10 +33,10 @@ export default function SiteFooter() {
                 related assets belong to their respective owners.
               </p>
 
-              <p className="mt-5 max-w-md text-sm leading-7 text-slate-500">
-                © {new Date().getFullYear()} Bloxhop Online Store. Independent
-                digital gaming marketplace.
+              <p className="mt-4 max-w-md text-sm leading-7 text-slate-400">
+                Bloxhop is operated by BLOXHOP ONLINE STORE, a DTI-registered business in the Philippines under DTI Registration No. 8089785.
               </p>
+
 
             <div className="mt-6 flex flex-wrap items-center gap-6 text-sm font-medium text-blue-400">
 
@@ -50,12 +50,12 @@ export default function SiteFooter() {
 
   <div className="flex items-center gap-2">
     <Phone className="h-4 w-4" />
-    <span>+63 945 339 2304</span>
+    <span>Mobile: 09453392304 · Landline: 0323460146</span>
   </div>
 
   <div className="flex items-center gap-2">
     <MapPin className="h-4 w-4" />
-    <span>Cebu City, Cebu, Philippines</span>
+    <span>Sitio Lower Cogon, Labangon, Cebu City, Philippines</span>
   </div>
 
 
@@ -253,6 +253,7 @@ export default function SiteFooter() {
 </div>
             </div>
           </div>
+
         </div>
       </footer>
 
@@ -368,7 +369,7 @@ export default function SiteFooter() {
                 <h3 className="mb-2 text-lg font-bold text-white">7. Sharing of Information</h3>
                 <p>
                   Bloxhop does not sell customer personal information. Information may be
-                  shared only when needed with payment processors such as Xendit when available,
+                  shared only when needed with payment processors, including PayPal and checkout providers when available,
                   banks, fraud or security providers, hosting and support providers, professional
                   advisers, and government or regulatory authorities where legally required.
                 </p>
@@ -417,12 +418,12 @@ export default function SiteFooter() {
 
   <div className="flex items-center gap-2">
     <Phone className="h-4 w-4 text-blue-400" />
-    <span>+63 945 339 2304</span>
+    <span>Mobile: 09453392304 · Landline: 0323460146</span>
   </div>
 
   <div className="flex items-center gap-2">
     <MapPin className="h-4 w-4 text-blue-400" />
-    <span>Cebu City, Cebu, Philippines</span>
+    <span>Sitio Lower Cogon, Labangon, Cebu City, Philippines</span>
   </div>
 
 </div>
@@ -580,12 +581,12 @@ export default function SiteFooter() {
 
   <div className="flex items-center gap-2">
     <Phone className="h-4 w-4 text-blue-400" />
-    <span>+63 945 339 2304</span>
+    <span>Mobile: 09453392304 · Landline: 0323460146</span>
   </div>
 
   <div className="flex items-center gap-2">
     <MapPin className="h-4 w-4 text-blue-400" />
-    <span>Cebu City, Cebu, Philippines</span>
+    <span>Sitio Lower Cogon, Labangon, Cebu City, Philippines</span>
   </div>
 
 </div>
@@ -666,12 +667,12 @@ export default function SiteFooter() {
 
   <div className="flex items-center gap-2">
     <Phone className="h-4 w-4 text-blue-400" />
-    <span>+63 945 339 2304</span>
+    <span>Mobile: 09453392304 · Landline: 0323460146</span>
   </div>
 
   <div className="flex items-center gap-2">
     <MapPin className="h-4 w-4 text-blue-400" />
-    <span>Cebu City, Cebu, Philippines</span>
+    <span>Sitio Lower Cogon, Labangon, Cebu City, Philippines</span>
   </div>
 
 </div>
@@ -706,9 +707,7 @@ export default function SiteFooter() {
               <section>
                 <h3 className="mb-2 text-lg font-bold text-white">3. Delivery Timing</h3>
                 <p>
-                  Most orders are processed shortly after successful payment confirmation. Actual
-                  delivery time may vary depending on product availability, order volume, transaction
-                  verification, customer availability, platform limitations, and technical circumstances.
+                  Digital orders are typically fulfilled within approximately 2–3 minutes after successful payment verification under normal conditions. Delivery may vary because of payment verification, product availability, technical issues, incorrect customer information, platform limitations, or other circumstances outside Bloxhop’s direct control.
                 </p>
               </section>
 
@@ -745,12 +744,12 @@ export default function SiteFooter() {
 
   <div className="flex items-center gap-2">
     <Phone className="h-4 w-4 text-blue-400" />
-    <span>+63 945 339 2304</span>
+    <span>Mobile: 09453392304 · Landline: 0323460146</span>
   </div>
 
   <div className="flex items-center gap-2">
     <MapPin className="h-4 w-4 text-blue-400" />
-    <span>Cebu City, Cebu, Philippines</span>
+    <span>Sitio Lower Cogon, Labangon, Cebu City, Philippines</span>
   </div>
 
 </div>
@@ -778,12 +777,12 @@ export default function SiteFooter() {
 
   <div className="flex items-center gap-2 text-blue-400">
     <Phone className="h-4 w-4 text-blue-400" />
-    <span>+63 945 339 2304</span>
+    <span>Mobile: 09453392304 · Landline: 0323460146</span>
   </div>
 
   <div className="flex items-center gap-2 text-blue-400">
     <MapPin className="h-4 w-4 text-blue-400" />
-    <span >Cebu City, Cebu, Philippines</span>
+    <span >Sitio Lower Cogon, Labangon, Cebu City, Philippines</span>
   </div>
 
 
@@ -838,7 +837,7 @@ export default function SiteFooter() {
               <section>
                 <h3 className="mb-2 text-lg font-bold text-white">How can I contact Bloxhop?</h3>
                 <p>
-                  Email support@bloxhop.site, call +63 945 339 2304, or join Discord for support.
+                  Email support@bloxhop.site, call 09453392304, or join Discord for support.
                 </p>
               </section>
             </>

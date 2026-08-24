@@ -118,17 +118,11 @@ function ManualPaymentPageContent()  {
                 </h2>
 
                 <p className="mt-2 text-sm leading-6 text-slate-300">
-                  These are the manual payment methods we can currently receive.
-                  The exact payment details will be given inside your Discord
-                  ticket.
+                  PayPal is our current payment method. The exact payment details will be given inside your Discord ticket.
                 </p>
 
-                <div className="mt-5 grid gap-3 sm:grid-cols-3">
-                  {[
-                    ["PayPal", "International payment"],
-                    ["Wise", "International transfer"],
-                    ["Remittance", "PH receiving option"],
-                  ].map(([name, desc]) => (
+                <div className="mt-5 max-w-sm">
+                  {[["PayPal", "Secure payment processing"]].map(([name, desc]) => (
                     <div
                       key={name}
                       className="rounded-2xl border border-blue-500/20 bg-[#0b1728] p-5"

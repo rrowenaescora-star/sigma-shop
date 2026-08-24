@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
+import { getAuthenticatedUser } from "@/lib/supabase/auth";
 
 type CartItem = {
   id: number;
@@ -29,6 +30,7 @@ async function getUsdToPhpRate() {
 
 export async function POST(req: Request) {
   try {
+    const { user } = await getAuthenticatedUser();
     const { robloxUsername, contactInfo, notes, items, totalPrice } = await req.json();
 
     if (!robloxUsername || !contactInfo || !items?.length) {
@@ -141,6 +143,7 @@ success_url: `${process.env.NEXT_PUBLIC_APP_URL}/payment-success?reference=${ref
           xendit_reference_id: referenceId,
 
           payment_method: "PayMongo",
+          user_id: user?.id || null,
         },
       ])
       .select()

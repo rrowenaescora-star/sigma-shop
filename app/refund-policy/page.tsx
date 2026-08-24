@@ -16,7 +16,7 @@ export default function RefundPage() {
         <section><h2 className="mb-2 text-xl font-semibold text-sky-200">4. Investigation and Verification</h2><p>Bloxhop may review order records, payment records, delivery records, customer communications, and transaction-verification records. Proportionate verification may be required before a refund is processed.</p></section>
         <section><h2 className="mb-2 text-xl font-semibold text-sky-200">5. Refund Timing</h2><p>Approved refunds will be initiated within 14 calendar days or within any shorter period required by applicable law or the relevant payment channel. The bank or payment provider may require additional time to return funds to the original payment method.</p></section>
         <section><h2 className="mb-2 text-xl font-semibold text-sky-200">6. Chargebacks</h2><p>Customers should contact Bloxhop first regarding legitimate order or delivery problems. During a chargeback investigation, Bloxhop may provide relevant transaction, delivery, verification, and communication records to the payment provider.</p></section>
-        <section><h2 className="mb-2 text-xl font-semibold text-sky-200">7. Contact</h2><p><a className="text-sky-300 hover:underline" href="mailto:support@bloxhop.site">support@bloxhop.site</a><br />+63 945 339 2304<br />Cebu City, Cebu, Philippines</p></section>
+        <section><h2 className="mb-2 text-xl font-semibold text-sky-200">7. Contact</h2><p><a className="text-sky-300 hover:underline" href="mailto:support@bloxhop.site">support@bloxhop.site</a><br />BLOXHOP ONLINE STORE<br />DTI Registration No. 8089785<br />Sitio Lower Cogon, Labangon<br />Cebu City, Philippines<br />Mobile: 09453392304<br />Landline: 0323460146</p></section>
       </div>
     </LegalPageShell>
   );

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   BadgeCheck,
   Box,
@@ -20,38 +20,13 @@ import {
 } from "lucide-react";
 
 const featuredProducts = [
-  {
-    id: 1,
-    name: "Permanent Dragon",
-    price: "$46.99",
-    image: "/Dragon2.webp",
-    hoverImage: "/Dragon_29_Fruit.webp",
-    href: "/home#permanent-dragon",
-  },
-  {
-    id: 2,
-    name: "Permanent Control",
-    price: "$24.99",
-    image: "/Control.webp",
-    hoverImage: "/Control_Fruit.webp",
-    href: "/home#permanent-control",
-  },
-  {
-    id: 3,
-    name: "Permanent Kitsune",
-    price: "$54.99",
-    image: "/kitsune12.png",
-    hoverImage: "/Kitsune_Fruit.webp",
-    href: "/home#permanent-kitsune",
-  },
-  {
-    id: 4,
-    name: "Permanent Yeti",
-    price: "$39.99",
-    image: "/Yeti.webp",
-    hoverImage: "/Yeti_Fruit.webp",
-    href: "/home#permanent-yeti",
-  },
+  { id: 1, name: "Permanent Dragon", image: "/Dragon2.webp", hoverImage: "/Dragon_29_Fruit.webp", href: "/home#permanent-dragon" },
+  { id: 2, name: "Permanent Control", image: "/Control.webp", hoverImage: "/Control_Fruit.webp", href: "/home#permanent-control" },
+  { id: 3, name: "Permanent Kitsune", image: "/kitsune12.png", hoverImage: "/Kitsune_Fruit.webp", href: "/home#permanent-kitsune" },
+  { id: 4, name: "Permanent Yeti", image: "/Yeti.webp", hoverImage: "/Yeti_Fruit.webp", href: "/home#permanent-yeti" },
+  { id: 5, name: "Black Dragon", image: "", hoverImage: "", href: "/grow-a-garden-2#black-dragon", flipHover: true },
+  { id: 6, name: "Ice Serpent", image: "", hoverImage: "", href: "/grow-a-garden-2#ice-serpent", flipHover: true },
+  { id: 7, name: "Unicorn", image: "", hoverImage: "", href: "/grow-a-garden-2#unicorn", flipHover: true },
 ];
 const trustCards = [
   {
@@ -151,12 +126,40 @@ const faqs = [
 
 export default function LandingPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const [liveFeaturedImages, setLiveFeaturedImages] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadFeaturedImages() {
+      try {
+        const response = await fetch("/api/products", { cache: "no-store" });
+        const result = await response.json();
+        const products = Array.isArray(result?.products) ? result.products : [];
+        const requestedNames = new Set(["black dragon", "ice serpent", "unicorn"]);
+        const images: Record<string, string> = {};
+
+        products.forEach((product: { name?: string; image_url?: string | null }) => {
+          const name = product.name?.trim().toLowerCase();
+          if (name && requestedNames.has(name) && product.image_url) images[name] = product.image_url;
+        });
+
+        if (active) setLiveFeaturedImages(images);
+      } catch {
+        // Static featured items stay visible if live product data is unavailable.
+      }
+    }
+
+    loadFeaturedImages();
+    return () => { active = false; };
+  }, []);
 
   return (
     <main className="min-h-screen overflow-hidden bg-[#06101d] text-white">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_72%_18%,rgba(37,99,235,0.16),transparent_30%),radial-gradient(circle_at_18%_85%,rgba(14,165,233,0.10),transparent_32%)]" />
 
       <section className="group relative overflow-hidden border-b border-white/10 bg-[#06101d]">
+        <img src="/bloxhop-header-background.png" alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center opacity-80" />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(6,16,29,0.98)_0%,rgba(6,16,29,0.88)_40%,rgba(6,16,29,0.52)_68%,rgba(6,16,29,0.72)_100%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_42%,rgba(37,99,235,0.24),transparent_28%),radial-gradient(circle_at_20%_45%,rgba(14,165,233,0.07),transparent_25%)]" />
 
@@ -174,23 +177,23 @@ export default function LandingPage() {
           />
         </div>
 
-        <div className="relative z-10 mx-auto grid max-w-[1500px] items-center gap-8 px-5 py-12 sm:px-6 lg:right-[50px] lg:grid-cols-[0.9fr_1.1fr] lg:py-16">
+        <div className="relative z-10 mx-auto grid max-w-[1500px] items-center gap-12 px-5 py-16 sm:px-6 lg:right-[50px] lg:grid-cols-[0.9fr_1.1fr] lg:py-24">
           <div>
             <h1 className="mt-5 max-w-3xl text-4xl font-black leading-[1.05] tracking-tight sm:text-5xl md:text-6xl">
-              Bloxhop — Independent Digital Gaming Marketplace
-              <span className="mt-1 block bg-gradient-to-r from-blue-400 via-blue-300 to-white bg-clip-text text-transparent">
-                Digital products with clear online fulfillment
+              Level Up Your Game
+              <span className="mt-2 block text-3xl bg-gradient-to-r from-blue-400 via-blue-300 to-white bg-clip-text text-transparent sm:text-4xl md:text-5xl">
+                Get What You Want, Fast.
               </span>
             </h1>
 
-            <p className="mt-5 max-w-2xl text-base leading-7 text-slate-300">
-              Shop digital gaming-related products through a simple online checkout and digital fulfillment experience.
+            <p className="mt-5 max-w-2xl text-lg font-normal leading-8 text-slate-300 sm:text-xl">
+              Find what you need, check out in seconds, and get back in the game.
             </p>
 
             <div className="mt-7 flex flex-wrap gap-4">
               <Link
                 href="/request-item"
-                className="flex h-14 items-center justify-center gap-2 rounded-2xl bg-blue-500 px-7 text-base font-black text-white shadow-[0_0_40px_rgba(59,130,246,0.35)] transition hover:-translate-y-1 hover:bg-blue-400"
+                className="flex h-14 items-center justify-center gap-2 rounded-xl bg-[#3b82f6] px-7 text-base font-black text-white shadow-[0_6px_0_#1d4ed8] transition hover:translate-y-0.5 hover:bg-[#60a5fa] hover:shadow-[0_4px_0_#1d4ed8] active:translate-y-1 active:shadow-[0_2px_0_#1d4ed8]"
               >
                 <Search className="h-5 w-5" />
 Request an Item
@@ -200,7 +203,7 @@ Request an Item
                 href="https://discord.gg/evM2G5c9Vr"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex h-14 items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-7 text-base font-bold text-white transition hover:-translate-y-1 hover:bg-white/10"
+                className="button-3d flex h-14 items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-7 text-base font-bold text-white hover:bg-white/10"
               >
                 <Headphones className="h-5 w-5 text-blue-400" />
                 Join Our Discord
@@ -220,9 +223,9 @@ Request an Item
               </div>
 
               <div>
-                <p className="text-xl font-black">Independent Online Store</p>
+                <p className="text-xl font-black">Shop More. Play More.</p>
                 <p className="text-sm text-[15px] font-medium leading-9 text-slate-300">
-                  Order tracking and customer support are available.
+                  Track your order and get support whenever you need it.
                 </p>
               </div>
             </div>
@@ -232,7 +235,7 @@ Request an Item
         </div>
       </section>
 
-      <section className="relative z-10 border-b border-white/10 bg-[#06101d] px-6 py-3">
+      <section className="relative z-10 border-b border-white/10 bg-[#06101d] px-6 py-6">
         <div className="mx-auto grid max-w-[1500px] gap-10 lg:grid-cols-4">
           {trustCards.map((card) => {
             const Icon = card.icon;
@@ -258,7 +261,7 @@ Request an Item
         </div>
       </section>
 
-      <section className="relative mx-auto grid max-w-[1500px] gap-6 px-6 py-7 xl:grid-cols-[1.45fr_0.55fr]">
+      <section className="relative mx-auto max-w-[1500px] px-6 py-14">
         <div>
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-2xl font-black">Featured Products</h2>
@@ -272,208 +275,98 @@ Request an Item
           </div>
 
          <div className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-2 xl:grid-cols-4">
-            {featuredProducts.map((product) => (
-              <div
-                key={product.id}
-                className="overflow-hidden rounded-2xl border border-white/10 bg-[#0a1527] transition hover:-translate-y-1 hover:border-blue-400/30"
-              >
-                <div className="group relative flex h-[190px] items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_center,rgba(37,99,235,0.18),transparent_65%)] p-5">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="absolute h-full w-full object-contain transition duration-700 group-hover:rotate-180 group-hover:scale-75 group-hover:opacity-0"
-                  />
+            {featuredProducts.map((product) => {
+              const displayImage = liveFeaturedImages[product.name.toLowerCase()] || product.image;
+              const hoverImage = product.hoverImage || displayImage;
 
-                  <img
-                    src={product.hoverImage || product.image}
-                    alt={product.name}
-                    className="absolute h-full w-full scale-75 object-contain opacity-0 transition duration-700 group-hover:scale-100 group-hover:opacity-100"
-                  />
-                </div>
-
-                <div className="p-4">
-                  <h3 className="font-black text-white">{product.name}</h3>
-
-                 <div className="mt-4">
-  <Link
-    href={product.href}
-    className="flex w-full items-center justify-center rounded-xl bg-blue-500 py-3 text-sm font-black text-white transition hover:scale-[1.02] hover:bg-blue-400"
-  >
-    Shop Now
-  </Link>
-</div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <div className="flex items-center gap-4 rounded-2xl border border-white/10 bg-[#0a1527] p-4">
-              <Users className="h-9 w-9 text-blue-400" />
-              <div>
-  <div className="flex items-center gap-2">
-    <span className="relative flex h-3 w-3">
-      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75"></span>
-      <span className="relative inline-flex h-3 w-3 rounded-full bg-green-500"></span>
-    </span>
-
-    <p className="text-2xl font-black text-green-400">
-      Open
-    </p>
-  </div>
-
-  <p className="ml-5 text-xs text-slate-400">
-    Shop Now
-  </p>
-</div>
-            </div>
-
-            <div className="flex items-center gap-4 rounded-2xl border border-white/10 bg-[#0a1527] p-4">
-              <Headphones className="h-9 w-9 text-blue-400" />
-              <div>
-                <p className="text-2xl font-black">Support</p>
-                <p className="text-xs text-slate-400">Customer Service</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-4 rounded-2xl border border-white/10 bg-[#0a1527] p-4">
-              <ShieldCheck className="h-9 w-9 text-blue-400" />
-              <div>
-                <p className="text-2xl font-black">Protected</p>
-                <p className="text-xs text-slate-400">Payment Flow</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-4 rounded-2xl border border-white/10 bg-[#0a1527] p-4">
-              <Star className="h-9 w-9 fill-blue-400 text-blue-400" />
-              <div>
-                <p className="text-2xl font-black">Multi</p>
-                <p className="text-xs text-slate-400">Game Ready</p>
-              </div>
-            </div>
-          </div>
-
-          <div id="how-it-works" className="mt-7">
-            <h2 className="mb-4 text-2xl font-black">How It Works</h2>
-
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-              <div className="flex min-h-[128px] items-center gap-5 rounded-2xl border border-white/10 bg-[#0a1527] p-5">
-                <p className="shrink-0 text-5xl font-black text-blue-400">1</p>
-                <ClipboardList className="h-9 w-9 shrink-0 text-slate-300" />
-                <div>
-                  <h3 className="font-black">Choose a Product</h3>
-                  <p className="mt-1 text-xs leading-5 text-slate-400">
-                    Review its description, price, delivery method, and requirements.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex min-h-[128px] items-center gap-5 rounded-2xl border border-white/10 bg-[#0a1527] p-5">
-                <p className="shrink-0 text-5xl font-black text-blue-400">2</p>
-                <Box className="h-9 w-9 shrink-0 text-slate-300" />
-                <div>
-                  <h3 className="font-black">Checkout</h3>
-                  <p className="mt-1 text-xs leading-5 text-slate-400">
-                    Provide the required order information and complete payment.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex min-h-[128px] items-center gap-5 rounded-2xl border border-white/10 bg-[#0a1527] p-5">
-                <p className="shrink-0 text-5xl font-black text-blue-400">3</p>
-                <BadgeCheck className="h-9 w-9 shrink-0 text-slate-300" />
-                <div>
-                  <h3 className="font-black">Payment Confirmation</h3>
-                  <p className="mt-1 text-xs leading-5 text-slate-400">
-                    Your order begins processing after successful payment confirmation.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex min-h-[128px] items-center gap-5 rounded-2xl border border-white/10 bg-[#0a1527] p-5">
-                <p className="shrink-0 text-5xl font-black text-blue-400">4</p>
-                <Package className="h-9 w-9 shrink-0 text-slate-300" />
-                <div><h3 className="font-black">Digital Fulfillment</h3><p className="mt-1 text-xs leading-5 text-slate-400">Your order is delivered using the method specified on the product page.</p></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <aside className="space-y-5">
-          <section className="rounded-2xl border border-white/10 bg-[#0a1527] p-5">
-            <h2 className="text-2xl font-black">Why Choose Bloxhop?</h2>
-
-            <div className="mt-5 grid gap-6 sm:grid-cols-2 lg:grid-cols-2">
-              {whyCards.map((card) => {
-                const Icon = card.icon;
-
-                return (
-                  <div
-                    key={card.title}
-                    className="rounded-xl border border-white/5 bg-[#0e1b31] p-4"
-                  >
-                    <Icon className="h-7 w-7 text-blue-400" />
-                    <p className="mt-3 text-sm font-black text-white">
-                      {card.title}
-                    </p>
-                    <p className="mt-2 text-xs leading-5 text-slate-400">
-                      {card.text}
-                    </p>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-
-          <section
-            id="reviews"
-            className="rounded-2xl border border-white/10 bg-[#06101d]"
-          >
-            <div className="mb-6 flex items-center gap-4 px-2 py-4">
-              <h2 className="text-2xl font-black">What You Can Expect</h2>
-              <Link
-                href="/about"
-                className="ml-auto text-xs font-bold text-blue-400 transition hover:text-blue-300"
-              >
-                About Bloxhop →
-              </Link>
-            </div>
-
-            <div className="grid gap-3 px-2 md:grid-cols-1">
-              {reviews.map((review, index) => (
-                <div
-                  key={index}
-                  className="rounded-2xl border border-white/10 bg-[#0a1527] p-2"
+              return (
+                <Link
+                  key={product.id}
+                  href={product.href}
+                  aria-label={`Open ${product.name} in the Blox Fruit shop`}
+                  className="group block overflow-hidden rounded-2xl border border-white/10 bg-[#0a1527] transition hover:-translate-y-1 hover:border-blue-400/30"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500 text-sm font-black">
-                      {review.name.charAt(0).toUpperCase()}
-                    </div>
-
-                    <div>
-                      <p className="text-sm font-black">{review.name}</p>
-                      <div className="flex text-yellow-400">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <Star
-                            key={star}
-                            className="h-3.5 w-3.5 fill-yellow-400"
-                          />
-                        ))}
-                      </div>
-                    </div>
+                  <div className="relative flex h-[190px] items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_center,rgba(37,99,235,0.18),transparent_65%)] p-5">
+                    {displayImage ? (
+                      <>
+                        <img
+                          src={displayImage}
+                          alt={product.name}
+                          className="absolute h-full w-full object-contain transition duration-700 group-hover:rotate-180 group-hover:scale-75 group-hover:opacity-0"
+                        />
+                        <img
+                          src={hoverImage}
+                          alt={`${product.name} alternate view`}
+                          className={`absolute h-full w-full object-contain opacity-0 transition duration-700 group-hover:opacity-100 ${product.flipHover ? "-scale-x-75 scale-y-75 group-hover:-scale-x-100 group-hover:scale-y-100" : "scale-75 group-hover:scale-100"}`}
+                        />
+                      </>
+                    ) : (
+                      <div className="text-xs font-semibold text-slate-500">Loading item...</div>
+                    )}
                   </div>
 
-                  <p className="mt-3 text-xs leading-5 text-slate-400">
-                    {review.text}
-                  </p>
+                  <div className="p-4">
+                    <h3 className="font-black text-white">{product.name}</h3>
+                    <div className="mt-4 flex w-full items-center justify-center rounded-xl bg-blue-500 py-3 text-sm font-black text-white transition group-hover:scale-[1.02] group-hover:bg-blue-400">
+                      Shop Now
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+
+          <section id="how-it-works" className="mt-28 border-t border-white/10 pt-16">
+            <h2 className="text-3xl font-black tracking-tight text-white sm:text-4xl">
+              How It <span className="text-blue-400">Works</span>
+            </h2>
+            <p className="mt-3 max-w-2xl text-base leading-7 text-slate-400">
+              Shop with confidence through a simple and secure digital order flow.
+            </p>
+
+            <div className="mt-12 flex flex-col gap-5 lg:flex-row lg:items-center lg:gap-4">
+              {[
+                {
+                  title: "1. Choose Your Items",
+                  text: "Browse the shop, pick your favorites, and add them to your cart.",
+                  image: "/how-it-works/choose-your-items.png",
+                },
+                {
+                  title: "2. Secure Checkout",
+                  text: "Enter your details, review your order, and continue to Shopify's secure checkout to complete payment.",
+                  image: "/how-it-works/secure-checkout.png",
+                },
+                {
+                  title: "3. Digital Delivery",
+                  text: "After payment verification, your order is prepared for digital fulfillment.",
+                  image: "/how-it-works/digital-delivery.png",
+                },
+              ].map((step, index) => (
+                <div key={step.title} className="flex min-w-0 flex-1 flex-col gap-5 lg:flex-row lg:items-center">
+                  <article className="flex min-h-[330px] flex-1 flex-col items-center rounded-2xl border border-white/10 bg-[#0a1527] px-6 py-8 text-center shadow-[0_18px_45px_rgba(0,0,0,0.18)]">
+                    <div className="flex h-40 w-full items-center justify-center p-2">
+                      <img
+                        src={step.image}
+                        alt={`${step.title} illustration`}
+                        className="h-full max-w-full object-contain"
+                      />
+                    </div>
+                    <h3 className="mt-7 text-xl font-black text-white">{step.title}</h3>
+                    <p className="mt-3 max-w-sm text-sm leading-6 text-slate-400">{step.text}</p>
+                  </article>
+                  {index < 2 && (
+                    <div className="mx-auto hidden h-10 w-10 shrink-0 items-center justify-center rounded-full border border-blue-300/40 bg-white text-2xl font-black text-blue-500 shadow-[0_4px_0_#1d4ed8] lg:flex" aria-hidden="true">
+                      →
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
           </section>
-        </aside>
+        </div>
       </section>
 
-      <section className="relative mx-auto max-w-[1500px] px-6 pt-6 pb-10">
+      <section className="relative mx-auto max-w-[1500px] px-6 pt-14 pb-20">
         <div>
           <section
             id="faq"
@@ -532,8 +425,8 @@ Request an Item
             </div>
           </section>
 
-          <section className="mt-8">
-            <div className="relative overflow-hidden px-2 py-8">
+          <section className="mt-14">
+            <div className="relative overflow-hidden px-2 py-14">
               <div className="mx-auto max-w-5xl text-center">
                 <p className="text-sm font-black uppercase tracking-[0.25em] text-blue-400">
                   OUR STORY
@@ -568,7 +461,7 @@ Request an Item
               </div>
             </div>
 
-            <section className="mt-2 py-4">
+            <section className="mt-8 py-8">
               <div className="rounded-3xl px-8 py-10 text-center">
                 <h3 className="text-2xl font-black tracking-tight text-white md:text-3xl">
                   BLOXHOP ONLINE STORE
@@ -586,7 +479,32 @@ Request an Item
           </section>
         </div>
 
-        <div className="mt-6 flex flex-col gap-5 rounded-2xl border border-white/10 bg-[#0a1527] p-5 lg:flex-row lg:items-center lg:justify-between">
+        <section id="reviews" className="mt-20 border-t border-white/10 pt-16">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.2em] text-blue-400">The Bloxhop Experience</p>
+              <h2 className="mt-2 text-3xl font-black tracking-tight text-white">What You Can Expect</h2>
+            </div>
+            <Link href="/about" className="text-sm font-bold text-blue-300 hover:text-blue-200">
+              Learn more about Bloxhop →
+            </Link>
+          </div>
+
+          <div className="mt-8 grid gap-7 md:grid-cols-3">
+            {reviews.map((review, index) => (
+              <article key={review.name} className="flex min-h-[185px] items-start gap-5 rounded-2xl border border-white/10 bg-[#0a1527] p-7">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-500/15 text-sm font-black text-blue-300">
+                  {review.name.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <h3 className="font-black text-white">{review.name}</h3>
+                  <p className="mt-2 text-sm leading-6 text-slate-400">{review.text}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+        <div className="mt-16 flex flex-col gap-6 rounded-2xl border border-white/10 bg-[#0a1527] p-8 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-4 px-1 pt-1">
             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-500/15">
               <Headphones className="h-8 w-8 text-blue-400" />
@@ -610,7 +528,31 @@ Request an Item
             Join Discord
           </a>
         </div>
+
+
       </section>
+
+
     </main>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

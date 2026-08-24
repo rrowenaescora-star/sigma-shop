@@ -22,7 +22,7 @@ export default function PaymentSuccessPage() {
 
             <p className="mt-5 text-base leading-7 text-slate-300 md:text-lg">
               Your order has been saved and is now being reviewed by our team.
-              Most orders are processed shortly after payment confirmation. Actual fulfillment time may vary.
+              Digital orders are typically fulfilled within approximately 2–3 minutes after successful payment verification under normal conditions. Actual fulfillment time may vary because of payment verification, availability, technical problems, or incorrect customer information.
             </p>
           </div>
 
@@ -77,7 +77,11 @@ export default function PaymentSuccessPage() {
             </p>
 
             <p className="text-sm text-slate-400">
-              Business Location: Cebu City, Cebu, Philippines
+              BLOXHOP ONLINE STORE · DTI Registration No. 8089785
+              <br />
+              Sitio Lower Cogon, Labangon, Cebu City, Philippines
+              <br />
+              Mobile: 09453392304 · Landline: 0323460146
             </p>
           </div>
 

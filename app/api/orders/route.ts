@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { getAuthenticatedUser } from "@/lib/supabase/auth";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -8,6 +9,7 @@ const supabase = createClient(
 
 export async function POST(req: Request) {
   try {
+    const { user } = await getAuthenticatedUser();
     const body = await req.json();
 
     const {
@@ -142,6 +144,7 @@ export async function POST(req: Request) {
         coupon_code: couponCode || null,
         coupon_discount: couponDiscount || 0,
         original_total: originalTotal || totalPrice,
+        user_id: user?.id || null,
       })
       .select("*")
       .single();

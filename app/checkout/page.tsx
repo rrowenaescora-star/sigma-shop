@@ -140,7 +140,25 @@ function CheckoutPageContent() {
     }
 
     setCartLoaded(true);
-  }, [searchParams]);
+  }, [searchParams]);  useEffect(() => {
+    async function prefillCustomerDetails() {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      setContactInfo((current) => current || user.email || "");
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("roblox_username")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (profile?.roblox_username) {
+        setRobloxUsername((current) => current || profile.roblox_username || "");
+      }
+    }
+    prefillCustomerDetails();
+  }, []);
+
 
   useEffect(() => {
     const savedCurrency = localStorage.getItem("currency-view");
@@ -736,7 +754,7 @@ function CheckoutPageContent() {
   }
 
   return (
-    <div className="relative isolate min-h-screen overflow-x-clip bg-[#06101d] text-white">
+    <div className="relative isolate min-h-screen overflow-x-clip bg-[#06101d] bg-[url('/website-background.png')] bg-cover bg-center bg-fixed text-white">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.16),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(37,99,235,0.10),transparent_32%)]" />
 
       <div aria-hidden="true" className="pointer-events-none fixed inset-0 hidden overflow-hidden lg:block">
@@ -765,8 +783,10 @@ function CheckoutPageContent() {
         })}
       </div>
 
-      <div className="sticky top-0 z-40 w-full border-b border-blue-500/20 bg-[#06101d]/95 backdrop-blur-xl">
-        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+      <div className="sticky top-0 z-40 w-full overflow-hidden border-b border-blue-500/20 bg-[#06101d]">
+        <img src="/header4.png" alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center opacity-50" />
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(6,16,29,0.96),rgba(6,16,29,0.82)_55%,rgba(6,16,29,0.70))]" />
+        <div className="relative mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <p className="text-2xl font-black tracking-tight text-white">
@@ -1047,7 +1067,7 @@ function CheckoutPageContent() {
 
               <div className="mt-3 rounded-2xl border border-blue-400/20 bg-blue-400/5 px-4 py-3">
                 <p className="text-xs leading-6 text-blue-200">
-                  All customers will proceed through Shopify secure checkout.
+                  You will continue to our secure checkout to complete payment.
                 </p>
               </div>
 
@@ -1083,11 +1103,11 @@ function CheckoutPageContent() {
     : "cursor-pointer border-blue-400/30 bg-[#10233c] text-white hover:bg-[#18345a]"
 }`}
                   >
-                    {isSubmitting ? "Redirecting..." : "Proceed to Shopify Checkout"}
+                    {isSubmitting ? "Redirecting..." : "Proceed to Secure Checkout"}
                   </button>
 
                   <p className="text-center text-xs font-semibold text-slate-400">
-                    After payment approval in Shopify, your order continues through our normal fulfillment flow.
+                    After payment approval, your order continues through our normal fulfillment flow.
                   </p>
 
                   <div className="mt-4 flex flex-wrap items-center justify-center gap-4 text-sm font-semibold text-slate-400">

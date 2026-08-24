@@ -3,29 +3,10 @@ import { createServerClient } from "@supabase/ssr";
 
 export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
-
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-pathname", pathname);
 
-  if (!pathname.startsWith("/admin")) {
-    return NextResponse.next({
-      request: { headers: requestHeaders },
-    });
-  }
-
-  if (
-    pathname === "/admin/login" ||
-    pathname === "/admin/verify-otp"
-  ) {
-    return NextResponse.next({
-      request: { headers: requestHeaders },
-    });
-  }
-
-  let response = NextResponse.next({
-    request: { headers: requestHeaders },
-  });
-
+  let response = NextResponse.next({ request: { headers: requestHeaders } });
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -34,39 +15,36 @@ export async function proxy(request: NextRequest) {
         getAll() {
           return request.cookies.getAll();
         },
-
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
-          );
-
-          response = NextResponse.next({
-            request: { headers: requestHeaders },
-          });
-
-          cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options)
-          );
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+          response = NextResponse.next({ request: { headers: requestHeaders } });
+          cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
         },
       },
-    }
+    },
   );
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  // Refresh the Supabase session on every request, then use a verified user for protected routes.
+  const { data: { user } } = await supabase.auth.getUser();
 
-  if (!session) {
+  if (pathname.startsWith("/account") && !user) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
+    url.searchParams.set("next", `${pathname}${request.nextUrl.search}`);
+    return NextResponse.redirect(url);
+  }
+
+  if (!pathname.startsWith("/admin")) return response;
+  if (pathname === "/admin/login" || pathname === "/admin/verify-otp") return response;
+
+  if (!user) {
     const url = request.nextUrl.clone();
     url.pathname = "/admin/login";
     return NextResponse.redirect(url);
   }
 
-  const otpVerified =
-    request.cookies.get("bloxhop_otp_verified")?.value === "true";
-
+  const otpVerified = request.cookies.get("bloxhop_otp_verified")?.value === "true";
   const trustedDevice = request.cookies.get("bloxhop_trusted_device")?.value;
-
   if (!otpVerified && !trustedDevice) {
     const url = request.nextUrl.clone();
     url.pathname = "/admin/verify-otp";
@@ -76,6 +54,4 @@ export async function proxy(request: NextRequest) {
   return response;
 }
 
-export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
-};
+export const config = { matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"] };

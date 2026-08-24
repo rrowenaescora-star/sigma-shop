@@ -1,0 +1,32 @@
+"use client";
+import Link from "next/link";
+import { FormEvent, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+
+type Mode = "login" | "signup" | "forgot" | "reset";
+function friendlyError(message: string) { const value = message.toLowerCase(); if (value.includes("already registered")) return "An account already exists with this email."; if (value.includes("invalid login credentials")) return "Your email or password is incorrect."; if (value.includes("rate limit")) return "Please wait a moment before trying again."; return "We could not complete that request. Please try again."; }
+
+export default function CustomerAuthForm({ mode }: { mode: Mode }) {
+  const router = useRouter(); const searchParams = useSearchParams();
+  const [email, setEmail] = useState(""); const [password, setPassword] = useState(""); const [confirmPassword, setConfirmPassword] = useState(""); const [error, setError] = useState(""); const [loading, setLoading] = useState(false); const [message, setMessage] = useState("");
+  const next = searchParams.get("next"); const destination = next && next.startsWith("/") ? next : "/account";
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault(); setError(""); setMessage("");
+    if (mode === "signup" && password.length < 8) { setError("Use a password with at least 8 characters."); return; }
+    if ((mode === "signup" || mode === "reset") && password !== confirmPassword) { setError("Your passwords do not match."); return; }
+    setLoading(true); const supabase = createClient();
+    try {
+      if (mode === "login") { const { error: signInError } = await supabase.auth.signInWithPassword({ email: email.trim(), password }); if (signInError) throw signInError; router.replace(destination); router.refresh(); return; }
+      if (mode === "signup") {
+        const otpResponse = await fetch("/api/auth/start-registration", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: email.trim(), password }) });
+        const otpResult = await otpResponse.json(); if (!otpResponse.ok) { setError(otpResult.error || "We could not send a verification code."); return; }
+        router.push(`/verify-email?email=${encodeURIComponent(email.trim())}`); return;
+      }
+      if (mode === "forgot") { const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo: `${window.location.origin}/reset-password` }); if (resetError) throw resetError; setMessage("If an account exists for this email, a password-reset link has been sent."); return; }
+      const { error: updateError } = await supabase.auth.updateUser({ password }); if (updateError) throw updateError; router.replace("/account"); router.refresh();
+    } catch (caught) { setError(friendlyError(caught instanceof Error ? caught.message : "")); } finally { setLoading(false); }
+  }
+  const copy = { login:["Customer account","Welcome back","Log in to view your orders and saved details.","Log In"], signup:["Customer account","Create your account","We will email a six-digit code to confirm your address.","Create Account"], forgot:["Password help","Reset your password","Enter your email and we will send a reset link if your account exists.","Send Reset Link"], reset:["Password help","Choose a new password","Use at least 8 characters for your new password.","Update Password"] }[mode];
+  return <main className="min-h-[calc(100vh-82px)] bg-[#06101d] px-4 py-14 text-white sm:px-6"><div className="mx-auto w-full max-w-md rounded-[2rem] border border-blue-300/15 bg-[#0b1728]/90 p-6 shadow-2xl sm:p-9"><p className="text-xs font-black uppercase tracking-[0.24em] text-blue-300">{copy[0]}</p><h1 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">{copy[1]}</h1><p className="mt-3 text-sm leading-6 text-slate-300">{copy[2]}</p><form onSubmit={submit} className="mt-7 space-y-4">{mode !== "reset" && <label className="block text-sm font-bold text-slate-200">Email<input type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required className="mt-2 w-full rounded-xl border border-blue-300/25 bg-[#07111f] px-4 py-3 text-white outline-none focus:border-blue-300" placeholder="you@example.com" /></label>}{mode !== "forgot" && <label className="block text-sm font-bold text-slate-200">Password<input type="password" autoComplete={mode === "login" ? "current-password" : "new-password"} value={password} onChange={(event) => setPassword(event.target.value)} required minLength={mode === "login" ? undefined : 8} className="mt-2 w-full rounded-xl border border-blue-300/25 bg-[#07111f] px-4 py-3 text-white outline-none focus:border-blue-300" placeholder="••••••••" /></label>}{(mode === "signup" || mode === "reset") && <label className="block text-sm font-bold text-slate-200">Confirm password<input type="password" autoComplete="new-password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} required minLength={8} className="mt-2 w-full rounded-xl border border-blue-300/25 bg-[#07111f] px-4 py-3 text-white outline-none focus:border-blue-300" placeholder="••••••••" /></label>}{error && <p className="rounded-xl border border-red-400/25 bg-red-400/10 px-4 py-3 text-sm text-red-200">{error}</p>}{message && <p className="rounded-xl border border-emerald-400/25 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-100">{message}</p>}<button disabled={loading} className="w-full rounded-xl bg-blue-500 px-4 py-3 font-black text-white hover:bg-blue-400 disabled:cursor-not-allowed disabled:bg-slate-700">{loading ? "Please wait..." : copy[3]}</button></form><div className="mt-6 flex flex-wrap gap-x-4 gap-y-2 text-sm text-slate-300">{mode === "login" && <><Link href="/signup" className="font-bold text-blue-300 hover:text-white">Create an account</Link><Link href="/forgot-password" className="font-bold text-blue-300 hover:text-white">Forgot password?</Link></>}{mode === "signup" && <Link href="/login" className="font-bold text-blue-300 hover:text-white">Already have an account? Log in</Link>}{mode === "forgot" && <Link href="/login" className="font-bold text-blue-300 hover:text-white">Back to log in</Link>}</div></div></main>;
+}

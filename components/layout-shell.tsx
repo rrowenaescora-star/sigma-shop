@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import SiteFooter from "@/components/site-footer";
+import CustomerAvatarMenu from "@/components/customer-avatar-menu";
 
 export default function LayoutShell({
   children,
@@ -12,9 +13,7 @@ export default function LayoutShell({
   children: React.ReactNode;
 }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const pathname = usePathname();
-
-  const hideGlobalLayout =
+  const pathname = usePathname();const hideGlobalLayout =
     pathname.startsWith("/checkout") ||
     pathname.startsWith("/home") ||
     pathname.startsWith("/terms") ||
@@ -30,7 +29,8 @@ export default function LayoutShell({
     pathname.startsWith("/grow-a-garden-2") ||
     pathname.startsWith("/wallet") ||
     pathname.startsWith("/blade-ball") ||
-    pathname.startsWith("/products");
+    pathname.startsWith("/products") ||
+    pathname.startsWith("/admin");
 
   const shops = [
     { href: "/home", img: "/games/bloxfruits.png", alt: "Blox Fruits", name: "Blox Fruits" },
@@ -41,36 +41,24 @@ export default function LayoutShell({
     <>
       {!hideGlobalLayout && (
         <>
-          <header className="sticky top-0 z-[9999] w-full border-b border-white/10 bg-[#07111f]/95 backdrop-blur-xl">
-            <div className="mx-auto flex max-w-[1500px] items-center justify-between px-4 py-4 md:px-6 lg:px-8">
-              
+          <header className="sticky top-0 z-[9999] w-full overflow-visible border-b border-white/10 bg-[#07111f]/95 backdrop-blur-xl">
+            <img src="/header4.png" alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center opacity-45" />
+            <div className="pointer-events-none absolute inset-0 bg-[#07111f]/65" />
+            <div className="relative mx-auto flex max-w-[1500px] items-center justify-between px-4 py-4 md:px-6 lg:px-8">
               <Link href="/" className="group relative flex items-center gap-4">
                 <div className="absolute -left-2 top-1/2 h-16 w-16 -translate-y-1/2 rounded-full bg-blue-500/20 blur-2xl" />
-
                 <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] p-2">
-                  <Image
-                    src="/logo.png"
-                    alt="Bloxhop Logo"
-                    width={46}
-                    height={46}
-                    className="rounded-xl"
-                    priority
-                  />
+                  <Image src="/logo.png" alt="Bloxhop Logo" width={46} height={46} className="rounded-xl" priority />
                 </div>
-
                 <div className="hidden leading-tight sm:block">
-                  <span className="block bg-gradient-to-r from-white via-blue-200 to-blue-400 bg-clip-text text-xl font-black tracking-wide text-transparent">
-                    BLOXHOP
-                  </span>
-                  <span className="block text-[11px] font-semibold uppercase tracking-[0.25em] text-slate-400">
-                    Online Store
-                  </span>
+                  <span className="block bg-gradient-to-r from-white via-blue-200 to-blue-400 bg-clip-text text-xl font-black tracking-wide text-transparent">BLOXHOP</span>
+                  <span className="block text-[11px] font-semibold uppercase tracking-[0.25em] text-slate-400">Online Store</span>
                 </div>
               </Link>
 
-              <div className="hidden items-center gap-8 xl:flex">
+              <div className="ml-auto hidden items-center gap-8 xl:flex">
                 <div className="group relative">
-                  <button className="flex items-center gap-2 text-sm font-semibold text-slate-300 hover:text-white">
+                  <button className="nav-plain-button flex items-center gap-2 text-sm font-semibold text-slate-300 hover:text-white">
                     Shop Now
                     <svg className="h-4 w-4 group-hover:rotate-180" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
@@ -91,13 +79,7 @@ export default function LayoutShell({
                       ))}
                     </div>
                   </div>
-                </div>
-
-                <Link href="/" className="text-sm font-semibold text-slate-300 hover:text-white">
-                  Home
-                </Link>
-
-                <Link href="/tutorial" className="text-sm font-semibold text-slate-300 hover:text-white">
+                </div><Link href="/tutorial" className="text-sm font-semibold text-slate-300 hover:text-white">
                   Tutorial
                 </Link>
 
@@ -115,6 +97,9 @@ export default function LayoutShell({
                 </a>
               </div>
 
+              <CustomerAvatarMenu className="ml-5 hidden xl:inline-flex" />
+              <CustomerAvatarMenu className="xl:hidden" />
+
               <button
                 type="button"
                 onClick={() => setMobileMenuOpen((open) => !open)}
@@ -127,12 +112,7 @@ export default function LayoutShell({
 
           {mobileMenuOpen && (
             <div className="fixed left-0 right-0 top-[78px] z-[9998] border-b border-white/10 bg-[#07111f]/95 px-4 py-5 backdrop-blur-xl xl:hidden">
-              <div className="flex flex-col gap-4">
-                <Link onClick={() => setMobileMenuOpen(false)} href="/" className="font-semibold text-white">
-                  Home
-                </Link>
-
-                <Link onClick={() => setMobileMenuOpen(false)} href="/tutorial" className="font-semibold text-white">
+              <div className="flex flex-col gap-4"><Link onClick={() => setMobileMenuOpen(false)} href="/tutorial" className="font-semibold text-white">
                   Tutorial
                 </Link>
 
@@ -147,9 +127,7 @@ export default function LayoutShell({
                   className="font-semibold text-white"
                 >
                   Discord
-                </a>
-
-                <div className="mt-3 grid gap-2 border-t border-white/10 pt-4">
+                </a><div className="mt-3 grid gap-2 border-t border-white/10 pt-4">
                   {shops.map((shop) => (
                     <Link
                       key={shop.name}
@@ -167,6 +145,8 @@ export default function LayoutShell({
           )}
         </>
       )}
+
+      {hideGlobalLayout && !pathname.startsWith("/home") && !pathname.startsWith("/grow-a-garden-2") && !pathname.startsWith("/admin") && <CustomerAvatarMenu className="fixed right-4 top-4" />}
 
       <main className="flex-1">{children}</main>
 

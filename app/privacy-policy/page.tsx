@@ -57,8 +57,7 @@ export default function PrivacyPage() {
           </h2>
           <p>
             We may receive information from third parties that help us operate
-            the site and complete orders, including Shopify, payment providers,
-            hosting providers, analytics services, and other service partners.
+            the site and complete orders, including PayPal, checkout service providers, hosting providers, analytics services, and other service partners.
             Payment providers may process payment information under their own
             privacy policies and security controls.
           </p>
@@ -76,14 +75,9 @@ export default function PrivacyPage() {
         </section>
 
         <section>
-          <h2 className="mb-2 text-xl font-semibold text-sky-200">6. Payments and Shopify</h2>
+          <h2 className="mb-2 text-xl font-semibold text-sky-200">6. Payments and Checkout</h2>
           <p>
-            Some payments may be processed through Shopify and related payment
-            tools. When you are redirected to Shopify checkout, Shopify may
-            collect and process payment and checkout information according to
-            its own terms and privacy practices. Bloxhop receives the payment
-            status and related order information needed to confirm and support
-            your order.
+            Payments may be processed through PayPal and checkout service providers. When you continue to checkout, those providers may collect and process payment and checkout information according to their own terms and privacy practices. Bloxhop receives the payment status and related order information needed to confirm and support your order.
           </p>
         </section>
 
@@ -92,7 +86,7 @@ export default function PrivacyPage() {
             7. Sharing of Information
           </h2>
           <p>
-            We may share information with payment processors, Shopify, hosting
+            We may share information with payment processors, including PayPal and checkout service providers, hosting
             providers, support tools, fraud-prevention services, professional
             advisers, and government or regulatory authorities where required by
             law or necessary to operate the business, process payments, or
@@ -159,9 +153,17 @@ export default function PrivacyPage() {
             </a>
             .
             <br />
-            Bloxhop Online Store
+            BLOXHOP ONLINE STORE
             <br />
-            Cebu City, Cebu, Philippines
+            DTI Registration No. 8089785
+            <br />
+            Sitio Lower Cogon, Labangon
+            <br />
+            Cebu City, Philippines
+            <br />
+            Mobile: 09453392304
+            <br />
+            Landline: 0323460146
           </p>
         </section>
       </div>

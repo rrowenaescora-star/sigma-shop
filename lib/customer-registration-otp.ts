@@ -1,0 +1,10 @@
+import crypto from "crypto";
+import { supabaseAdmin } from "@/lib/supabase-admin";
+import { sendEmail } from "@/lib/email";
+const OTP_TTL_MS = 10 * 60 * 1000;
+const RESEND_COOLDOWN_MS = 60 * 1000;
+function otpHash(code: string) { const secret = process.env.CUSTOMER_REGISTRATION_OTP_SECRET || process.env.WALLET_ACCESS_SECRET; if (!secret) throw new Error("Customer OTP secret is not configured."); return crypto.createHmac("sha256", secret).update(code).digest("hex"); }
+export function normalizeCustomerEmail(value: unknown) { return String(value ?? "").trim().toLowerCase(); }
+export function isValidCustomerEmail(email: string) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email); }
+export async function sendRegistrationOtp(email: string) { const { data: current, error: lookupError } = await supabaseAdmin.from("customer_registration_otps").select("created_at").eq("email", email).maybeSingle(); if (lookupError) throw lookupError; if (current && Date.now() - new Date(current.created_at).getTime() < RESEND_COOLDOWN_MS) { const error = new Error("A code was recently sent. Please wait one minute before requesting another."); (error as Error & { status?: number }).status = 429; throw error; } const code = crypto.randomInt(100000, 1000000).toString(); const { error: saveError } = await supabaseAdmin.from("customer_registration_otps").upsert({ email, code_hash: otpHash(code), expires_at: new Date(Date.now() + OTP_TTL_MS).toISOString(), attempts: 0, created_at: new Date().toISOString() }); if (saveError) throw saveError; await sendEmail({ to: email, subject: "Your Bloxhop verification code", html: `<div style="font-family:Arial,sans-serif;color:#10203a"><h2>Bloxhop verification code</h2><p>Use this code to complete your Bloxhop registration:</p><p style="font-size:28px;font-weight:700;letter-spacing:8px">${code}</p><p>This code expires in 10 minutes. Never share it with anyone.</p></div>` }); }
+export function registrationOtpHash(code: string) { return otpHash(code); }

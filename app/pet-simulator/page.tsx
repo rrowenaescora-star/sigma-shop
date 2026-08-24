@@ -33,23 +33,22 @@ type CartItem = Product & {
 
 function ProductSkeletonCard() {
   return (
-    <div className="group overflow-hidden rounded-[2rem] border border-slate-700/60 bg-[#0b1628]/70 backdrop-blur-md p-4 shadow-[0_12px_35px_rgba(2,6,23,0.28)]">
-      <div className="skeleton h-72 w-full rounded-[1.5rem]" />
-
-      <div className="mt-5 space-y-3">
-        <div className="skeleton h-6 w-2/3 rounded-xl" />
-        <div className="skeleton h-4 w-1/3 rounded-xl" />
-        <div className="skeleton h-4 w-full rounded-xl" />
-        <div className="skeleton h-4 w-5/6 rounded-xl" />
-
-        <div className="pt-2 space-y-2">
-          <div className="skeleton h-8 w-28 rounded-xl" />
-          <div className="skeleton h-4 w-24 rounded-xl" />
+    <div className="relative flex aspect-[3/4] w-full min-w-0 flex-col overflow-hidden rounded-2xl border border-slate-600/60 bg-[#07111f] shadow-[0_18px_50px_rgba(0,0,0,0.45)]">
+      <div className="relative h-[42%] min-h-[125px] shrink-0 overflow-hidden border-b border-slate-700/70 bg-gradient-to-br from-emerald-500/20 via-[#07111f] to-blue-700/20">
+        <div className="skeleton absolute right-4 top-4 h-6 w-16 rounded-full" />
+        <div className="flex h-full items-center justify-center p-5">
+          <div className="skeleton h-[68%] w-[68%] max-h-[150px] max-w-[150px] rounded-2xl" />
         </div>
+      </div>
 
-        <div className="pt-2">
-          <div className="skeleton h-12 w-full rounded-2xl" />
+      <div className="flex min-h-0 flex-1 flex-col bg-[#07111f] p-3">
+        <div className="skeleton h-5 w-3/4 rounded-md" />
+        <div className="mt-2 skeleton h-3 w-1/2 rounded-md" />
+        <div className="mt-4 flex items-center gap-2">
+          <div className="skeleton h-6 w-20 rounded-md" />
+          <div className="skeleton h-3 w-12 rounded-md" />
         </div>
+        <div className="mt-auto mb-1 skeleton h-8 w-full rounded-lg" />
       </div>
 
       <style jsx global>{`
@@ -1451,7 +1450,7 @@ if (foundProduct) {
                     : "bg-blue-500 text-white hover:bg-blue-400"
                 }`}
               >
-                Proceed to Checkout
+                Checkout
               </Link>
             </div>
           </div>

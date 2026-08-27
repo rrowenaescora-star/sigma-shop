@@ -53,7 +53,11 @@ export default function AdminOrdersPage() {
       const activeOrders = (data.orders || []).filter((order: Order) => {
         const status = (order.status || "").toLowerCase();
         const delivery = (order.delivery_status || "").toLowerCase();
+        const paymentStatus = (order.payment_status || "").toLowerCase();
 
+        if (order.payment_method === "Shopify" && paymentStatus !== "paid") {
+          return false;
+        }
         return !(
           status.includes("completed") ||
           status.includes("cancelled") ||

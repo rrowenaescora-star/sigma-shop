@@ -649,10 +649,6 @@ if (foundProduct) {
     <h1 className="text-base font-black leading-none tracking-tight text-white sm:text-xl">
       BLOXHOP ONLINE STORE
     </h1>
-
-    <p className="mt-1 text-xs text-slate-300">
-      Fast & Reliable Gaming Services
-    </p>
   </div>
 </Link>
 

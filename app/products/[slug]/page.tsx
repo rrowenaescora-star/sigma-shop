@@ -102,7 +102,7 @@ export default function ProductDetailsPage() {
           <div className="relative mx-auto flex max-w-[1850px] items-center justify-between px-5 py-3 md:px-8">
             <Link href="/" className="flex items-center gap-3">
               <img src="/logo.png" alt="Bloxhop" className="h-11 w-11 object-contain" />
-              <div><p className="text-base font-black leading-none tracking-tight text-white sm:text-xl">BLOXHOP ONLINE STORE</p><p className="mt-1 text-xs text-slate-300">Fast &amp; Reliable Gaming Services</p></div>
+              <div><p className="text-base font-black leading-none tracking-tight text-white sm:text-xl">BLOXHOP ONLINE STORE</p></div>
             </Link>
             <BackTransitionButton fallbackHref={shopPath} className="rounded-lg border border-white/10 bg-[#0b1628]/80 px-3 py-2 text-xs font-bold text-white transition hover:bg-white/10">Back to shop</BackTransitionButton>
           </div>

@@ -641,7 +641,7 @@ if (foundProduct) {
 
     <Link
   href="/"
-  className="flex items-center gap-4 px-2 transition hover:opacity-90"
+  className="flex items-center gap-4 pl-3 transition hover:opacity-90"
 >
 
 
@@ -655,11 +655,6 @@ if (foundProduct) {
     <h1 className="text-base font-black leading-none tracking-tight text-white sm:text-xl">
       BLOXHOP ONLINE STORE
     </h1>
-	
-
-    <p className="mt-1 text-xs px-2 text-slate-300">
-      Fast & Reliable Gaming Services
-    </p>
 	
   </div>
 

@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import LayoutShell from "@/components/layout-shell";
 import CookieConsent from "@/components/cookie-consent";
+import RouteLoadingBar from "@/components/route-loading-bar";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -60,6 +61,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`h-full antialiased ${plusJakartaSans.variable}`}>
       <body className="flex min-h-screen flex-col bg-[#070b14] text-white">
+        <RouteLoadingBar />
         <LayoutShell>{children}</LayoutShell>
         <footer className="border-t border-white/10 bg-[#111121] px-6 py-6 text-center text-sm leading-7 text-slate-500">
           © {new Date().getFullYear()} Bloxhop Online Store. Independent digital

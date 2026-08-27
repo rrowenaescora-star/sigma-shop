@@ -127,6 +127,9 @@ export async function POST(request: Request) {
     );
     const email = payload?.email || null;
     const financialStatus = String(payload?.financial_status || "").toLowerCase();
+    const shopifyOrderNumber = String(
+      payload?.order_number || payload?.name || "",
+    ).replace(/^#/, "");
 
     const { error } = await supabase
       .from("orders")
@@ -135,6 +138,7 @@ export async function POST(request: Request) {
         payment_method: "Shopify",
         paid_at: paidAt,
         payer_email: email,
+        xendit_reference_id: shopifyOrderNumber || null,
         status: financialStatus === "paid" ? "Paid" : "Pending",
         total_price: Number.isFinite(totalPrice) ? totalPrice : undefined,
       })
@@ -152,6 +156,7 @@ export async function POST(request: Request) {
       orderId,
       topic,
       financialStatus,
+      shopifyOrderNumber: shopifyOrderNumber || null,
     });
 
     return NextResponse.json({ success: true });

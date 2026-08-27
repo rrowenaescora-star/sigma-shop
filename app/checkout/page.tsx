@@ -4,6 +4,8 @@ import Link from "next/link";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useSearchParams } from "next/navigation";
+import CustomerAvatarMenu from "@/components/customer-avatar-menu";
+import SupportChat from "@/components/SupportChat";
 
 type Product = {
   id: number;
@@ -50,6 +52,7 @@ function CheckoutPageContent() {
   const [robloxUsername, setRobloxUsername] = useState("");
   const [contactInfo, setContactInfo] = useState("");
   const [notes, setNotes] = useState("");
+  const [emailWhyOpen, setEmailWhyOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [couponCode, setCouponCode] = useState("");
@@ -74,19 +77,13 @@ function CheckoutPageContent() {
   const [latestProducts, setLatestProducts] = useState<Product[]>([]);
   const [productValidationMessage, setProductValidationMessage] = useState("");
   const [cartLoaded, setCartLoaded] = useState(false);
-  const [confirmChecked, setConfirmChecked] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
 
   const inputClass =
-    "min-w-0 flex-1 rounded-2xl border border-blue-400/40 bg-[#0b1728] px-4 py-4 text-sm text-white outline-none placeholder:text-slate-500 focus:border-blue-300 focus:ring-4 focus:ring-blue-500/20";
+    "min-w-0 flex-1 rounded-lg border border-blue-400/40 bg-[#211f38] px-4 py-4 text-sm text-white outline-none placeholder:text-slate-500 focus:border-blue-300 focus:ring-4 focus:ring-blue-500/20";
 
   const fullInputClass =
-    "w-full rounded-2xl border border-blue-400/40 bg-[#0b1728] px-4 py-4 text-sm text-white outline-none placeholder:text-slate-500 focus:border-blue-300 focus:ring-4 focus:ring-blue-500/20";
-
-  const textareaClass =
-    "min-h-[112px] w-full rounded-2xl border border-blue-400/40 bg-[#0b1728] px-4 py-4 text-sm text-white outline-none placeholder:text-slate-500 focus:border-blue-300 focus:ring-4 focus:ring-blue-500/20";
-
-  useEffect(() => {
+    "w-full rounded-lg border border-blue-400/40 bg-[#211f38] px-4 py-4 text-sm text-white outline-none placeholder:text-slate-500 focus:border-blue-300 focus:ring-4 focus:ring-blue-500/20";useEffect(() => {
     const orderId = searchParams.get("orderId");
 
     if (!orderId) return;
@@ -108,7 +105,6 @@ function CheckoutPageContent() {
         setContactInfo(order.contact_info || "");
         setNotes(order.notes || "");
         setCartItems(order.items || []);
-        setConfirmChecked(false);
         setIsVerified(false);
 
         localStorage.setItem("real-cart", JSON.stringify(order.items || []));
@@ -754,10 +750,10 @@ function CheckoutPageContent() {
   }
 
   return (
-    <div className="relative isolate min-h-screen overflow-x-clip bg-[#06101d] bg-[url('/website-background.png')] bg-cover bg-center bg-fixed text-white">
-      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.16),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(37,99,235,0.10),transparent_32%)]" />
+    <div className="relative min-h-screen overflow-x-clip bg-[#12111f] text-white">
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top,rgba(120,58,237,0.08),transparent_34%)]" />
 
-      <div aria-hidden="true" className="pointer-events-none fixed inset-0 hidden overflow-hidden lg:block">
+      <div aria-hidden="true" className="hidden">
         {floatingProducts.map((product, index) => {
           const position = floatingItemPositions[index];
 
@@ -783,53 +779,36 @@ function CheckoutPageContent() {
         })}
       </div>
 
-      <div className="sticky top-0 z-40 w-full overflow-hidden border-b border-blue-500/20 bg-[#06101d]">
-        <img src="/header4.png" alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center opacity-50" />
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(6,16,29,0.96),rgba(6,16,29,0.82)_55%,rgba(6,16,29,0.70))]" />
-        <div className="relative mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <p className="text-2xl font-black tracking-tight text-white">
-                BLOXHOP
-              </p>
-              <p className="text-sm text-slate-400">
-                Secure checkout for Blox Fruits items and online service
-                fulfillment.
-              </p>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              <Link
-                href="/home"
-                className="rounded-2xl border border-slate-700/70 bg-slate-950/40 px-4 py-2 text-sm font-bold text-white hover:bg-slate-800/70"
-              >
-                Back to Store
-              </Link>
-
-              <Link
-                href="/track-order"
-                className="rounded-2xl bg-blue-500 px-4 py-2 text-sm font-black text-white shadow-[0_0_25px_rgba(59,130,246,0.35)] hover:bg-blue-400"
-              >
-                Track Order
-              </Link>
-            </div>
+      <div className="relative z-40 w-full overflow-hidden border-b border-white/10 bg-[#12111f]">
+        <img src="/header4.png" alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center opacity-60" />
+        <div className="pointer-events-none absolute inset-0 bg-[#12111f]/75" />
+        <div className="relative mx-auto flex max-w-[1064px] items-center justify-between px-4 py-4 sm:px-6">
+          <div className="flex items-center gap-4">
+            <button
+              type="button"
+              onClick={() => window.history.length > 1 ? window.history.back() : window.location.assign("/home")}
+              aria-label="Back to product page"
+              className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/15 bg-black/20 text-xl font-bold text-white transition hover:bg-white/10"
+            >
+              ←
+            </button>
+            <img src="/logo.png" alt="Bloxhop" className="h-12 w-12 object-contain" />
           </div>
+          <CustomerAvatarMenu />
         </div>
       </div>
 
-      <div className="relative z-10 mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+      <div className="relative z-10 mx-auto max-w-[1064px] px-4 py-10 sm:px-6">
+        <div aria-hidden="true" className="pointer-events-none absolute bottom-0 -top-10 left-[53%] hidden w-0.5 bg-white/20 lg:block" />
 
-        <main className="grid items-start gap-8 lg:grid-cols-[1fr_420px]">
-          <section className="space-y-6">
-            <div className="rounded-[1.75rem] border border-blue-500/20 bg-slate-950/30 p-5 sm:p-6">
+        <main className="grid items-start lg:grid-cols-[minmax(0,1.06fr)_minmax(360px,.94fr)]">
+          <section className="space-y-6 lg:pr-12">
+            <div className="border-0 bg-transparent p-0 sm:p-0">
               <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <p className="text-xs font-black uppercase tracking-[0.28em] text-blue-400">
-                    Order Details
-                  </p>
 
-                  <h1 className="mt-3 text-3xl font-black tracking-tight text-white">
-                    Customer Details
+                  <h1 className="text-3xl font-black tracking-tight text-white">
+                    Delivery Details
                   </h1>
 
                   <p className="mt-2 text-sm text-slate-300">
@@ -837,7 +816,7 @@ function CheckoutPageContent() {
                   </p>
                 </div>
 
-                <div className="rounded-2xl border border-blue-500/20 px-4 py-3 text-xs text-slate-300">
+                <div className="hidden">
                   Support:{" "}
                   <span className="font-bold text-white">
                     support@bloxhop.site
@@ -872,10 +851,10 @@ function CheckoutPageContent() {
                       type="button"
                       onClick={verifyRobloxUser}
                       disabled={verifyLoading || !robloxUsername.trim()}
-                     className={`rounded-2xl px-6 py-4 text-sm font-black transition ${
+                     className={`rounded-lg px-6 py-4 text-sm font-black transition ${
   verifyLoading || !robloxUsername.trim()
     ? "cursor-not-allowed bg-slate-700 text-slate-300"
-    : "cursor-pointer bg-blue-500 text-white hover:bg-blue-400"
+    : "cursor-pointer bg-violet-600 text-white hover:bg-violet-500"
 }`}
                     >
                       {verifyLoading ? "Checking..." : "Verify"}
@@ -888,8 +867,8 @@ function CheckoutPageContent() {
                     </p>
                   )}
 
-                  <div className="mt-4 grid items-center gap-5 rounded-2xl border border-blue-500/20 bg-[#081426] p-4 sm:grid-cols-[120px_1fr]">
-                    <div className="relative flex h-[120px] w-[120px] items-center justify-center overflow-hidden rounded-[24px] border border-blue-400/20 bg-[#0b1728]">
+                  <div className="mt-4 grid items-center gap-5 rounded-lg border border-white/10 bg-[#1d1c31] p-4 sm:grid-cols-[120px_1fr]">
+                    <div className="relative flex h-[120px] w-[120px] items-center justify-center overflow-hidden rounded-[24px] border border-white/10 bg-[#211f38]">
                       {verifyLoading ? (
                         <div className="h-full w-full animate-pulse bg-slate-700/40" />
                       ) : robloxAvatar ? (
@@ -906,14 +885,14 @@ function CheckoutPageContent() {
                     </div>
 
                     <div className="grid gap-3">
-                      <p className="truncate border-b border-blue-400/30 pb-2 text-2xl font-black text-white">
+                      <p className="truncate border-b border-white/10 pb-2 text-2xl font-black text-white">
                         {isVerified
                           ? robloxDisplayName || robloxUsername
                           : "Username Preview"}
                       </p>
 
                       <p
-                        className={`truncate border-b border-blue-400/30 pb-2 text-lg font-black ${
+                        className={`truncate border-b border-white/10 pb-2 text-lg font-black ${
                           isVerified ? "text-emerald-300" : "text-slate-500"
                         }`}
                       >
@@ -941,98 +920,42 @@ function CheckoutPageContent() {
                     className={fullInputClass}
                     placeholder="youremail@example.com"
                     required
-                  />
-
-                  <p className="mt-2 text-xs text-slate-400">
-                    Order updates and delivery notifications will be sent to
-                    this email.
-                  </p>
-                </div>
-
-                <div>
-                  <label className="mb-2 block text-sm font-bold text-white">
-                    Coupon Code Optional
-                  </label>
-
-                  <div className="flex flex-col gap-3 sm:flex-row">
-                    <input
-                      value={couponCode}
-                      onChange={(e) => setCouponCode(e.target.value)}
-                      className={inputClass}
-                      placeholder="Enter coupon code"
-                    />
-
+                  />                  <div className="mt-3">
                     <button
                       type="button"
-                      onClick={applyCoupon}
-                      className="cursor-pointer rounded-2xl bg-blue-500 px-7 py-4 text-sm font-black text-white hover:bg-blue-400"
+                      onClick={() => setEmailWhyOpen((open) => !open)}
+                      aria-expanded={emailWhyOpen}
+                      className="flex items-center gap-2 text-left text-xs font-bold text-slate-300 hover:text-white"
                     >
-                      Apply
+                      <span className="flex h-5 w-5 items-center justify-center rounded-full border border-violet-300/70 text-xs text-violet-200">?</span>
+                      Why do we ask for your email?
                     </button>
+                    {emailWhyOpen && (
+                      <p className="mt-2 rounded-lg border border-white/10 bg-[#1d1c31] px-3 py-2 text-xs leading-5 text-slate-300">
+                        We use it to send your order updates and digital delivery details.
+                      </p>
+                    )}
                   </div>
-
-                  {couponError && (
-                    <p className="mt-2 text-sm text-red-400">{couponError}</p>
-                  )}
-
-                  {!couponError && discount > 0 && (
-                    <p className="mt-2 text-sm font-bold text-emerald-300">
-                      Coupon applied: -${discount.toFixed(2)}
-                      {appliedCoupon ? ` (${appliedCoupon})` : ""}
-                    </p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="mb-2 block text-sm font-bold text-white">
-                    Additional Notes Optional
-                  </label>
-
-                  <textarea
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    className={textareaClass}
-                    placeholder="Type your notes here..."
-                  />
                 </div>
               </div>
             </div>
 
-            <div className="rounded-[1.75rem] border border-blue-500/20 bg-slate-950/30 p-5 sm:p-6">
-              <p className="text-xs font-black uppercase tracking-[0.28em] text-emerald-300">
-                Secure Checkout
-              </p>
+            <div className="border-0 bg-transparent p-0 sm:p-0">
 
-              <h2 className="mt-3 text-3xl font-black tracking-tight text-white">
-                Complete Your Order
+              <h2 className="text-3xl font-black tracking-tight text-white">
+                Payment
               </h2>
 
               <p className="mt-2 text-sm text-slate-300">
-                Review your details, then continue to payment.
+                Review your details, agree to the policies, then continue to payment.
               </p>
 
-              <div className="mt-5 grid gap-3 rounded-2xl border border-blue-500/20 bg-[#081426] p-4 text-sm font-bold text-slate-300 sm:grid-cols-3">
+              <div className="mt-5 grid gap-3 rounded-lg border border-white/10 bg-[#1d1c31] p-4 text-sm font-bold text-slate-300 sm:grid-cols-3">
                 <p>✓ Secure Checkout</p>
                 <p>✓ Order Confirmation</p>
                 <p>✓ Digital Fulfillment</p>
               </div>
-
-              <label className="mt-5 flex items-start gap-3 rounded-2xl border border-blue-500/20 bg-[#0b1728] p-4">
-                <input
-                  type="checkbox"
-                  id="confirm"
-                  checked={confirmChecked}
-                  onChange={(e) => setConfirmChecked(e.target.checked)}
-                  className="mt-1 h-5 w-5 accent-blue-500"
-                />
-
-                <span className="text-sm leading-6 text-slate-300">
-                  I confirm that my account/service information and contact
-                  details are correct.
-                </span>
-              </label>
-
-              <div className="mt-3 flex items-start gap-3 rounded-2xl border border-blue-500/20 bg-[#0b1728] p-4">
+              <div className="mt-3 flex items-start gap-3 rounded-lg border border-white/10 bg-[#1d1c31] p-4">
                 <input
                   type="checkbox"
                   id="terms-acceptance"
@@ -1065,26 +988,13 @@ function CheckoutPageContent() {
                 </label>
               </div>
 
-              <div className="mt-3 rounded-2xl border border-blue-400/20 bg-blue-400/5 px-4 py-3">
-                <p className="text-xs leading-6 text-blue-200">
-                  You will continue to our secure checkout to complete payment.
-                </p>
-              </div>
-
-              {isCheckoutDisabled && (
-                <p className="mt-4 rounded-2xl border border-yellow-400/20 bg-yellow-400/10 p-3 text-sm font-semibold text-yellow-200">
-                  Please complete all required information and ensure all items
-                  are available before checkout.
-                </p>
-              )}
-
               {finalPrice <= 0 ? (
                 <button
                   type="button"
                   onClick={handleFreeCheckout}
-                  disabled={isCheckoutDisabled || !confirmChecked || !termsAccepted}
-                  className={`mt-5 w-full rounded-2xl py-4 text-lg font-black transition ${
-                    isCheckoutDisabled || !confirmChecked || !termsAccepted
+                  disabled={isCheckoutDisabled || !termsAccepted}
+                  className={`mt-5 w-full rounded-lg py-4 text-lg font-black transition ${
+                    isCheckoutDisabled || !termsAccepted
                       ? "cursor-not-allowed bg-slate-700 text-slate-300"
                       : "cursor-pointer bg-emerald-400 text-black hover:bg-emerald-300"
                   }`}
@@ -1096,11 +1006,11 @@ function CheckoutPageContent() {
                   <button
                     type="button"
                     onClick={handleSmartCheckout}
-                    disabled={!confirmChecked || !termsAccepted || isCheckoutDisabled}
-                   className={`w-full rounded-2xl border py-4 text-lg font-black transition ${
-  !confirmChecked || !termsAccepted || isCheckoutDisabled
+                    disabled={!termsAccepted || isCheckoutDisabled}
+                   className={`w-full rounded-lg border py-4 text-lg font-black transition ${
+  !termsAccepted || isCheckoutDisabled
     ? "cursor-not-allowed border-slate-700 bg-slate-800 text-slate-300"
-    : "cursor-pointer border-blue-400/30 bg-[#10233c] text-white hover:bg-[#18345a]"
+    : "cursor-pointer border-white/10 bg-[#10233c] text-white hover:bg-[#18345a]"
 }`}
                   >
                     {isSubmitting ? "Redirecting..." : "Proceed to Secure Checkout"}
@@ -1156,20 +1066,17 @@ function CheckoutPageContent() {
             </div>
           </section>
 
-          <aside className="lg:sticky lg:top-28 lg:self-start">
-            <div className="rounded-[1.75rem] border border-blue-500/20 bg-slate-950/30 p-5 sm:p-6">
+          <aside className="border-t border-white/10 pt-10 lg:sticky lg:top-0 lg:self-start lg:border-t-0 lg:pt-0">
+            <div className="flex min-h-[700px] flex-col bg-transparent p-0 lg:pl-16">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-xs font-black uppercase tracking-[0.28em] text-blue-400">
-                    Order Summary
-                  </p>
 
-                  <h2 className="mt-3 text-3xl font-black tracking-tight text-white">
-                    Items in Your Order
+                  <h2 className="text-3xl font-black tracking-tight text-white">
+                    Order summary
                   </h2>
                 </div>
 
-                <div className="rounded-2xl border border-blue-500/20 px-4 py-3 text-center">
+                <div className="rounded-lg border border-white/10 px-4 py-3 text-center">
                   <p className="text-xs text-slate-400">Items</p>
                   <p className="text-xl font-black text-white">
                     {cartItems.length}
@@ -1178,13 +1085,48 @@ function CheckoutPageContent() {
               </div>
 
               {(productValidationMessage || hasUnavailableCartItems) && (
-                <div className="mt-5 rounded-2xl border border-red-400/20 bg-red-500/10 p-4 text-sm text-red-200">
+                <div className="mt-5 rounded-lg border border-red-400/20 bg-red-500/10 p-4 text-sm text-red-200">
                   {productValidationMessage ||
                     "Your cart contains unavailable items."}
                 </div>
               )}
 
-              <div className="mt-6 overflow-hidden border-y border-blue-500/20">
+              <div className="mt-6">
+                  <label className="mb-2 block text-sm font-bold text-white">
+                    Discount code or gift card
+                  </label>
+
+                  <div className="flex flex-col gap-3 sm:flex-row">
+                    <input
+                      value={couponCode}
+                      onChange={(e) => setCouponCode(e.target.value)}
+                      className={inputClass}
+                      placeholder="Discount code or gift card"
+                    />
+
+                    <button
+                      type="button"
+                      onClick={applyCoupon}
+                      className="cursor-pointer rounded-lg bg-[#2a293e] px-7 py-4 text-sm font-black text-white hover:bg-[#37354f]"
+                    >
+                      Apply
+                    </button>
+                  </div>
+
+                  {couponError && (
+                    <p className="mt-2 text-sm text-red-400">{couponError}</p>
+                  )}
+
+                  {!couponError && discount > 0 && (
+                    <p className="mt-2 text-sm font-bold text-emerald-300">
+                      Coupon applied: -${discount.toFixed(2)}
+                      {appliedCoupon ? ` (${appliedCoupon})` : ""}
+                    </p>
+                  )}
+                </div>
+
+                
+              <div className="mt-8 overflow-hidden border-y border-white/10">
                 {cartItems.length === 0 ? (
                   <div className="p-5 text-sm text-slate-300">
                     Your cart is empty.
@@ -1201,7 +1143,7 @@ function CheckoutPageContent() {
                         }`}
                       >
                         <div className="flex min-w-0 items-center gap-4">
-                          <div className="relative h-16 w-16 flex-shrink-0 rounded-xl border border-blue-500/20 bg-[#06101d]">
+                          <div className="relative h-16 w-16 flex-shrink-0 rounded-xl border border-blue-500/20 bg-[#12111f]">
                             <span className="absolute -right-2 -top-2 flex min-w-7 items-center justify-center rounded-xl border border-blue-500/20 bg-[#10233c] px-2 py-1 text-xs font-black text-white">
                               x{item.quantity}
                             </span>
@@ -1270,12 +1212,8 @@ function CheckoutPageContent() {
                 )}
               </div>
 
-              <div className="mt-6 border-t border-blue-500/20 pt-6">
+              <div className="mt-auto border-t border-white/10 pt-6">
                 <div className="space-y-3 text-base">
-                  <div className="flex justify-between text-slate-300">
-                    <span>Subtotal</span>
-                    <span>${totalPrice.toFixed(2)}</span>
-                  </div>
 
                   {discount > 0 && (
                     <div className="flex justify-between font-bold text-emerald-300">
@@ -1285,7 +1223,7 @@ function CheckoutPageContent() {
                   )}
                 </div>
 
-                <div className="my-5 h-px bg-blue-500/20" />
+                <div className="my-5 h-px bg-white/10" />
 
                 <div className="flex items-center justify-between">
                   <span className="text-2xl font-black text-white">Total</span>
@@ -1309,37 +1247,11 @@ function CheckoutPageContent() {
                   </div>
                 )}
               </div>
-
-              <div className="mt-6 grid gap-4">
-                <div className="rounded-[1.35rem] border border-yellow-400/30 p-5">
-                  <p className="text-lg font-black text-yellow-300">
-                    Important Reminder
-                  </p>
-
-                  <p className="mt-3 text-sm leading-6 text-slate-300">
-                    Do not submit another payment if your order is already
-                    pending or confirmed.
-                  </p>
-                </div>
-
-                <div className="rounded-[1.35rem] border border-blue-400/30 p-5">
-                  <p className="text-lg font-black text-blue-300">
-                    Need Support?
-                  </p>
-
-                  <p className="mt-3 text-sm leading-6 text-slate-300">
-                    Our support team is here to help.
-                  </p>
-
-                  <p className="mt-5 text-base font-black text-blue-300">
-                    support@bloxhop.site
-                  </p>
-                </div>
-              </div>
             </div>
           </aside>
         </main>
       </div>
+      <SupportChat />
     </div>
   );
 }
@@ -1347,7 +1259,7 @@ function CheckoutPageContent() {
 export default function CheckoutPage() {
   return (
     <Suspense
-      fallback={<div className="min-h-screen bg-[#06101d] text-white" />}
+      fallback={<div className="min-h-screen bg-[#12111f] text-white" />}
     >
       <CheckoutPageContent />
     </Suspense>

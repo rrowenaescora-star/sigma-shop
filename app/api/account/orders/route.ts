@@ -16,7 +16,7 @@ export async function GET() {
 
   const { data, error } = await admin
     .from("orders")
-    .select("id, items, total_price, payment_status, status, created_at, payment_method")
+    .select("id, items, total_price, payment_status, status, created_at, payment_method, xendit_reference_id")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 

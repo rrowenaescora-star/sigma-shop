@@ -84,11 +84,24 @@ export async function PATCH(request: Request) {
   }
   const [{ data: customer }, { data: messages }] = await Promise.all([
     adminSupabase.auth.admin.getUserById(conversation.customer_id),
-    adminSupabase.from("support_messages").select("sender, body, created_at").eq("conversation_id", conversationId).order("created_at"),
+    adminSupabase.from("support_messages").select("sender, body, attachment_path, created_at").eq("conversation_id", conversationId).order("created_at"),
   ]);
   if (!customer.user?.email) return NextResponse.json({ error: "Customer email is unavailable." }, { status: 400 });
-  const transcript = (messages || []).map((message) => `<p><strong>${message.sender === "staff" ? "Bloxhop Support" : "You"}</strong> · ${new Date(message.created_at).toLocaleString()}<br/>${escapeHtml(message.body)}</p>`).join("<hr/>");
-  await sendEmail({ to: customer.user.email, subject: `Bloxhop Support chat transcript: ${conversation.subject}`, html: `<h2>Bloxhop Support Chat Transcript</h2>${transcript}` });
+  const attachments: Array<{ filename: string; content: Buffer; contentType?: string; cid: string }> = [];
+  const transcriptParts = await Promise.all((messages || []).map(async (message, index) => {
+    let screenshot = "";
+    if (message.attachment_path) {
+      const { data } = await adminSupabase.storage.from("support-attachments").download(message.attachment_path);
+      if (data) {
+        const cid = `support-screenshot-${index}@bloxhop`;
+        const extension = message.attachment_path.split(".").pop() || "png";
+        attachments.push({ filename: `support-screenshot-${index + 1}.${extension}`, content: Buffer.from(await data.arrayBuffer()), contentType: data.type || undefined, cid });
+        screenshot = `<p><img src="cid:${cid}" alt="Support screenshot" style="max-width:100%;height:auto;border-radius:8px" /></p>`;
+      }
+    }
+    return `<p><strong>${message.sender === "staff" ? "Bloxhop Support" : "You"}</strong> · ${new Date(message.created_at).toLocaleString()}<br/>${escapeHtml(message.body)}</p>${screenshot}`;
+  }));
+  await sendEmail({ to: customer.user.email, subject: `Bloxhop Support chat transcript: ${conversation.subject}`, html: `<h2>Bloxhop Support Chat Transcript</h2>${transcriptParts.join("<hr/>")}`, attachments });
   await adminSupabase.from("support_conversations").update({ transcript_sent_at: new Date().toISOString() }).eq("id", conversationId);
   return NextResponse.json({ ok: true, transcriptSent: true });
 }

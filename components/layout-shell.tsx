@@ -146,7 +146,7 @@ export default function LayoutShell({
         </>
       )}
 
-      {hideGlobalLayout && !pathname.startsWith("/home") && !pathname.startsWith("/grow-a-garden-2") && !pathname.startsWith("/admin") && <CustomerAvatarMenu className="fixed right-4 top-4" />}
+      {hideGlobalLayout && !pathname.startsWith("/home") && !pathname.startsWith("/grow-a-garden-2") && !pathname.startsWith("/checkout") && !pathname.startsWith("/admin") && <CustomerAvatarMenu className="fixed right-4 top-4" />}
 
       <main className="flex-1">{children}</main>
 

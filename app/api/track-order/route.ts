@@ -1,4 +1,3 @@
-
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 
@@ -14,20 +13,40 @@ export async function GET(request: Request) {
       );
     }
 
-    const { data, error } = await supabase
+    const normalizedOrderId = orderId.replace(/^#/, "").trim();
+    const numericOrderId = Number(normalizedOrderId);
+
+    let { data, error } = await supabase
       .from("orders")
       .select("*")
-      .eq("id", Number(orderId))
-      .single();
+      .eq("xendit_reference_id", normalizedOrderId)
+      .maybeSingle();
 
-    if (error) {
+    if (!data && Number.isInteger(numericOrderId)) {
+      const internalLookup = await supabase
+        .from("orders")
+        .select("*")
+        .eq("id", numericOrderId)
+        .maybeSingle();
+      data = internalLookup.data;
+      error = internalLookup.error;
+    }
+
+    if (error || !data) {
       return NextResponse.json(
         { error: "Order not found." },
         { status: 404 }
       );
     }
 
-    return NextResponse.json({ order: data });
+    const publicOrderId =
+      data.payment_method === "Shopify" && data.xendit_reference_id
+        ? data.xendit_reference_id
+        : data.id;
+
+    return NextResponse.json({
+      order: { ...data, public_order_id: publicOrderId },
+    });
   } catch (error) {
     console.error("Track order error:", error);
     return NextResponse.json(

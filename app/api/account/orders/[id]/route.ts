@@ -25,7 +25,7 @@ export async function GET(
 
   const { data, error } = await admin
     .from("orders")
-    .select("id, items, total_price, payment_status, status, payment_method, roblox_username, contact_info, notes, created_at")
+    .select("id, items, total_price, payment_status, status, payment_method, xendit_reference_id, roblox_username, contact_info, notes, created_at")
     .eq("id", orderId)
     .eq("user_id", user.id)
     .maybeSingle();

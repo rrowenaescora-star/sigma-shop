@@ -84,10 +84,25 @@ export async function POST(req: Request) {
       };
     }
 
+    let internalOrderId = orderId;
+    const { data: referencedOrder, error: lookupError } = await supabase
+      .from("orders")
+      .select("id")
+      .eq("xendit_reference_id", orderId)
+      .maybeSingle();
+
+    if (lookupError) {
+      return NextResponse.json({ success: false, message: lookupError.message });
+    }
+
+    if (referencedOrder) {
+      internalOrderId = String(referencedOrder.id);
+    }
+
     const { error } = await supabase
       .from("orders")
       .update(updates)
-      .eq("id", orderId);
+      .eq("id", internalOrderId);
 
     if (error) {
       console.error(error);

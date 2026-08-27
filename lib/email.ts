@@ -12,26 +12,33 @@ export const transporter = nodemailer.createTransport({
   pool: true,
   maxConnections: 1,
   maxMessages: 50,
-  auth: {
-    user,
-    pass,
-  },
+  auth: { user, pass },
 });
+
+type EmailAttachment = {
+  filename: string;
+  content: Buffer;
+  contentType?: string;
+  cid?: string;
+};
 
 export async function sendEmail({
   to,
   subject,
   html,
+  attachments,
 }: {
   to: string;
   subject: string;
   html: string;
+  attachments?: EmailAttachment[];
 }) {
   await transporter.sendMail({
     from: '"Bloxhop Support" <support@bloxhop.site>',
     to,
     subject,
     html,
+    attachments,
   });
 }
 

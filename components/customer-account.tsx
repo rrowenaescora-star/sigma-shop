@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 type Profile = { display_name: string | null };
-type Order = { id: number; items: Array<{ name?: string; quantity?: number }> | null; total_price: number; payment_status: string | null; status: string | null; created_at: string; payment_method: string | null };
+type Order = { id: number; items: Array<{ name?: string; quantity?: number }> | null; total_price: number; payment_status: string | null; status: string | null; created_at: string; payment_method: string | null; xendit_reference_id?: string | null };
 
 function orderName(order: Order) {
   const first = Array.isArray(order.items) ? order.items[0] : undefined;
@@ -78,5 +78,5 @@ export default function CustomerAccount({ ordersOnly = false }: { ordersOnly?: b
 
 export function OrderList({ orders }: { orders: Order[] }) {
   if (!orders.length) return <div className="mt-6 rounded-2xl border border-dashed border-blue-300/20 p-7 text-center text-sm text-slate-300">No account-linked orders yet. Future orders made while logged in will appear here.</div>;
-  return <div className="mt-5 space-y-3">{orders.map((order) => <div key={order.id} className="flex flex-col gap-3 rounded-2xl border border-blue-300/15 bg-[#07111f] p-4 sm:flex-row sm:items-center sm:justify-between"><div className="min-w-0"><p className="font-black text-white">Order #{order.id}</p><p className="mt-1 truncate text-sm text-slate-300">{orderName(order)}</p><p className="mt-1 text-xs text-slate-400">{new Date(order.created_at).toLocaleDateString()} · {order.status || "Pending"}</p></div><div className="flex items-center justify-between gap-4 sm:justify-end"><span className="font-black text-emerald-300">${Number(order.total_price || 0).toFixed(2)}</span><Link href={`/account/orders/${order.id}`} className="rounded-lg border border-blue-300/25 px-3 py-2 text-sm font-bold text-blue-200 hover:bg-white/5">View Order</Link></div></div>)}</div>;
+  return <div className="mt-5 space-y-3">{orders.map((order) => <div key={order.id} className="flex flex-col gap-3 rounded-2xl border border-blue-300/15 bg-[#07111f] p-4 sm:flex-row sm:items-center sm:justify-between"><div className="min-w-0"><p className="font-black text-white">Order #{order.payment_method === "Shopify" && order.xendit_reference_id ? order.xendit_reference_id : order.id}</p><p className="mt-1 truncate text-sm text-slate-300">{orderName(order)}</p><p className="mt-1 text-xs text-slate-400">{new Date(order.created_at).toLocaleDateString()} · {order.status || "Pending"}</p></div><div className="flex items-center justify-between gap-4 sm:justify-end"><span className="font-black text-emerald-300">${Number(order.total_price || 0).toFixed(2)}</span><Link href={`/account/orders/${order.id}`} className="rounded-lg border border-blue-300/25 px-3 py-2 text-sm font-bold text-blue-200 hover:bg-white/5">View Order</Link></div></div>)}</div>;
 }

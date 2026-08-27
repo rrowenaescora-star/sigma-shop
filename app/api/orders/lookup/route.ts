@@ -33,13 +33,25 @@ export async function POST(req: Request) {
       });
     }
 
-    const { data: order, error } = await supabase
+    let { data: order, error } = await supabase
       .from("orders")
       .select(
-  "id, roblox_username, items, total_price, payment_status, payment_method, created_at, paid_at, delivery_status, claimed_by, coupon_code, coupon_discount, original_total"
-)
-      .eq("id", orderId)
+        "id, roblox_username, items, total_price, payment_status, payment_method, xendit_reference_id, created_at, paid_at, delivery_status, claimed_by, coupon_code, coupon_discount, original_total"
+      )
+      .eq("xendit_reference_id", orderId)
       .maybeSingle();
+
+    if (!order && /^\d+$/.test(orderId)) {
+      const internalLookup = await supabase
+        .from("orders")
+        .select(
+          "id, roblox_username, items, total_price, payment_status, payment_method, xendit_reference_id, created_at, paid_at, delivery_status, claimed_by, coupon_code, coupon_discount, original_total"
+        )
+        .eq("id", orderId)
+        .maybeSingle();
+      order = internalLookup.data;
+      error = internalLookup.error;
+    }
 
     if (error) {
       console.error(error);
@@ -60,7 +72,9 @@ export async function POST(req: Request) {
     return NextResponse.json({
       found: true,
       order: {
-        id: order.id,
+        id: order.payment_method === "Shopify" && order.xendit_reference_id
+          ? order.xendit_reference_id
+          : order.id,
         username: order.roblox_username,
         items: order.items,
         totalPrice: order.total_price,

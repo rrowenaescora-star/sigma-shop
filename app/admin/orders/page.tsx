@@ -15,6 +15,8 @@ type Order = {
   delivery_notes: string;
   handled_by: string;
   created_at: string;
+  payment_method?: string;
+  xendit_reference_id?: string | null;
 
   items?: {
     name: string;
@@ -80,6 +82,7 @@ export default function AdminOrdersPage() {
 
       return (
         String(order.id).toLowerCase().includes(query) ||
+        String(order.xendit_reference_id || "").toLowerCase().includes(query) ||
         (order.roblox_username || "").toLowerCase().includes(query) ||
         (order.contact_info || "").toLowerCase().includes(query) ||
         (order.status || "").toLowerCase().includes(query) ||
@@ -240,7 +243,7 @@ export default function AdminOrdersPage() {
         <div className="mb-6">
           <input
             type="text"
-            placeholder="Search Order ID, Username, Email, Status..."
+            placeholder="Search Bloxhop ID, Shopify ID, Username, Email, Status..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full rounded-2xl border border-white/10 bg-[#101729] px-5 py-4 text-white outline-none placeholder:text-gray-500"
@@ -255,7 +258,11 @@ export default function AdminOrdersPage() {
             >
               <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                 <div>
-                  <p className="text-lg font-bold">#{order.id}</p>
+                  <p className="text-lg font-bold">
+                    Order #{order.payment_method === "Shopify" && order.xendit_reference_id
+                      ? order.xendit_reference_id
+                      : order.id}
+                  </p>
                   <p className="mt-1 text-sm text-slate-300">
                     👤 {order.roblox_username}
                   </p>

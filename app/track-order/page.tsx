@@ -13,6 +13,7 @@ type OrderItem = {
 
 type Order = {
   id: number;
+  public_order_id?: string | number;
   roblox_username: string;
   contact_info: string;
   notes: string | null;
@@ -230,7 +231,7 @@ export default function TrackOrderPage() {
                     Order Summary
                   </p>
                   <h2 className="mt-2 text-3xl font-black tracking-tight">
-                    Order #{order.id}
+                    Order #{order.public_order_id || order.id}
                   </h2>
                   <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-400">
                     This page shows the latest information available for your order,

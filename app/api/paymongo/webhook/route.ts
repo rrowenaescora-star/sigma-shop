@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
+import { deductCapitalForPaidOrder } from "@/lib/capital";
 
 export async function POST(req: Request) {
   try {
@@ -40,6 +41,7 @@ export async function POST(req: Request) {
     }
 
     if (existingOrder.payment_status === "Paid") {
+      await deductCapitalForPaidOrder(existingOrder.id);
       return NextResponse.json({
         received: true,
         message: "Already processed.",
@@ -67,6 +69,8 @@ export async function POST(req: Request) {
         { status: 500 }
       );
     }
+
+    await deductCapitalForPaidOrder(existingOrder.id);
 
     return NextResponse.json({
       received: true,

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { createClient } from "@supabase/supabase-js";
+import { deductCapitalForPaidOrder } from "@/lib/capital";
 
 export const runtime = "nodejs";
 
@@ -151,6 +152,8 @@ export async function POST(request: Request) {
         { status: 500 },
       );
     }
+
+    await deductCapitalForPaidOrder(Number(orderId));
 
     console.log("Shopify webhook matched and updated admin order", {
       orderId,

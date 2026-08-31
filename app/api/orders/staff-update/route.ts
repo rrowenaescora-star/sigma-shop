@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { deductCapitalForPaidOrder } from "@/lib/capital";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -111,6 +112,10 @@ export async function POST(req: Request) {
         success: false,
         message: error.message,
       });
+    }
+
+    if (action === "verify_payment") {
+      await deductCapitalForPaidOrder(Number(internalOrderId));
     }
 
     return NextResponse.json({

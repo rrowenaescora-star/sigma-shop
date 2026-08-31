@@ -165,15 +165,15 @@ export default function LandingPage() {
 
         <div className="pointer-events-none absolute right-[-120px] top-1/2 z-0 h-[420px] w-[420px] -translate-y-1/2 opacity-30 sm:right-[-40px] sm:h-[520px] sm:w-[520px] lg:right-[50px] lg:h-[650px] lg:w-[700px] lg:max-w-[58vw] lg:opacity-100">
           <img
-            src="/bloxlogo2.png"
-            alt="Bloxhop Hero"
-            className="absolute inset-0 h-full w-full object-contain opacity-95 drop-shadow-[0_0_80px_rgba(59,130,246,0.35)] transition-all duration-700 group-hover:rotate-6 group-hover:scale-90 group-hover:opacity-0"
+            src="/videos/layer1.png"
+            alt=""
+            aria-hidden="true"
+            className="absolute inset-0 h-full w-full object-contain"
           />
-
           <img
-            src="/bloxlogo.png"
-            alt="Bloxhop Hero Hover"
-            className="absolute inset-0 h-full w-full scale-90 object-contain opacity-0 drop-shadow-[0_0_120px_rgba(59,130,246,0.55)] transition-all duration-700 group-hover:scale-100 group-hover:opacity-100"
+            src="/videos/layer2.png"
+            alt="Bloxhop hero"
+            className="hero-layer2-drift absolute inset-0 h-full w-full object-contain drop-shadow-[0_0_90px_rgba(59,130,246,0.45)]"
           />
         </div>
 

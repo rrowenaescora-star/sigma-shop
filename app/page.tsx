@@ -168,12 +168,23 @@ export default function LandingPage() {
             src="/videos/layer1.png"
             alt=""
             aria-hidden="true"
-            className="absolute inset-0 h-full w-full object-contain"
+            className="hero-layer1-pulse absolute inset-0 h-full w-full object-contain"
           />
           <img
             src="/videos/layer2.png"
             alt="Bloxhop hero"
             className="hero-layer2-drift absolute inset-0 h-full w-full object-contain drop-shadow-[0_0_90px_rgba(59,130,246,0.45)]"
+          />          <img
+            src="/videos/layer3.png"
+            alt=""
+            aria-hidden="true"
+            className="hero-layer3-float absolute inset-0 h-full w-full object-contain opacity-90"
+          />
+          <img
+            src="/videos/layer4.png"
+            alt=""
+            aria-hidden="true"
+            className="hero-layer4-float absolute inset-0 h-full w-full object-contain opacity-90"
           />
         </div>
 
@@ -210,24 +221,26 @@ Request an Item
               </a>
             </div>
 
+            <Link
+              href="/home"
+              className="group/new-fruit relative isolate mt-8 flex max-w-xl items-center justify-between gap-5 overflow-hidden rounded-2xl border border-emerald-300/40 bg-[#ffffff] px-5 py-10 shadow-[0_0_34px_rgba(16,185,129,0.16)] transition hover:-translate-y-0.5 hover:border-emerald-200/70 hover:shadow-[0_0_42px_rgba(16,185,129,0.28)]"
+            >
+              <img src="/magnetfruit.png" alt="" aria-hidden="true" className="absolute inset-0 -z-10 h-full w-full object-cover object-right opacity-75 transition duration-500 group-hover/new-fruit:scale-105" />
+              <span className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(2,24,20,0.96)_0%,rgba(4,37,30,0.78)_48%,rgba(2,24,20,0.3)_100%)]" />
+              <div className="flex items-center gap-3">
+                
+                <span>
+                  <span className="block text-[11px] font-black uppercase tracking-[0.2em] text-red-500">COMMING SOON</span>
+                  <span className="mt-2 block text-lg font-black text-white">New Fruit Are Here!</span>
+                  <span className="block text-sm text-slate-200">See the newest Blox Fruit arrivals.</span>
+                </span>
+              </div>
+              <span className="shrink-0 rounded-lg bg-blue-400/80 px-5 py-5 text-xs font-black text-[#05231d] transition group-hover/new-fruit:bg-white">Shop now →</span>
+            </Link>
             <div className="mt-7 flex items-center gap-4">
-              <div className="flex -space-x-3">
-                {["B", "H", "X", "P", "+"].map((item) => (
-                  <div
-                    key={item}
-                    className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-[#06101d] bg-blue-500 text-xs font-black"
-                  >
-                    {item}
-                  </div>
-                ))}
-              </div>
+              
 
-              <div>
-                <p className="text-xl font-black">Shop More. Play More.</p>
-                <p className="text-sm text-[15px] font-medium leading-9 text-slate-300">
-                  Track your order and get support whenever you need it.
-                </p>
-              </div>
+              
             </div>
           </div>
 
@@ -274,7 +287,7 @@ Request an Item
             </Link>
           </div>
 
-         <div className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-2 xl:grid-cols-4">
+         <div className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-2  xl:grid-cols-4">
             {featuredProducts.map((product) => {
               const displayImage = liveFeaturedImages[product.name.toLowerCase()] || product.image;
               const hoverImage = product.hoverImage || displayImage;
@@ -284,15 +297,20 @@ Request an Item
                   key={product.id}
                   href={product.href}
                   aria-label={`Open ${product.name} in the Blox Fruit shop`}
-                  className="group block overflow-hidden rounded-2xl border border-white/10 bg-[#0a1527] transition hover:-translate-y-1 hover:border-blue-400/30"
+                  className="group block overflow-hidden rounded-2xl border border-emerald-200/45 bg-[radial-gradient(circle_at_82%_30%,rgba(59,130,246,0.34),transparent_34%),linear-gradient(110deg,#071f25_0%,#10343a_55%,#1d2b4d_100%)] shadow-[0_0_26px_rgba(52,211,153,0.1)] transition hover:-translate-y-1 hover:border-emerald-200 hover:shadow-[0_0_36px_rgba(52,211,153,0.22)]"
                 >
-                  <div className="relative flex h-[190px] items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_center,rgba(37,99,235,0.18),transparent_65%)] p-5">
+                  <div className="relative flex h-[190px] items-center overflow-hidden p-5">
+                    <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(3,18,23,0.78)_0%,rgba(3,18,23,0.26)_58%,rgba(3,18,23,0.05)_100%)]" />
+                    <div className="relative z-10 max-w-[56%]">
+                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-rose-400">Featured Drop</p>
+                      <h3 className="mt-2 text-lg font-black leading-tight text-white">{product.name}</h3>
+                    </div>
                     {displayImage ? (
                       <>
                         <img
                           src={displayImage}
                           alt={product.name}
-                          className="absolute h-full w-full object-contain transition duration-700 group-hover:rotate-180 group-hover:scale-75 group-hover:opacity-0"
+                          className="absolute right-0 top-0 h-full w-[68%] object-contain transition duration-700 group-hover:rotate-180 group-hover:scale-75 group-hover:opacity-0"
                         />
                         <img
                           src={hoverImage}
@@ -306,9 +324,8 @@ Request an Item
                   </div>
 
                   <div className="p-4">
-                    <h3 className="font-black text-white">{product.name}</h3>
-                    <div className="mt-4 flex w-full items-center justify-center rounded-xl bg-blue-500 py-3 text-sm font-black text-white transition group-hover:scale-[1.02] group-hover:bg-blue-400">
-                      Shop Now
+                    <div className="flex w-full items-center justify-center rounded-xl bg-white py-3 text-sm font-black text-[#10212b] transition group-hover:scale-[1.02] group-hover:bg-emerald-100">
+                      Shop now →
                     </div>
                   </div>
                 </Link>

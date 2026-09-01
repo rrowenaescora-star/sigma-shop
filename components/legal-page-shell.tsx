@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ReactNode } from "react";
+import CustomerAvatarMenu from "@/components/customer-avatar-menu";
 
 type LegalPageShellProps = {
   title: string;
@@ -24,7 +25,7 @@ export default function LegalPageShell({
   }
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#07111f] text-white">
+    <main className="relative min-h-screen overflow-hidden bg-[#07111f] pt-24 text-white md:pt-28">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_18%_12%,rgba(59,130,246,0.18),transparent_30%),radial-gradient(circle_at_85%_30%,rgba(14,165,233,0.10),transparent_28%),radial-gradient(circle_at_35%_90%,rgba(168,85,247,0.10),transparent_30%)]" />
 
       <div className="relative mx-auto max-w-[1500px] px-5 py-6 md:px-8">
@@ -50,21 +51,9 @@ export default function LegalPageShell({
               </div>
             </Link>
 
-            <div className="relative flex flex-wrap gap-3">
-              <Link
-                href="/home"
-                className="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-black text-white transition hover:bg-white/10"
-              >
-                Back to Store
-              </Link>
+            <div className="relative flex items-center gap-3">
 
-              <Link
-                href="/track-order"
-                className="rounded-2xl bg-blue-500 px-5 py-3 text-sm font-black text-white shadow-[0_0_35px_rgba(59,130,246,0.35)] transition hover:bg-blue-400"
-              >
-                Track Order
-              </Link>
-
+              <CustomerAvatarMenu />
               <button
                 onClick={handleClose}
                 className="flex h-[50px] w-[50px] items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-lg font-black text-white transition hover:bg-red-500"

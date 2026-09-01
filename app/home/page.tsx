@@ -37,14 +37,14 @@ type CartItem = Product & {
 function ProductSkeletonCard() {
   return (
     <div className="relative flex aspect-[3/4] w-full min-w-0 flex-col overflow-hidden rounded-2xl border border-slate-600/60 bg-[#07111f] shadow-[0_18px_50px_rgba(0,0,0,0.45)]">
-      <div className="relative h-[42%] min-h-[125px] shrink-0 overflow-hidden border-b border-slate-700/70 bg-gradient-to-br from-emerald-500/20 via-[#07111f] to-blue-700/20">
+      <div className="relative h-[42%] min-h-[125px] shrink-0 overflow-hidden">
         <div className="skeleton absolute right-4 top-4 h-6 w-16 rounded-full" />
         <div className="flex h-full items-center justify-center p-5">
           <div className="skeleton h-[68%] w-[68%] max-h-[150px] max-w-[150px] rounded-2xl" />
         </div>
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col bg-[#07111f] p-3">
+      <div className="flex min-h-0 flex-1 flex-col bg-transparent p-3">
         <div className="skeleton h-5 w-3/4 rounded-md" />
         <div className="mt-2 skeleton h-3 w-1/2 rounded-md" />
         <div className="mt-4 flex items-center gap-2">
@@ -927,7 +927,7 @@ if (foundProduct) {
   style={{
     animationDelay: `${(product.id % 15) * 30}ms`,
   }}
-                         className={`scroll-mt-40 group relative flex w-full min-w-0 aspect-[3/4] animate-[productAppear_.45s_ease-out] flex-col overflow-hidden rounded-2xl border bg-[#07111f] shadow-[0_18px_50px_rgba(0,0,0,0.45)] transition-all duration-500 ease-out hover:-translate-y-2 hover:border-slate-500/80 border-slate-600/60`}
+                         className={`scroll-mt-40 group relative flex w-full min-w-0 aspect-[3/4] animate-[productAppear_.45s_ease-out] flex-col overflow-hidden rounded-2xl border border-emerald-200/40 bg-[radial-gradient(circle_at_82%_22%,rgba(59,130,246,0.30),transparent_33%),linear-gradient(140deg,#071f25_0%,#10343a_55%,#1d2b4d_100%)] shadow-[0_18px_50px_rgba(0,0,0,0.45)] transition-all duration-500 ease-out hover:-translate-y-2 hover:border-emerald-200 hover:shadow-[0_0_36px_rgba(52,211,153,0.20)]`}
                         >
                           <PageTransitionLink
                             href={`/products/${encodeURIComponent(product.slug || String(product.id))}`}
@@ -940,7 +940,7 @@ if (foundProduct) {
                             <div className="absolute inset-0 bg-[linear-gradient(115deg,transparent_25%,rgba(255,255,255,0.07)_45%,transparent_65%)] translate-x-[-120%] group-hover:translate-x-[120%] transition-transform duration-1000" />
                           </div>
 
-                          <div className="relative h-[42%] min-h-[125px] shrink-0 overflow-hidden border-b border-slate-700/70 bg-gradient-to-br from-emerald-500/20 via-[#07111f] to-blue-700/20">
+                          <div className="relative h-[42%] min-h-[125px] shrink-0 overflow-hidden">
                             <div className="absolute inset-0 bg-[radial-gradient(circle_at_left,rgba(16,185,129,0.18),transparent_40%),radial-gradient(circle_at_right,rgba(37,99,235,0.20),transparent_40%)]" />
 
                             {discountPercent ? (
@@ -974,7 +974,7 @@ if (foundProduct) {
                             </div>
                           </div>
 
-                          <div className="flex min-h-0 flex-1 flex-col bg-[#07111f] p-3">
+                          <div className="flex min-h-0 flex-1 flex-col bg-transparent p-3">
                             <h3 className="shrink-0 truncate text-base font-black text-white">
                               {product.name}
                             </h3>
@@ -1026,7 +1026,7 @@ if (foundProduct) {
       ? "cursor-not-allowed bg-slate-700 text-slate-300"
       : addingProductId === product.id
 	? "cursor-wait bg-blue-400 text-white"
-	: "cursor-pointer bg-blue-500 text-white hover:bg-blue-400"
+	: "cursor-pointer bg-white text-[#10212b] hover:bg-emerald-100"
   }`}
   disabled={outOfStock}
 >

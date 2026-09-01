@@ -153,12 +153,7 @@ export default function SiteFooter() {
 
               <ul className="mt-5 space-y-4 text-sm">
                 <li>
-                  <button
-                    onClick={() => setOpenPolicy("contact")}
-                    className="transition hover:text-white"
-                  >
-                    Contact Us
-                  </button>
+                  <a href="/contact" className="transition hover:text-white">Contact Us</a>
                 </li>
                 <li>
                   <button
@@ -189,36 +184,16 @@ export default function SiteFooter() {
 
               <ul className="mt-5 space-y-4 text-sm">
                 <li>
-                  <button
-                    onClick={() => setOpenPolicy("terms")}
-                    className="transition hover:text-white"
-                  >
-                    Terms Of Service
-                  </button>
+                  <a href="/terms" className="transition hover:text-white">Terms Of Service</a>
                 </li>
                 <li>
-                  <button
-                    onClick={() => setOpenPolicy("privacy")}
-                    className="transition hover:text-white"
-                  >
-                    Privacy Policy
-                  </button>
+                  <a href="/privacy-policy" className="transition hover:text-white">Privacy Policy</a>
                 </li>
                 <li>
-                  <button
-                    onClick={() => setOpenPolicy("refund")}
-                    className="transition hover:text-white"
-                  >
-                    Refund Policy
-                  </button>
+                  <a href="/refund-policy" className="transition hover:text-white">Refund Policy</a>
                 </li>
                 <li>
-                  <button
-                    onClick={() => setOpenPolicy("delivery")}
-                    className="transition hover:text-white"
-                  >
-                    Delivery Policy
-                  </button>
+                  <a href="/delivery" className="transition hover:text-white">Delivery Policy</a>
                 </li>
               </ul>
             </div>

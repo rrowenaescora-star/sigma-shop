@@ -613,9 +613,9 @@ if (foundProduct) {
         <div className="absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_12%_22%,rgba(255,255,255,0.24)_0_1px,transparent_2px),radial-gradient(circle_at_32%_70%,rgba(255,255,255,0.16)_0_1px,transparent_2px),radial-gradient(circle_at_74%_35%,rgba(255,255,255,0.20)_0_1px,transparent_2px),radial-gradient(circle_at_88%_78%,rgba(255,255,255,0.14)_0_1px,transparent_2px)] animate-[starDrift_18s_linear_infinite]" />
       </div>
 
-     <div className="relative w-full px-0 pt-[140px]">
+     <div className="relative w-full px-0">
     
-<div className="fixed inset-x-0 top-0 z-50">
+<div className="sticky inset-x-0 top-0 z-50">
   <div className="overflow-visible border-b border-blue-500/10 bg-[#07111f]/95 shadow-[0_15px_50px_rgba(0,0,0,0.45)] backdrop-blur-xl">
     <div className="absolute inset-0 hidden md:block">
       <img
@@ -899,7 +899,7 @@ if (foundProduct) {
           <main className="min-w-0 px-4 md:px-6 lg:px-8">
           <section className="p-2 md:p-4">
               {loadingProducts ? (
-               <div className="grid auto-rows-fr grid-cols-2 gap-8 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6">
+               <div className="grid auto-rows-fr grid-cols-1 gap-5 min-[480px]:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6">
                   {Array.from({ length: PRODUCTS_PER_PAGE }).map((_, index) => (
                     <ProductSkeletonCard key={index} />
                   ))}
@@ -910,7 +910,7 @@ if (foundProduct) {
                 </div>
               ) : (
                 <>
-                  <div className="grid auto-rows-fr grid-cols-2 gap-8 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6">
+                  <div className="grid auto-rows-fr grid-cols-1 gap-5 min-[480px]:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6">
                     {paginatedProducts.map((product) => {
                       const stockLabel = getStockLabel(product);
                       const outOfStock = isUnavailable(product);

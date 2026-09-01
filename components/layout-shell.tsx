@@ -97,8 +97,7 @@ export default function LayoutShell({
                 </a>
               </div>
 
-              <CustomerAvatarMenu className="ml-5 hidden xl:inline-flex" />
-              <CustomerAvatarMenu className="xl:hidden" />
+              <CustomerAvatarMenu className="ml-3 xl:ml-5" />
 
               <button
                 type="button"

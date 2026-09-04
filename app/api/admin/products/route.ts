@@ -47,16 +47,21 @@ export async function GET() {
   }
 
   try {
-    const { data, error } = await supabase
+    let result = await supabase
       .from("products")
       .select("*")
-      .order("created_at", { ascending: false });
+      .order("display_order", { ascending: true, nullsFirst: false })
+      .order("id", { ascending: true });
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    if (result.error && /display_order/i.test(result.error.message || "")) {
+      result = await supabase.from("products").select("*").order("created_at", { ascending: false });
     }
 
-    return NextResponse.json({ products: data || [] });
+    if (result.error) {
+      return NextResponse.json({ error: result.error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ products: result.data || [] });
   } catch (error) {
     console.error("Admin products GET error:", error);
     return NextResponse.json(

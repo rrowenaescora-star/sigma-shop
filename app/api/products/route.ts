@@ -3,55 +3,32 @@ import { supabase } from "@/lib/supabase";
 
 export async function GET() {
   try {
-    const { data, error, count } = await supabase
+    const fields = "id,name,slug,price,compare_at_price,cost_value,tag,stock,stock_quantity,category,description,image_url,is_active,game,display_order,mobile_display_order,grid_span";
+
+    let result: any = await supabase
       .from("products")
-      .select(
-        `
-          id,
-          name,
-          slug,
-          price,
-          compare_at_price,
-          cost_value,
-          tag,
-          stock,
-          stock_quantity,
-          category,
-          description,
-          image_url,
-          is_active,
-          game
-        `,
-        { count: "exact" }
-      )
+      .select(fields, { count: "exact" })
       .eq("is_active", true)
+      .order("display_order", { ascending: true, nullsFirst: false })
       .order("id", { ascending: true });
 
-    if (error) {
-      console.error("GET /api/products supabase error:", error);
-
-      return NextResponse.json(
-        {
-          error: error.message || "Failed to load products.",
-          details: error,
-        },
-        { status: 500 }
-      );
+    // The shop remains usable while the new layout migration is waiting to be run.
+    if (result.error && /display_order|grid_span|mobile_display_order/i.test(result.error.message || "")) {
+      result = await supabase
+        .from("products")
+        .select("id,name,slug,price,compare_at_price,cost_value,tag,stock,stock_quantity,category,description,image_url,is_active,game", { count: "exact" })
+        .eq("is_active", true)
+        .order("id", { ascending: true });
     }
 
-    return NextResponse.json({
-      products: data || [],
-      count: count ?? 0,
-    });
+    if (result.error) {
+      console.error("GET /api/products supabase error:", result.error);
+      return NextResponse.json({ error: result.error.message || "Failed to load products." }, { status: 500 });
+    }
+
+    return NextResponse.json({ products: result.data || [], count: result.count ?? 0 });
   } catch (error) {
     console.error("GET /api/products server error:", error);
-
-    return NextResponse.json(
-      {
-        error: "Failed to load products.",
-        details: error instanceof Error ? error.message : String(error),
-      },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to load products." }, { status: 500 });
   }
 }

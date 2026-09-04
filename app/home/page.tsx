@@ -28,6 +28,7 @@ type Product = {
   image_url: string | null;
   is_active: boolean;
   game?: string | null;
+  grid_span?: "normal" | "wide" | "large" | null;
 };
 
 type CartItem = Product & {
@@ -114,6 +115,7 @@ function ProductSkeletonCard() {
 
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [storeSections, setStoreSections] = useState<Record<string, boolean>>({});
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [cartReady, setCartReady] = useState(false);
 const [isCartOpen, setIsCartOpen] = useState(false);
@@ -158,6 +160,15 @@ useEffect(() => {
 
     loadProducts();
   }, []);
+
+  useEffect(() => {
+    fetch("/api/store-layout", { cache: "no-store" })
+      .then((response) => response.json())
+      .then((data) => setStoreSections(Object.fromEntries((data.sections || []).map((section: { section_key: string; enabled: boolean }) => [section.section_key, section.enabled]))))
+      .catch(() => setStoreSections({}));
+  }, []);
+
+  const sectionVisible = (sectionKey: string) => storeSections[sectionKey] !== false;
 
   useEffect(() => {
     const supabase = createClient();
@@ -308,8 +319,8 @@ useEffect(() => {
   function getStockLabel(product: Product) {
     const quantity = Number(product.stock_quantity ?? 0);
 
-    if (quantity <= 0) return "Out of Stock";
-    if (quantity <= 3) return "Limited";
+    if (quantity <= 0) return "Sold";
+    if (quantity <= 10) return "Limited";
     return product.stock || "In Stock";
   }
 
@@ -333,11 +344,11 @@ useEffect(() => {
   function getUnavailableReason(product: Product) {
     const quantity = Number(product.stock_quantity ?? 0);
 
-    if (product.is_active === false) return "Out of Stock";
-    if (quantity <= 0 || product.stock === "Out of Stock") return "Out of stock";
-    if (isCapitalUnavailable(product)) return "Out of Stock";
+    if (product.is_active === false) return "Sold";
+    if (quantity <= 0 || product.stock === "Out of Stock") return "Sold";
+    if (isCapitalUnavailable(product)) return "Sold";
 
-    return "Unavailable";
+    return "Sold";
   }
 
   function getDiscountPercent(product: Product) {
@@ -917,6 +928,23 @@ if (foundProduct) {
                       const quantity = Number(product.stock_quantity ?? 0);
                       const discountPercent = getDiscountPercent(product);
                       const unavailableReason = getUnavailableReason(product);
+                      const normalizedTag = (product.tag || "").trim().toLowerCase();
+                      const isRare = normalizedTag === "rare";
+                      const isNew = normalizedTag === "new";
+                      const isNewArrival = normalizedTag === "new arrival";
+                      const specialCardStyle = isRare
+                        ? "border-pink-300/80 bg-[radial-gradient(circle_at_82%_18%,rgba(236,72,153,0.38),transparent_32%),linear-gradient(145deg,#24103a,#57155f_55%,#f472b6_140%)] shadow-[0_0_34px_rgba(236,72,153,0.40)] hover:border-pink-100 hover:shadow-[0_0_52px_rgba(236,72,153,0.56)]"
+                        : isNewArrival
+                        ? "border-orange-300/80 bg-[radial-gradient(circle_at_82%_18%,rgba(249,115,22,0.42),transparent_32%),linear-gradient(145deg,#4a1111,#9a3412_55%,#f97316_140%)] shadow-[0_0_34px_rgba(249,115,22,0.40)] hover:border-orange-100 hover:shadow-[0_0_52px_rgba(249,115,22,0.56)]"
+                        : isNew
+                        ? "border-red-500/85 bg-red-600 shadow-[0_0_28px_rgba(255,0,0,0.38)] hover:bg-red-600 hover:border-red-400 hover:shadow-[0_0_42px_rgba(255,0,0,0.55)]"
+                        : "border-emerald-200/40 hover:border-emerald-200 hover:shadow-[0_0_36px_rgba(52,211,153,0.20)]";
+                      const productNameStyle = isRare ? "text-pink-200" : isNewArrival ? "text-orange-200" : isNew ? "text-red-400" : "text-white";
+                      const layoutSpan = product.grid_span === "large"
+                        ? "min-[480px]:col-span-2 min-[480px]:row-span-2"
+                        : product.grid_span === "wide"
+                        ? "min-[480px]:col-span-2"
+                        : "";
 
                       return (
                         <div
@@ -927,7 +955,7 @@ if (foundProduct) {
   style={{
     animationDelay: `${(product.id % 15) * 30}ms`,
   }}
-                         className={`scroll-mt-40 group relative flex w-full min-w-0 aspect-[3/4] animate-[productAppear_.45s_ease-out] flex-col overflow-hidden rounded-2xl border border-emerald-200/40 bg-[radial-gradient(circle_at_82%_22%,rgba(59,130,246,0.30),transparent_33%),linear-gradient(140deg,#071f25_0%,#10343a_55%,#1d2b4d_100%)] shadow-[0_18px_50px_rgba(0,0,0,0.45)] transition-all duration-500 ease-out hover:-translate-y-2 hover:border-emerald-200 hover:shadow-[0_0_36px_rgba(52,211,153,0.20)]`}
+                         className={`scroll-mt-40 group relative flex w-full min-w-0 aspect-[3/4] animate-[productAppear_.45s_ease-out] flex-col overflow-hidden rounded-2xl border bg-[radial-gradient(circle_at_82%_22%,rgba(59,130,246,0.30),transparent_33%),linear-gradient(140deg,#071f25_0%,#10343a_55%,#1d2b4d_100%)] shadow-[0_18px_50px_rgba(0,0,0,0.45)] transition-all duration-500 ease-out hover:-translate-y-2 ${specialCardStyle} ${layoutSpan}`}
                         >
                           <PageTransitionLink
                             href={`/products/${encodeURIComponent(product.slug || String(product.id))}`}
@@ -942,26 +970,18 @@ if (foundProduct) {
 
                           <div className="relative h-[42%] min-h-[125px] shrink-0 overflow-hidden">
                             <div className="absolute inset-0 bg-[radial-gradient(circle_at_left,rgba(16,185,129,0.18),transparent_40%),radial-gradient(circle_at_right,rgba(37,99,235,0.20),transparent_40%)]" />
+                            {(isRare || isNew || isNewArrival) && (
+                              <span className={isRare ? "absolute left-3 top-3 z-20 rounded-full border border-pink-100/80 bg-fuchsia-500/35 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-pink-50 shadow-[0_0_18px_rgba(236,72,153,0.70)]" : isNewArrival ? "absolute left-3 top-3 z-20 rounded-full border border-orange-100/80 bg-orange-500/35 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-orange-50 shadow-[0_0_18px_rgba(249,115,22,0.70)]" : "absolute left-3 top-3 z-20 rounded-full border border-red-400/80 bg-red-600/35 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-red-50 shadow-[0_0_18px_rgba(239,68,68,0.70)]"}>
+                                {isRare ? "Rare" : isNewArrival ? "New Arrival" : "New"}
+                              </span>
+                            )}
 
                             {discountPercent ? (
                               <div className="absolute left-0 top-0 z-20 h-32 w-32 overflow-hidden">
                               
                               </div>
                             ) : null}
-
-                            <span
-                              className={`absolute right-4 top-4 z-20 rounded-full px-3 py-1 text-xs font-bold ${
-                                outOfStock
-                                  ? "bg-red-500/15 text-red-300"
-                                  : stockLabel === "Limited"
-                                  ? "bg-yellow-500/15 text-yellow-300"
-                                  : "bg-emerald-500/15 text-emerald-300"
-                              }`}
-                            >
-                              {outOfStock ? unavailableReason : stockLabel === "Limited" && quantity > 0 ? `Low Stock · ${quantity} left` : stockLabel}
-                            </span>
-
-                            <div className="relative z-10 flex h-full items-center justify-center p-5">
+<div className="relative z-10 flex h-full items-center justify-center p-5">
                               {product.image_url ? (
                                 <img
                                   src={product.image_url}
@@ -975,25 +995,14 @@ if (foundProduct) {
                           </div>
 
                           <div className="flex min-h-0 flex-1 flex-col bg-transparent p-3">
-                            <h3 className="shrink-0 truncate text-base font-black text-white">
+                            <h3 className={"shrink-0 truncate text-base font-black " + productNameStyle}>
                               {product.name}
                             </h3>
 
                             <p className="mt-0.5 shrink-0 text-xs font-semibold text-blue-400">
                               {product.category || "General"}
                             </p>
-                            {!outOfStock && quantity > 0 && quantity <= 3 ? (
-                              <p className="mt-2 shrink-0 text-xs font-bold text-yellow-300">
-                                Only {quantity} left - running low
-                              </p>
-                            ) : outOfStock ? (
-                              <p className="mt-2 shrink-0 text-xs font-semibold text-red-300">
-                                {unavailableReason}
-                              </p>
-                            ) : null}
-
-                          
-  <div className="mt-2 flex shrink-0 items-baseline gap-2">
+<div className="mt-2 flex shrink-0 items-baseline gap-2">
     {renderPrice(product)}
 
     {product.compare_at_price &&
@@ -1048,7 +1057,7 @@ if (foundProduct) {
   )}
 
   {outOfStock ? (
-  "Unavailable"
+  "Sold"
 ) : addingProductId === product.id ? (
   <div className="flex items-center gap-2">
     <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
@@ -1113,7 +1122,7 @@ if (foundProduct) {
                       Next
                     </button>
                   </div>
-          <section className="mx-auto mt-20 max-w-5xl px-4 pb-24 text-center">
+          <section data-store-section="store_info" style={{ display: sectionVisible("store_info") ? undefined : "none" }} className="mx-auto mt-20 max-w-5xl px-4 pb-24 text-center">
             <p className="text-xs font-black uppercase tracking-[0.3em] text-blue-400">
               Bloxhop Online Store
             </p>
@@ -1152,7 +1161,7 @@ if (foundProduct) {
               </div>
             </div>
           </section>
-<section className="mx-auto mt-24 max-w-7xl px-4 pb-28">
+<section data-store-section="faq" style={{ display: sectionVisible("faq") ? undefined : "none" }} className="mx-auto mt-24 max-w-7xl px-4 pb-28">
   <div className="mb-10 text-center">
     <p className="text-sm font-black uppercase tracking-[0.3em] text-blue-400">
       Help Center

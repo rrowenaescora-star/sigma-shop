@@ -4,7 +4,7 @@ import Link from "next/link";
 import LogoutButton from "./logout-button";
 import AdminSessionGuard from "./admin-session-guard";
 
-type AdminPage = "dashboard" | "orders" | "history" | "products" | "announcements" | "support" | "layout";
+type AdminPage = "dashboard" | "orders" | "history" | "products" | "announcements" | "support" | "layout" | "analytics";
 
 export default function AdminHeader({
   title,
@@ -52,6 +52,9 @@ return (
         </Link>
         <Link href="/admin/store-layout" className={navClass("layout")}>
           Store Layout
+        </Link>
+        <Link href="/admin/visitor-analytics" className={navClass("analytics")}>
+          Visitor Analytics
         </Link>
         <Link href="/admin/announcements" className={navClass("announcements")}>
           Send Announcement

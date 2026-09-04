@@ -289,6 +289,7 @@ export default function AnnouncementPage() {
                 <Field label="CTA destination URL" type="url" value={announcement.ctaUrl} onChange={(value) => update("ctaUrl", value)} />
               </div>
             </div>
+            <AnnouncementScheduler announcement={announcement} />
           </section>
 
           <section>
@@ -331,7 +332,7 @@ export default function AnnouncementPage() {
         </section>
       </div>
 
-      <AnnouncementScheduler announcement={announcement} />
+
 
 
       

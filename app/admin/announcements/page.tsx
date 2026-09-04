@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminHeader from "../admin-header";
+import AnnouncementScheduler from "@/components/announcement-scheduler";
 
 type Announcement = {
   subject: string;
@@ -111,6 +112,13 @@ export default function AnnouncementPage() {
   const [currentCampaign, setCurrentCampaign] = useState<Campaign | null>(null);
   const [activity, setActivity] = useState<Activity[]>([]);
   const processingRef = useRef(false);
+
+  useEffect(() => {
+    const savedDraft = localStorage.getItem("bloxhop-announcement-draft");
+    if (savedDraft) { try { setAnnouncement(JSON.parse(savedDraft)); } catch {} }
+  }, []);
+
+  useEffect(() => { localStorage.setItem("bloxhop-announcement-draft", JSON.stringify(announcement)); }, [announcement]);
 
   const preview = useMemo(
     () => ({
@@ -242,7 +250,7 @@ export default function AnnouncementPage() {
       <div className="mx-auto max-w-[1500px]">
         <AdminHeader
           title="Send Announcement"
-          subtitle="Create a branded promotional email, test it, and send it safely to unique customers."
+          subtitle="Create, preview, test, and send your announcement."
           active="announcements"
           onRefresh={loadData}
         />
@@ -250,7 +258,7 @@ export default function AnnouncementPage() {
         {error && <div className="mb-5 rounded-2xl border border-red-400/25 bg-red-500/10 px-5 py-4 text-sm text-red-200">{error}</div>}
         {notice && <div className="mb-5 rounded-2xl border border-emerald-400/25 bg-emerald-500/10 px-5 py-4 text-sm text-emerald-200">{notice}</div>}
 
-        <section className="mb-7 rounded-[2rem] border border-cyan-300/20 bg-[#0b1728] p-6 sm:p-7">
+        <section className="hidden" aria-hidden="true">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"><div><p className="text-xs font-black uppercase tracking-[0.22em] text-cyan-300">Live campaign monitor</p><h2 className="mt-2 text-2xl font-black">{currentCampaign ? withProduct(currentCampaign.title, currentCampaign.product_name) : "Ready for your next announcement"}</h2><p className="mt-2 text-sm capitalize text-slate-400">Status: {currentCampaign?.status.replaceAll("_", " ") || "No campaign yet"}</p></div>{currentCampaign?.status === "completed_with_errors" && currentCampaign.failed_count > 0 && <button type="button" onClick={retryFailed} className="rounded-xl bg-amber-500 px-5 py-3 font-black text-slate-950">Retry failed only</button>}</div>
           <div className="mt-6 h-2 overflow-hidden rounded-full bg-slate-800"><div className="h-full rounded-full bg-gradient-to-r from-blue-500 via-cyan-300 to-emerald-400 transition-all" style={{ width: `${currentCampaign?.recipient_count ? Math.min(100, Math.round(currentCampaign.processed_count / currentCampaign.recipient_count * 100)) : 0}%` }} /></div>
           <div className="mt-3 flex justify-between text-xs font-bold text-slate-400"><span>{currentCampaign?.processed_count || 0} processed</span><span>Batch {currentCampaign?.current_batch || 0} / {currentCampaign?.total_batches || 0}</span></div>
@@ -305,15 +313,15 @@ export default function AnnouncementPage() {
 
             <div className="mt-6 rounded-[2rem] border border-blue-300/15 bg-[#0b1728] p-6">
               <h3 className="text-xl font-black">Test and send</h3>
-              <p className="mt-2 text-sm leading-6 text-slate-400">Send yourself a test first. Test messages never count as a campaign.</p>
+              <p className="mt-2 text-sm leading-6 text-slate-400">Preview your message, send yourself a test, then send it to your customer list.</p>
               <div className="mt-5 flex flex-col gap-3 sm:flex-row"><input type="email" value={testEmail} onChange={(event) => setTestEmail(event.target.value)} placeholder="Your test email" className="min-w-0 flex-1 rounded-xl border border-blue-300/20 bg-[#07111f] px-4 py-3 outline-none focus:border-cyan-300" /><button type="button" onClick={sendTest} disabled={sendingTest || !testEmail.trim()} className="rounded-xl border border-cyan-300/30 bg-cyan-500/10 px-5 py-3 font-black text-cyan-100 disabled:opacity-40">{sendingTest ? "Sending test…" : "Send Test Email"}</button></div>
-              <button type="button" onClick={() => setConfirmOpen(true)} disabled={sendingAll || ["preparing", "queued", "sending"].includes(currentCampaign?.status || "") || !stats?.uniqueValidEmails || !historyAvailable} className="mt-4 w-full rounded-xl bg-blue-500 px-5 py-4 text-base font-black shadow-[0_5px_0_#1d4ed8] transition hover:bg-blue-400 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:shadow-none">{sendingAll ? "Sending announcement in safe batches…" : "Send Announcement to All Customers"}</button>
+              <button type="button" onClick={() => setConfirmOpen(true)} disabled={sendingAll || ["preparing", "queued", "sending"].includes(currentCampaign?.status || "") || !stats?.uniqueValidEmails || !historyAvailable} className="mt-4 w-full rounded-xl bg-blue-500 px-5 py-4 text-base font-black shadow-[0_5px_0_#1d4ed8] transition hover:bg-blue-400 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:shadow-none">{sendingAll ? "Sending announcement…" : "Send Announcement to All Customers"}</button>
               {sendingAll && <p className="mt-3 text-center text-xs text-amber-200">Keep this page open while the SMTP campaign is processing.</p>}
                           </div>
           </section>
         </div>
 
-        <section className="mt-8 rounded-[2rem] border border-blue-300/15 bg-[#0b1728] p-6 sm:p-7">
+        <section className="hidden" aria-hidden="true">
           <h2 className="text-2xl font-black">Recent Announcements</h2>
           <p className="mt-2 text-sm text-slate-400">Load a previous campaign back into the reusable editor.</p>
           <div className="mt-5 space-y-3">
@@ -322,6 +330,11 @@ export default function AnnouncementPage() {
           </div>
         </section>
       </div>
+
+      <AnnouncementScheduler announcement={announcement} />
+
+
+      
 
       {confirmOpen && <div className="fixed inset-0 z-[210000] flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm"><div className="w-full max-w-lg rounded-[2rem] border border-blue-300/20 bg-[#0b1728] p-7 shadow-2xl"><p className="text-xs font-black uppercase tracking-[0.22em] text-amber-300">Final confirmation</p><h2 className="mt-3 text-2xl font-black">{preview.title}</h2><p className="mt-4 leading-7 text-slate-300">You are about to send this announcement to <b className="text-white">{Number(stats?.uniqueValidEmails || 0).toLocaleString()} unique customers</b>.</p><p className="mt-3 text-sm text-amber-200">This action sends real email and cannot be undone.</p><div className="mt-7 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end"><button type="button" onClick={() => setConfirmOpen(false)} className="rounded-xl border border-white/10 px-5 py-3 font-bold">Cancel</button><button type="button" onClick={sendAll} className="rounded-xl bg-orange-500 px-5 py-3 font-black text-white hover:bg-orange-400">Confirm &amp; Send</button></div></div></div>}
     </main>

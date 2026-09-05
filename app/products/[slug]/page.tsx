@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import PageTransitionLink from "@/components/page-transition-link";
 import BackTransitionButton from "@/components/back-transition-button";
+import CustomerAvatarMenu from "@/components/customer-avatar-menu";
 
 type Product = {
   id: number;
@@ -104,7 +105,7 @@ export default function ProductDetailsPage() {
               <img src="/logo.png" alt="Bloxhop" className="h-11 w-11 object-contain" />
               <div><p className="text-base font-black leading-none tracking-tight text-white sm:text-xl">BLOXHOP ONLINE STORE</p></div>
             </Link>
-            <BackTransitionButton fallbackHref={shopPath} className="rounded-lg border border-white/10 bg-[#0b1628]/80 px-3 py-2 text-xs font-bold text-white transition hover:bg-white/10">Back to shop</BackTransitionButton>
+            <div className="flex items-center gap-3"><BackTransitionButton fallbackHref={shopPath} className="rounded-lg border border-white/10 bg-[#0b1628]/80 px-3 py-2 text-xs font-bold text-white transition hover:bg-white/10">Back to shop</BackTransitionButton><CustomerAvatarMenu /></div>
           </div>
         </div>
         <div className="border-t border-white/5 bg-[#081220]/80"><div className="mx-auto flex max-w-[1850px] items-center gap-3 px-5 py-2 md:px-8"><img src={shopPath === "/grow-a-garden-2" ? "/games/grow-a-garden-2.png" : "/games/bloxfruits.png"} alt="" className="h-8 w-8 rounded-lg object-cover" /><span className="text-base font-black text-white">{product.game || "Blox Fruit"}</span><span className="text-xs text-slate-400">/ Product details</span></div></div>

@@ -145,7 +145,7 @@ export default function LayoutShell({
         </>
       )}
 
-      {hideGlobalLayout && !pathname.startsWith("/home") && !pathname.startsWith("/grow-a-garden-2") && !pathname.startsWith("/checkout") && !pathname.startsWith("/admin") && !pathname.startsWith("/terms") && !pathname.startsWith("/refund-policy") && !pathname.startsWith("/privacy-policy") && !pathname.startsWith("/delivery") && !pathname.startsWith("/contact") && <CustomerAvatarMenu className="fixed right-4 top-4" />}
+      {hideGlobalLayout && !pathname.startsWith("/home") && !pathname.startsWith("/grow-a-garden-2") && !pathname.startsWith("/products") && !pathname.startsWith("/checkout") && !pathname.startsWith("/admin") && !pathname.startsWith("/terms") && !pathname.startsWith("/refund-policy") && !pathname.startsWith("/privacy-policy") && !pathname.startsWith("/delivery") && !pathname.startsWith("/contact") && <CustomerAvatarMenu className="fixed right-4 top-4" />}
 
       <main className="flex-1">{children}</main>
 

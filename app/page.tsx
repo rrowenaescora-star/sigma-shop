@@ -222,7 +222,7 @@ Request an Item
             </div>
 
             <Link
-              href="/home"
+              href="/home#permanent-magnet"
               className="group/new-fruit relative isolate mt-8 flex max-w-xl items-center justify-between gap-5 overflow-hidden rounded-2xl border border-emerald-300/40 bg-[#ffffff] px-5 py-10 shadow-[0_0_34px_rgba(16,185,129,0.16)] transition hover:-translate-y-0.5 hover:border-emerald-200/70 hover:shadow-[0_0_42px_rgba(16,185,129,0.28)]"
             >
               <img src="/magnetfruit.png" alt="" aria-hidden="true" className="absolute inset-0 -z-10 h-full w-full object-cover object-right opacity-75 transition duration-500 group-hover/new-fruit:scale-105" />
@@ -230,12 +230,12 @@ Request an Item
               <div className="flex items-center gap-3">
                 
                 <span>
-                  <span className="block text-[11px] font-black uppercase tracking-[0.2em] text-red-500">COMMING SOON</span>
-                  <span className="mt-2 block text-lg font-black text-white">New Fruit Are Here!</span>
-                  <span className="block text-sm text-slate-200">See the newest Blox Fruit arrivals.</span>
+                  <span className="block text-[11px] font-black uppercase tracking-[0.2em] text-red-500">HAS ARRIVED</span>
+                  <span className="mt-2 block text-lg font-black text-white">Permanent Magnet Has Arrived!</span>
+                  <span className="block text-sm text-slate-200">View the newest Blox Fruit and add it to your cart.</span>
                 </span>
               </div>
-              <span className="shrink-0 rounded-lg bg-blue-400/80 px-5 py-5 text-xs font-black text-[#05231d] transition group-hover/new-fruit:bg-white">Shop now →</span>
+              <span className="shrink-0 rounded-lg bg-blue-400/80 px-5 py-5 text-xs font-black text-[#05231d] transition group-hover/new-fruit:bg-white">View Magnet →</span>
             </Link>
             <div className="mt-7 flex items-center gap-4">
               
@@ -280,7 +280,7 @@ Request an Item
             <h2 className="text-2xl font-black">Featured Products</h2>
 
             <Link
-              href="/home"
+              href="/home#permanent-magnet"
               className="text-sm font-bold text-blue-400 transition hover:text-blue-300"
             >
               View All Products →

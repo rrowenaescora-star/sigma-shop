@@ -594,7 +594,7 @@ useEffect(() => {
 
  const foundProduct = products.find(
   (product) =>
-    (product.slug || product.name).toLowerCase().replace(/\s+/g, "-") === id
+    (product.slug || product.name).trim().toLowerCase().replace(/\s+/g, "-") === id
 );
 
 if (foundProduct) {
@@ -949,7 +949,7 @@ if (foundProduct) {
                       return (
                         <div
   id={(product.slug || product.name)
-    .toLowerCase()
+    .trim().toLowerCase()
     .replace(/\s+/g, "-")}
   key={product.id}
   style={{

@@ -1019,7 +1019,7 @@ function CheckoutPageContent() {
 
                   <p className="text-center text-xs font-semibold text-slate-400">
                     After payment approval, your order continues through our normal fulfillment flow.
-                  </p>`r`n`r`n                  <PaypalCheckout
+                  </p>                  <PaypalCheckout
                     disabled={!termsAccepted || isCheckoutDisabled}
                     details={{ robloxUsername, robloxUserId, contactInfo, notes, items: cartItems.map((item) => ({ id: item.id, quantity: item.quantity })), couponCode: appliedCoupon || undefined }}
                   />

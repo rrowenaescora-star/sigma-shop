@@ -1,15 +1,9 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Anime Defenders Shop | Buy Anime Defenders Items",
-  description:
-    "Browse digital gaming-related products with online checkout, digital fulfillment, order tracking, and customer support at Bloxhop.",
+  title: "Bloxhop Anime Defenders",
 };
 
-export default function Layout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function MetadataLayout({ children }: { children: React.ReactNode }) {
   return children;
 }

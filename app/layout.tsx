@@ -14,15 +14,9 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://bloxhop.com"),
-
-  title: {
-    default: "Bloxhop — Independent Digital Gaming Marketplace",
-    template: "%s | Bloxhop",
-  },
-
+  title: "Bloxhop",
   description:
     "Bloxhop is an independent digital gaming marketplace providing digital gaming-related products, online checkout, digital fulfillment, and customer support.",
-
   keywords: [
     "Bloxhop",
     "Blox Fruits Shop",
@@ -32,33 +26,20 @@ export const metadata: Metadata = {
     "Digital Gaming Marketplace",
     "Roblox Items Store",
   ],
-
   openGraph: {
-    title: "Bloxhop — Independent Digital Gaming Marketplace",
+    title: "Bloxhop",
     description:
       "Bloxhop is an independent digital gaming marketplace providing digital gaming-related products, online checkout, digital fulfillment, and customer support.",
     url: "https://bloxhop.com",
     siteName: "Bloxhop",
     images: [
-      {
-        url: "/logo.png",
-        width: 512,
-        height: 512,
-        alt: "Bloxhop Logo",
-      },
+      { url: "/logo.png", width: 512, height: 512, alt: "Bloxhop Logo" },
     ],
   },
-
-  icons: {
-    icon: "/logo.png",
-  },
+  icons: { icon: "/logo.png" },
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`h-full antialiased ${plusJakartaSans.variable}`}>
       <body className="flex min-h-screen flex-col bg-[#070b14] text-white">
@@ -66,14 +47,10 @@ export default function RootLayout({
         <VisitorAnalyticsTracker />
         <LayoutShell>{children}</LayoutShell>
         <footer className="border-t border-white/10 bg-[#111121] px-6 py-6 text-center text-sm leading-7 text-slate-500">
-          © {new Date().getFullYear()} Bloxhop Online Store. Independent digital
-          gaming marketplace.
+          © {new Date().getFullYear()} Bloxhop Online Store. Independent digital gaming marketplace.
         </footer>
         <CookieConsent />
       </body>
     </html>
   );
 }
-
-
-

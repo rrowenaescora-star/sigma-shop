@@ -1,4 +1,4 @@
-export const metadata = { title: "About Bloxhop", description: "About Bloxhop Online Store, an independent digital gaming marketplace based in Cebu City, Philippines." };
+export const metadata = { title: "Bloxhop About", description: "About Bloxhop Online Store, an independent digital gaming marketplace based in Cebu City, Philippines." };
 
 export default function AboutPage() {
   return (

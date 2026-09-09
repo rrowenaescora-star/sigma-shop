@@ -1,15 +1,9 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Blox Fruits Shop | Buy Blox Fruits Items",
-  description:
-    "Browse digital gaming-related products with online checkout, digital fulfillment, order tracking, and customer support at Bloxhop.",
+  title: "Bloxhop Fruits",
 };
 
-export default function HomeLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function MetadataLayout({ children }: { children: React.ReactNode }) {
   return children;
 }

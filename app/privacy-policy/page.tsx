@@ -1,7 +1,7 @@
 import LegalPageShell from "@/components/legal-page-shell";
 
 export const metadata = {
-  title: "Privacy Policy | Bloxhop",
+  title: "Bloxhop Privacy",
   description:
     "How Bloxhop collects, uses, shares, protects, and retains customer information.",
 };

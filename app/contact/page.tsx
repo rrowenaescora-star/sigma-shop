@@ -1,7 +1,7 @@
 import LegalPageShell from "@/components/legal-page-shell";
 
 export const metadata = {
-  title: "Contact Us | Bloxhop",
+  title: "Bloxhop Contact",
   description: "Contact BLOXHOP ONLINE STORE support.",
 };
 

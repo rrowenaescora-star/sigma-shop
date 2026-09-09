@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Bloxhop Pet Simulator",
+  title: "Bloxhop Product",
 };
 
 export default function MetadataLayout({ children }: { children: React.ReactNode }) {

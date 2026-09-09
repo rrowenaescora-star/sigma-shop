@@ -1,7 +1,7 @@
 import LegalPageShell from "@/components/legal-page-shell";
 
 export const metadata = {
-  title: "Refund Policy | Bloxhop",
+  title: "Bloxhop Refunds",
   description: "How refunds are handled for Bloxhop orders.",
 };
 

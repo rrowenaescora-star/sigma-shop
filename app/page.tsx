@@ -509,7 +509,7 @@ Request an Item
 
           <div className="mt-8 grid gap-7 md:grid-cols-3">
             {reviews.map((review, index) => (
-              <article key={review.name} className="flex min-h-[185px] items-start gap-5 rounded-2xl border border-white/10 bg-[#0a1527] p-7">
+              <article key={review.name} className="flex min-h-[185px] items-center gap-5 rounded-2xl border border-white/10 bg-[#0a1527] p-7">
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-500/15 text-sm font-black text-blue-300">
                   {review.name.charAt(0).toUpperCase()}
                 </div>

@@ -73,15 +73,6 @@ export default function SiteFooter() {
                 </a>
 
                 <a
-                  href="https://www.youtube.com/@Bloxhoponlinestore"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex h-11 w-16 items-center justify-center rounded-xl bg-white/5 text-lg text-white transition hover:bg-white/10"
-                >
-                  ▶
-                </a>
-
-                <a
                   href="https://www.tiktok.com/@bloxhopolinestore"
                   target="_blank"
                   rel="noopener noreferrer"
@@ -116,14 +107,6 @@ export default function SiteFooter() {
                   </a>
                 </li>
                 <li>
-                  <a
-                    href="https://www.youtube.com/@Bloxhoponlinestore"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="transition hover:text-white"
-                  >
-                    YouTube
-                  </a>
                 </li>
                 <li>
                   <a
@@ -223,7 +206,11 @@ export default function SiteFooter() {
     alt="Supported Payment Methods"
     className="h-20 w-auto object-contain"
   />
-</div>
+</div>    <img
+      src="https://www.paypalobjects.com/webstatic/mktg/logo/pp_cc_mark_111x69.jpg"
+      alt="PayPal"
+      className="mt-2 ml-auto h-9 w-auto rounded bg-white object-contain px-1"
+    />
   
 </div>
             </div>

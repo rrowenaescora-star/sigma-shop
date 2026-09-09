@@ -1,7 +1,7 @@
 import LegalPageShell from "@/components/legal-page-shell";
 
 export const metadata = {
-  title: "Terms of Service | Bloxhop",
+  title: "Bloxhop Terms",
   description: "Terms that apply when using Bloxhop and placing orders.",
 };
 

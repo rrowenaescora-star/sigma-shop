@@ -13,15 +13,15 @@ export default function PaymentSuccessPage() {
             </div>
 
             <p className="mt-6 text-sm font-bold uppercase tracking-[0.25em] text-emerald-300">
-              Payment Confirmed
+              Payment Verification
             </p>
 
             <h1 className="mt-4 text-4xl font-black leading-tight md:text-5xl">
-              Payment Received Successfully
+              We Are Verifying Your Payment
             </h1>
 
             <p className="mt-5 text-base leading-7 text-slate-300 md:text-lg">
-              Your order has been saved and is now being reviewed by our team.
+              Your order is only treated as paid after secure server-side verification.
               Digital orders are typically fulfilled within approximately 2–3 minutes after successful payment verification under normal conditions. Actual fulfillment time may vary because of payment verification, availability, technical problems, or incorrect customer information.
             </p>
           </div>

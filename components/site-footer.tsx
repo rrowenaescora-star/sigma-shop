@@ -233,14 +233,14 @@ export default function SiteFooter() {
       </footer>
 
       <div
-        className={`fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${
+        className={`fixed inset-0 z-[100003] bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${
           openPolicy ? "opacity-100" : "pointer-events-none opacity-0"
         }`}
         onClick={() => setOpenPolicy(null)}
       />
 
       <div
-        className={`fixed right-0 top-0 z-50 h-full w-full max-w-2xl border-l border-white/10 bg-[#0d1324]/95 p-6 backdrop-blur-xl transition-transform duration-300 ease-in-out ${
+        className={`fixed right-0 top-0 z-[100004] h-full w-full max-w-2xl border-l border-white/10 bg-[#0d1324]/95 p-6 backdrop-blur-xl transition-transform duration-300 ease-in-out ${
           openPolicy ? "translate-x-0" : "translate-x-full"
         }`}
       >

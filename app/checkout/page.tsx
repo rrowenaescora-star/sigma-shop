@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useSearchParams } from "next/navigation";
 import CustomerAvatarMenu from "@/components/customer-avatar-menu";
 import SupportChat from "@/components/SupportChat";
+import PaypalCheckout from "@/components/paypal-checkout";
 
 type Product = {
   id: number;
@@ -1018,7 +1019,10 @@ function CheckoutPageContent() {
 
                   <p className="text-center text-xs font-semibold text-slate-400">
                     After payment approval, your order continues through our normal fulfillment flow.
-                  </p>
+                  </p>`r`n`r`n                  <PaypalCheckout
+                    disabled={!termsAccepted || isCheckoutDisabled}
+                    details={{ robloxUsername, robloxUserId, contactInfo, notes, items: cartItems.map((item) => ({ id: item.id, quantity: item.quantity })), couponCode: appliedCoupon || undefined }}
+                  />
 
                   <div className="mt-4 flex flex-wrap items-center justify-center gap-4 text-sm font-semibold text-slate-400">
                     <Link href="/terms" className="transition hover:text-white">

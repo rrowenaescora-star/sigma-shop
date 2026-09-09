@@ -31,7 +31,7 @@ export async function POST(request: Request) {
     if (created.error || !created.data) return NextResponse.json({ error: "Could not create send record. Run scheduled-announcements.sql first." }, { status: 503 });
     try {
       const content = body.announcement as AnnouncementContent;
-      const html = renderAnnouncementEmail(content, process.env.EMAIL_ASSET_BASE_URL || "https://bloxhop.site");
+      const html = renderAnnouncementEmail(content, process.env.EMAIL_ASSET_BASE_URL || "https://bloxhop.com");
       for (const recipient of recipients) await sendEmail({ to: recipient, subject: content.subject, html });
       await adminSupabase.from("scheduled_announcements").update({ status: "completed", completed_at: new Date().toISOString(), error: null }).eq("id", created.data.id);
       return NextResponse.json({ success: true, sent: recipients.length });

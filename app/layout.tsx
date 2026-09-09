@@ -13,7 +13,7 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://bloxhop.site"),
+  metadataBase: new URL("https://bloxhop.com"),
 
   title: {
     default: "Bloxhop — Independent Digital Gaming Marketplace",
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     title: "Bloxhop — Independent Digital Gaming Marketplace",
     description:
       "Bloxhop is an independent digital gaming marketplace providing digital gaming-related products, online checkout, digital fulfillment, and customer support.",
-    url: "https://bloxhop.site",
+    url: "https://bloxhop.com",
     siteName: "Bloxhop",
     images: [
       {

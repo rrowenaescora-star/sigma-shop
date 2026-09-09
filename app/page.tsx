@@ -485,7 +485,7 @@ Request an Item
                 </h3>
 
                 <p className="mx-auto mt-6 max-w-5xl text-sm leading-8 text-slate-400 md:text-[15px]">
-                  Bloxhop.site is an independent digital gaming marketplace and
+                  Bloxhop.com is an independent digital gaming marketplace and
                   is not affiliated, associated, authorized, endorsed, or
                   sponsored by Roblox Corporation or any game developers. All
                   trademarks, game names, logos, and related assets belong to

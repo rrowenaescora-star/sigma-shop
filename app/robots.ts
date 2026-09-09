@@ -9,6 +9,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/admin", "/api"],
       },
     ],
-    sitemap: "https://bloxhop.site/sitemap.xml",
+    sitemap: "https://bloxhop.com/sitemap.xml",
   };
 }

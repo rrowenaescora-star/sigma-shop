@@ -57,12 +57,12 @@ const defaults: Announcement = {
   subject: "{FRUIT_NAME} Is Now Available at Bloxhop!",
   productName: "Magnet Fruit",
   title: "The New {FRUIT_NAME} Is Here!",
-  imageUrl: "https://bloxhop.site/logo.png",
+  imageUrl: "https://bloxhop.com/logo.png",
   message:
     "Humans, it’s finally here!\n\nThe new {FRUIT_NAME} has arrived at Bloxhop.\n\nReady to try it out? Grab yours, jump into the game, and start playing with the newest fruit today.\n\nLet’s go shop and play!",
   secondaryText: "Available now while supplies last.",
   ctaText: "Get It Now",
-  ctaUrl: "https://bloxhop.site/home",
+  ctaUrl: "https://bloxhop.com/home",
 };
 
 function withProduct(value: string, productName: string) {

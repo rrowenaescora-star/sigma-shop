@@ -22,7 +22,7 @@ export async function GET(request: Request) {
 
   try {
     const content = job.announcement as AnnouncementContent;
-    const html = renderAnnouncementEmail(content, process.env.EMAIL_ASSET_BASE_URL || "https://bloxhop.site");
+    const html = renderAnnouncementEmail(content, process.env.EMAIL_ASSET_BASE_URL || "https://bloxhop.com");
     for (const recipient of job.recipients as string[]) await sendEmail({ to: recipient, subject: content.subject, html });
     await adminSupabase.from("scheduled_announcements").update({ status: "completed", completed_at: new Date().toISOString(), error: null }).eq("id", job.id);
     return NextResponse.json({ processed: (job.recipients as string[]).length });

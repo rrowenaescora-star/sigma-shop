@@ -63,9 +63,9 @@
 [35mapp/checkout/page.tsx[m[36m:[m                          result.payer[1;31mEmail[m || null,
 [35mapp/checkout/page.tsx[m[36m:[m                  Fill in your Roblox username, verify it, and enter your [1;31memail[m before continuing.
 [35mapp/contact/page.tsx[m[36m:[m            <h2 className="text-xl font-semibold mb-2">Support [1;31mEmail[m</h2>
-[35mapp/page.tsx[m[36m:[m              <p>[1;31mEmail[m: bloxhop@bloxhop.site</p>
+[35mapp/page.tsx[m[36m:[m              <p>[1;31mEmail[m: bloxhop@bloxhop.com</p>
 [35mapp/privacy/page.tsx[m[36m:[m              <li>[1;31mEmail[m or contact information</li>
-[35mapp/terms/page.tsx[m[36m:[m            <p>[1;31mEmail[m: bloxhop@bloxhop.site</p>
+[35mapp/terms/page.tsx[m[36m:[m            <p>[1;31mEmail[m: bloxhop@bloxhop.com</p>
 [35mapp/track-order/page.tsx[m[36m:[m  payer_[1;31memail[m?: string | null;
 [35mlib/email.ts[m[36m:[mimport nod[1;31memail[mer from "nod[1;31memail[mer";
 [35mlib/email.ts[m[36m:[mconst host = process.env.[1;31mEMAIL[m_HOST!;

@@ -16,6 +16,7 @@ type Order = {
   handled_by: string;
   created_at: string;
   payment_method?: string;
+  payment_provider?: string | null;
   xendit_reference_id?: string | null;
 
   items?: {
@@ -56,6 +57,9 @@ export default function AdminOrdersPage() {
         const paymentStatus = (order.payment_status || "").toLowerCase();
 
         if (order.payment_method === "Shopify" && paymentStatus !== "paid") {
+          return false;
+        }
+        if ((order.payment_provider === "paypal" || order.payment_method === "PayPal") && paymentStatus !== "paid") {
           return false;
         }
         return !(

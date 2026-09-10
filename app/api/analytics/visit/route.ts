@@ -12,6 +12,8 @@ export async function POST(request: Request) {
 
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
+    const adminEmails = (process.env.ADMIN_EMAILS || "").split(",").map((email) => email.trim().toLowerCase()).filter(Boolean);
+    if (user?.email && adminEmails.includes(user.email.toLowerCase())) return NextResponse.json({ ok: true });
     const userAgent = request.headers.get("user-agent") || "";
     const device = /mobile|android|iphone|ipad/i.test(userAgent) ? "Mobile" : "Desktop";
     const country = request.headers.get("x-vercel-ip-country") || request.headers.get("cf-ipcountry") || null;

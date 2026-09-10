@@ -163,7 +163,7 @@ export default function LandingPage() {
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(6,16,29,0.98)_0%,rgba(6,16,29,0.88)_40%,rgba(6,16,29,0.52)_68%,rgba(6,16,29,0.72)_100%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_42%,rgba(37,99,235,0.24),transparent_28%),radial-gradient(circle_at_20%_45%,rgba(14,165,233,0.07),transparent_25%)]" />
 
-        <div className="pointer-events-none absolute right-[-120px] top-1/2 z-0 h-[420px] w-[420px] -translate-y-1/2 opacity-30 sm:right-[-40px] sm:h-[520px] sm:w-[520px] lg:right-[50px] lg:h-[650px] lg:w-[700px] lg:max-w-[58vw] lg:opacity-100">
+        <div className="pointer-events-none absolute right-[-120px] top-1/2 z-0 hidden h-[420px] w-[420px] -translate-y-1/2 opacity-30 sm:right-[-40px] sm:h-[520px] sm:w-[520px] lg:block lg:right-[50px] lg:h-[650px] lg:w-[700px] lg:max-w-[58vw] lg:opacity-100">
           <img
             src="/videos/layer1.png"
             alt=""
@@ -188,7 +188,7 @@ export default function LandingPage() {
           />
         </div>
 
-        <div className="relative z-10 mx-auto grid max-w-[1500px] items-center gap-12 px-5 py-16 sm:px-6 lg:right-[50px] lg:grid-cols-[0.9fr_1.1fr] lg:py-24">
+        <div className="relative z-10 mx-auto grid max-w-[1500px] items-center gap-10 px-4 py-12 sm:px-6 sm:py-16 lg:grid-cols-[0.9fr_1.1fr] lg:gap-12 lg:py-24">
           <div>
             <h1 className="mt-5 max-w-3xl text-4xl font-black leading-[1.05] tracking-tight sm:text-5xl md:text-6xl">
               Level Up Your Game
@@ -204,7 +204,7 @@ export default function LandingPage() {
             <div className="mt-7 flex flex-wrap gap-4">
               <Link
                 href="/request-item"
-                className="flex h-14 items-center justify-center gap-2 rounded-xl bg-[#3b82f6] px-7 text-base font-black text-white shadow-[0_6px_0_#1d4ed8] transition hover:translate-y-0.5 hover:bg-[#60a5fa] hover:shadow-[0_4px_0_#1d4ed8] active:translate-y-1 active:shadow-[0_2px_0_#1d4ed8]"
+                className="flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-[#3b82f6] px-7 text-base font-black text-white shadow-[0_6px_0_#1d4ed8] transition hover:translate-y-0.5 hover:bg-[#60a5fa] hover:shadow-[0_4px_0_#1d4ed8] active:translate-y-1 active:shadow-[0_2px_0_#1d4ed8] sm:w-auto"
               >
                 <Search className="h-5 w-5" />
 Request an Item
@@ -214,7 +214,7 @@ Request an Item
                 href="https://discord.gg/evM2G5c9Vr"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="button-3d flex h-14 items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-7 text-base font-bold text-white hover:bg-white/10"
+                className="button-3d flex h-14 w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-7 text-base font-bold text-white hover:bg-white/10 sm:w-auto"
               >
                 <Headphones className="h-5 w-5 text-blue-400" />
                 Join Our Discord
@@ -223,7 +223,7 @@ Request an Item
 
             <Link
               href="/home#permanent-magnet"
-              className="group/new-fruit relative isolate mt-8 flex max-w-xl items-center justify-between gap-5 overflow-hidden rounded-2xl border border-emerald-300/40 bg-[#ffffff] px-5 py-10 shadow-[0_0_34px_rgba(16,185,129,0.16)] transition hover:-translate-y-0.5 hover:border-emerald-200/70 hover:shadow-[0_0_42px_rgba(16,185,129,0.28)]"
+              className="group/new-fruit relative isolate mt-8 flex max-w-xl flex-col items-start gap-5 overflow-hidden rounded-2xl border border-emerald-300/40 bg-[#ffffff] px-5 py-8 shadow-[0_0_34px_rgba(16,185,129,0.16)] transition hover:-translate-y-0.5 hover:border-emerald-200/70 hover:shadow-[0_0_42px_rgba(16,185,129,0.28)] sm:flex-row sm:items-center sm:py-10"
             >
               <img src="/magnetfruit.png" alt="" aria-hidden="true" className="absolute inset-0 -z-10 h-full w-full object-cover object-right opacity-75 transition duration-500 group-hover/new-fruit:scale-105" />
               <span className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(2,24,20,0.96)_0%,rgba(4,37,30,0.78)_48%,rgba(2,24,20,0.3)_100%)]" />
@@ -235,7 +235,7 @@ Request an Item
                   <span className="block text-sm text-slate-200">View the newest Blox Fruit and add it to your cart.</span>
                 </span>
               </div>
-              <span className="shrink-0 rounded-lg bg-blue-400/80 px-5 py-5 text-xs font-black text-[#05231d] transition group-hover/new-fruit:bg-white">View Magnet →</span>
+              <span className="w-full rounded-lg bg-blue-400/80 px-5 py-4 text-center text-xs font-black text-[#05231d] transition group-hover/new-fruit:bg-white sm:w-auto sm:shrink-0 sm:py-5">View Magnet →</span>
             </Link>
             <div className="mt-7 flex items-center gap-4">
               
@@ -248,8 +248,8 @@ Request an Item
         </div>
       </section>
 
-      <section className="relative z-10 border-b border-white/10 bg-[#06101d] px-6 py-6">
-        <div className="mx-auto grid max-w-[1500px] gap-10 lg:grid-cols-4">
+      <section className="relative z-10 border-b border-white/10 bg-[#06101d] px-4 py-5 sm:px-6 sm:py-6">
+        <div className="mx-auto grid max-w-[1500px] gap-4 sm:gap-6 lg:grid-cols-4 lg:gap-10">
           {trustCards.map((card) => {
             const Icon = card.icon;
 
@@ -262,7 +262,7 @@ Request an Item
                   <Icon className="h-7 w-6 text-blue-400" />
                 </div>
 
-                <div>
+                <div className="min-w-0">
                   <p className="font-black text-white">{card.title}</p>
                   <p className="mt-1 text-sm leading-5 text-slate-400">
                     {card.text}
@@ -274,9 +274,9 @@ Request an Item
         </div>
       </section>
 
-      <section className="relative mx-auto max-w-[1500px] px-6 py-14">
+      <section className="relative mx-auto max-w-[1500px] px-4 py-12 sm:px-6 sm:py-14">
         <div>
-          <div className="mb-4 flex items-center justify-between">
+          <div className="mb-4 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="text-2xl font-black">Featured Products</h2>
 
             <Link
@@ -383,18 +383,18 @@ Request an Item
         </div>
       </section>
 
-      <section className="relative mx-auto max-w-[1500px] px-6 pt-14 pb-20">
+      <section className="relative mx-auto max-w-[1500px] px-4 pt-12 pb-16 sm:px-6 sm:pt-14 sm:pb-20">
         <div>
           <section
             id="faq"
             className="rounded-2xl border border-white/10 bg-[#06101d] px-1 py-1 pt-1"
           >
-            <div className="relative mb-6 flex items-center justify-center px-1 pt-1 text-center">
+            <div className="relative mb-6 flex flex-col items-center gap-3 px-1 pt-1 text-center sm:block">
               <h2 className="text-center text-3xl font-black">
                 Frequently Asked Questions
               </h2>
 
-              <button className="absolute right-1 top-1/2 -translate-y-1/2 text-xs font-bold text-blue-400">
+              <button className="text-xs font-bold text-blue-400 sm:absolute sm:right-1 sm:top-1/2 sm:-translate-y-1/2">
                 View All FAQs →
               </button>
             </div>
@@ -498,7 +498,7 @@ Request an Item
 
         <section id="reviews" className="mt-20 border-t border-white/10 pt-16">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div>
+            <div className="min-w-0">
               <p className="text-xs font-black uppercase tracking-[0.2em] text-blue-400">The Bloxhop Experience</p>
               <h2 className="mt-2 text-3xl font-black tracking-tight text-white">What You Can Expect</h2>
             </div>
@@ -513,7 +513,7 @@ Request an Item
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-500/15 text-sm font-black text-blue-300">
                   {review.name.charAt(0).toUpperCase()}
                 </div>
-                <div>
+                <div className="min-w-0">
                   <h3 className="font-black text-white">{review.name}</h3>
                   <p className="mt-2 text-sm leading-6 text-slate-400">{review.text}</p>
                 </div>
@@ -521,13 +521,13 @@ Request an Item
             ))}
           </div>
         </section>
-        <div className="mt-16 flex flex-col gap-6 rounded-2xl border border-white/10 bg-[#0a1527] p-8 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-center gap-4 px-1 pt-1">
+        <div className="mt-16 flex flex-col gap-6 rounded-2xl border border-white/10 bg-[#0a1527] p-5 sm:p-8 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex min-w-0 items-center gap-4 px-1 pt-1">
             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-500/15">
               <Headphones className="h-8 w-8 text-blue-400" />
             </div>
 
-            <div>
+            <div className="min-w-0">
               <p className="text-lg font-black">Join Our Discord Community</p>
               <p className="text-sm text-slate-400">
                 Customer service, updates, and support announcements.
@@ -539,7 +539,7 @@ Request an Item
             href="https://discord.gg/evM2G5c9Vr"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex h-14 items-center justify-center gap-2 rounded-2xl bg-blue-500 px-8 font-black text-white shadow-[0_0_38px_rgba(59,130,246,0.35)] transition hover:bg-blue-400"
+            className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-blue-500 px-8 font-black text-white shadow-[0_0_38px_rgba(59,130,246,0.35)] transition hover:bg-blue-400 lg:w-auto"
           >
             <Headphones className="h-5 w-5" />
             Join Discord

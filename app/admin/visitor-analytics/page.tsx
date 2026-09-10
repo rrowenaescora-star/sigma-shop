@@ -13,6 +13,7 @@ export default function VisitorAnalyticsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [data, setData] = useState<{summary:Summary;pages:Row[];countries:Row[];devices:Row[];recent:Event[]} | null>(null);
+  const [browserExcluded, setBrowserExcluded] = useState(false);
   const load = useCallback(async () => {
     setLoading(true); setError("");
     try {
@@ -22,8 +23,12 @@ export default function VisitorAnalyticsPage() {
       if (!response.ok) setError(next.error || "Could not load visitor analytics."); else setData(next);
     } catch { setError("Could not load visitor analytics."); } finally { setLoading(false); }
   }, [router]);
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    setBrowserExcluded(window.localStorage.getItem("bloxhop-analytics-excluded") === "true");
+    void load();
+  }, [load]);
   return <main className="min-h-screen bg-[#06101d] p-5 text-white sm:p-8 lg:p-10"><AdminHeader title="Visitor Analytics" subtitle="Understand which pages shoppers visit and how they browse." active="analytics" onRefresh={load} />
+    <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-[#0b1728] p-4"><p className="text-sm text-slate-300">Admin accounts and local development visits are automatically excluded.</p><button type="button" onClick={() => { const next = !browserExcluded; window.localStorage.setItem("bloxhop-analytics-excluded", String(next)); setBrowserExcluded(next); }} className="rounded-lg border border-cyan-300/25 px-3 py-2 text-sm font-bold text-cyan-100 hover:bg-cyan-300/10">{browserExcluded ? "Include this browser" : "Exclude this browser"}</button></div>
     {error && <div className="mb-6 rounded-2xl border border-amber-300/25 bg-amber-500/10 p-4 text-amber-100">{error}</div>}
     {loading && <p className="text-slate-400">Loading visitor data...</p>}
     {data && <><div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5"><Card label="Visits recorded" value={data.summary.visits} /><Card label="Unique visitors" value={data.summary.uniqueVisitors} /><Card label="Visits in 24 hours" value={data.summary.visitsToday} /><Card label="Visitors in 24 hours" value={data.summary.visitorsToday} /><Card label="Signed-in customers" value={data.summary.signedIn} /></div>

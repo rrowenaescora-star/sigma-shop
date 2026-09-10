@@ -5,12 +5,14 @@ import { usePathname } from "next/navigation";
 
 const PREFERENCES = "bloxhop-cookie-preferences";
 const VISITOR_ID = "bloxhop-visitor-id";
+const ANALYTICS_EXCLUDED = "bloxhop-analytics-excluded";
 
 export default function VisitorAnalyticsTracker() {
   const pathname = usePathname();
 
   useEffect(() => {
     if (!pathname || pathname.startsWith("/admin") || pathname.startsWith("/api")) return;
+    if (window.location.hostname === "localhost" || window.localStorage.getItem(ANALYTICS_EXCLUDED) === "true") return;
     try {
       const saved = window.localStorage.getItem(PREFERENCES);
       const preferences = saved ? JSON.parse(saved) : null;

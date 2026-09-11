@@ -33,10 +33,10 @@ export const metadata: Metadata = {
     url: "https://bloxhop.com",
     siteName: "Bloxhop",
     images: [
-      { url: "/logo.png", width: 512, height: 512, alt: "Bloxhop Logo" },
+      { url: "/logo.webp", width: 512, height: 512, alt: "Bloxhop Logo" },
     ],
   },
-  icons: { icon: "/logo.png" },
+  icons: { icon: "/logo.webp" },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

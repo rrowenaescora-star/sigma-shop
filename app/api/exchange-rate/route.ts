@@ -6,7 +6,7 @@ export async function GET() {
       "https://api.frankfurter.dev/v1/latest?base=USD&symbols=PHP,INR",
       {
         method: "GET",
-        cache: "no-store",
+        next: { revalidate: 3600 },
       }
     );
 

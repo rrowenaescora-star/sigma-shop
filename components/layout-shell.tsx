@@ -48,7 +48,7 @@ export default function LayoutShell({
               <Link href="/" className="group relative flex items-center gap-4">
                 <div className="absolute -left-2 top-1/2 h-16 w-16 -translate-y-1/2 rounded-full bg-blue-500/20 blur-2xl" />
                 <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] p-2">
-                  <Image src="/logo.png" alt="Bloxhop Logo" width={46} height={46} className="rounded-xl" priority />
+                  <Image src="/logo.webp" alt="Bloxhop Logo" width={46} height={46} className="rounded-xl" priority />
                 </div>
                 <div className="hidden leading-tight sm:block">
                   <span className="block bg-gradient-to-r from-white via-blue-200 to-blue-400 bg-clip-text text-xl font-black tracking-wide text-transparent">BLOXHOP</span>

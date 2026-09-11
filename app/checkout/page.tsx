@@ -5,7 +5,7 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useSearchParams } from "next/navigation";
 import CustomerAvatarMenu from "@/components/customer-avatar-menu";
-import SupportChat from "@/components/SupportChat";
+import LazySupportChat from "@/components/lazy-support-chat";
 import PaypalCheckout from "@/components/paypal-checkout";
 
 type Product = {
@@ -793,7 +793,7 @@ function CheckoutPageContent() {
             >
               ←
             </button>
-            <img src="/logo.png" alt="Bloxhop" className="h-12 w-12 object-contain" />
+            <img src="/logo.webp" alt="Bloxhop" className="h-12 w-12 object-contain" />
           </div>
           <CustomerAvatarMenu />
         </div>
@@ -1255,7 +1255,7 @@ function CheckoutPageContent() {
           </aside>
         </main>
       </div>
-      <SupportChat />
+      <LazySupportChat />
     </div>
   );
 }

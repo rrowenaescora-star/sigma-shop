@@ -8,8 +8,8 @@ type Message = { id?: string; sender: "bot" | "customer" | "staff"; body: string
 type Conversation = { id: string; subject: string; status: "open" | "closed"; support_messages: Message[] };
 const welcome: Message = { sender: "bot", body: "Hi! I’m BloxBot. I can answer quick questions, or you can start a private chat with our support team." };
 
-export default function SupportChat() {
-  const [open, setOpen] = useState(false), [humanMode, setHumanMode] = useState(false), [signedIn, setSignedIn] = useState(false), [loginOpen, setLoginOpen] = useState(false), [conversation, setConversation] = useState<Conversation | null>(null), [botMessages, setBotMessages] = useState<Message[]>([welcome]), [input, setInput] = useState(""), [loading, setLoading] = useState(false), [error, setError] = useState("");
+export default function SupportChat({ initiallyOpen = false }: { initiallyOpen?: boolean }) {
+  const [open, setOpen] = useState(initiallyOpen), [humanMode, setHumanMode] = useState(false), [signedIn, setSignedIn] = useState(false), [loginOpen, setLoginOpen] = useState(false), [conversation, setConversation] = useState<Conversation | null>(null), [botMessages, setBotMessages] = useState<Message[]>([welcome]), [input, setInput] = useState(""), [loading, setLoading] = useState(false), [error, setError] = useState("");
   const end = useRef<HTMLDivElement | null>(null); const fileInput = useRef<HTMLInputElement | null>(null); const [attachmentPath, setAttachmentPath] = useState(""); const [attachmentPreview, setAttachmentPreview] = useState("");
   useEffect(() => { createClient().auth.getUser().then(({ data }) => setSignedIn(Boolean(data.user))); }, [open]);
   useEffect(() => { end.current?.scrollIntoView({ behavior: "smooth" }); }, [botMessages, conversation, humanMode]);

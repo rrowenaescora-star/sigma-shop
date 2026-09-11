@@ -65,14 +65,20 @@ export default function TutorialPage() {
   className="h-[360px] w-full object-cover transition duration-500 group-hover:scale-[1.02]"
   muted
   playsInline
-  preload="metadata"
+  preload="none"
   controls={false}
   onMouseEnter={(e) => {
-    e.currentTarget.play();
+    const video = e.currentTarget;
+    void video.play().catch((error: unknown) => {
+      if (!(error instanceof DOMException && error.name === "AbortError")) {
+        console.error("Tutorial video playback failed:", error);
+      }
+    });
   }}
   onMouseLeave={(e) => {
-    e.currentTarget.pause();
-    e.currentTarget.currentTime = 0;
+    const video = e.currentTarget;
+    if (!video.paused) video.pause();
+    video.currentTime = 0;
   }}
 />
             </div>

@@ -16,7 +16,7 @@ export default function SiteFooter() {
             <div>
               <div className="flex items-center gap-3">
                 <img
-                  src="/logo.png"
+                  src="/logo.webp"
                   alt="Bloxhop"
                   className="h-14 w-14 rounded-2xl object-cover"
                 />
@@ -202,7 +202,7 @@ export default function SiteFooter() {
 
    <div className="transition duration-300 hover:scale-105">
   <img
-    src="/payments.png"
+    src="/payments.webp"
     alt="Supported Payment Methods"
     className="h-20 w-auto object-contain"
   />

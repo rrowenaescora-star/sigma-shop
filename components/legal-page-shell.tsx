@@ -35,7 +35,7 @@ export default function LegalPageShell({
 
             <Link href="/" className="relative flex items-center gap-4">
               <img
-                src="/logo.png"
+                src="/logo.webp"
                 alt="Bloxhop"
                 className="h-12 w-12 object-contain"
               />

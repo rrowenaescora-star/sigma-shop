@@ -58,7 +58,7 @@ export default function SaleBot({
       >
         <div className="relative text-center">
           <img
-            src="/bloxbot.png"
+            src="/bloxbot.webp"
             alt="Bloxhop Promo"
             className={`relative z-20 mx-auto object-contain drop-shadow-2xl transition-all duration-1000 ease-in-out animate-[bloxbotLife_5s_ease-in-out_infinite] ${
               showCenter ? "w-[380px]" : "w-[170px]"

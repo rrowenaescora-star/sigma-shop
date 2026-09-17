@@ -1,0 +1,41 @@
+
+> sigma-shop@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.1 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.1.9:3000
+- Environments: .env.local
+✓ Ready in 891ms
+
+ GET /steal-an-egg 200 in 4.6s (next.js: 2.8s, proxy.ts: 188ms, application-code: 1600ms)
+ GET /steal-an-egg 200 in 376ms (next.js: 8ms, proxy.ts: 8ms, application-code: 360ms)
+✓ Compiled in 361ms
+ GET /steal-an-egg 200 in 1281ms (next.js: 75ms, proxy.ts: 5ms, application-code: 1202ms)
+ GET /1st%201%.png 404 in 565ms (next.js: 362ms, proxy.ts: 16ms, application-code: 187ms)
+ GET /2nd%201%.png 404 in 564ms (next.js: 333ms, proxy.ts: 14ms, application-code: 217ms)
+ GET /4th%201%.png 404 in 566ms (next.js: 421ms, proxy.ts: 15ms, application-code: 130ms)
+ GET /3rd%201%.png 404 in 573ms (next.js: 446ms, proxy.ts: 15ms, application-code: 112ms)
+ GET /steal-an-egg 200 in 381ms (next.js: 6ms, proxy.ts: 5ms, application-code: 370ms)
+ GET /2nd%201%.png 404 in 270ms (next.js: 40ms, proxy.ts: 25ms, application-code: 205ms)
+ GET /4th%201%.png 404 in 267ms (next.js: 88ms, proxy.ts: 27ms, application-code: 152ms)
+ GET /3rd%201%.png 404 in 269ms (next.js: 126ms, proxy.ts: 27ms, application-code: 116ms)
+ GET /1st%201%.png 404 in 266ms (next.js: 141ms, proxy.ts: 27ms, application-code: 98ms)
+✓ Compiled in 221ms
+ GET /steal-an-egg 200 in 562ms (next.js: 98ms, proxy.ts: 4ms, application-code: 461ms)
+✓ Compiled in 103ms
+ GET /steal-an-egg 200 in 791ms (next.js: 97ms, proxy.ts: 4ms, application-code: 690ms)
+✓ Compiled in 99ms
+ GET /steal-an-egg 200 in 1267ms (next.js: 102ms, proxy.ts: 5ms, application-code: 1161ms)
+ GET /api/products?game=steal-an-egg 200 in 656ms (next.js: 373ms, proxy.ts: 5ms, application-code: 278ms)
+✓ Compiled in 111ms
+✓ Compiled in 172ms
+ GET /steal-an-egg 200 in 1060ms (next.js: 106ms, proxy.ts: 4ms, application-code: 951ms)
+ GET /steal-an-egg 200 in 773ms (next.js: 6ms, proxy.ts: 4ms, application-code: 763ms)
+ GET /steal-an-egg 200 in 335ms (next.js: 5ms, proxy.ts: 6ms, application-code: 324ms)
+ GET /steal-an-egg 200 in 515ms (next.js: 5ms, proxy.ts: 4ms, application-code: 506ms)
+ GET /checkout 200 in 448ms (next.js: 415ms, proxy.ts: 6ms, application-code: 26ms)
+ GET /api/exchange-rate 200 in 391ms (next.js: 155ms, proxy.ts: 11ms, application-code: 225ms)
+ GET /api/exchange-rate 200 in 395ms (next.js: 149ms, proxy.ts: 10ms, application-code: 235ms)
+ GET /api/products 200 in 461ms (next.js: 23ms, proxy.ts: 12ms, application-code: 426ms)
+ GET /api/products 200 in 499ms (next.js: 10ms, proxy.ts: 11ms, application-code: 479ms)

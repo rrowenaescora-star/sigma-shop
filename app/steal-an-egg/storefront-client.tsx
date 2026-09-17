@@ -111,6 +111,17 @@ function ProductSkeletonCard() {
   );
 }
 
+const LUMINOUS_EVENT_ENDS_AT = 1790434808468;
+
+function formatLuminousCountdown(milliseconds: number) {
+  const totalSeconds = Math.max(0, Math.floor(milliseconds / 1000));
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  return `${days}d ${String(hours).padStart(2, "0")}h ${String(minutes).padStart(2, "0")}m ${String(seconds).padStart(2, "0")}s`;
+}
 export default function Storefront({ initialProducts, initialCapital, initialPhpRate, initialInrRate }: { initialProducts: Product[]; initialCapital: number | null; initialPhpRate: number | null; initialInrRate: number | null }) {
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -127,6 +138,7 @@ const [isCartOpen, setIsCartOpen] = useState(false);
   const rateLoading = false;
   const [currentPage, setCurrentPage] = useState(1);
   const [mounted, setMounted] = useState(false);
+  const [luminousCountdown, setLuminousCountdown] = useState("8d 19h 35m 00s");
 
   const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
   const [cartPulse, setCartPulse] = useState(false);
@@ -144,6 +156,16 @@ const [isCartOpen, setIsCartOpen] = useState(false);
 
 useEffect(() => {
   setMounted(true);
+}, []);
+
+useEffect(() => {
+  const updateCountdown = () => {
+    setLuminousCountdown(formatLuminousCountdown(LUMINOUS_EVENT_ENDS_AT - Date.now()));
+  };
+
+  updateCountdown();
+  const timer = window.setInterval(updateCountdown, 1000);
+  return () => window.clearInterval(timer);
 }, []);
 
    useEffect(() => {
@@ -428,20 +450,25 @@ function formatMoney(usdAmount: number) {
     0
   );
 
+  const visibleProducts = useMemo(
+    () => products.filter((product) => (product.tag || "").trim().toLowerCase() !== "hide"),
+    [products]
+  );
+
   const categories = useMemo(() => {
     const uniqueCategories = Array.from(
       new Set(
-        products
+        visibleProducts
           .map((product) => product.category?.trim())
           .filter((category): category is string => Boolean(category))
       )
     );
 
     return ["All", ...uniqueCategories];
-  }, [products]);
+  }, [visibleProducts]);
 
   const filteredProducts = useMemo(() => {
-    const filtered = products.filter((product) => {
+    const filtered = visibleProducts.filter((product) => {
       const matchesCategory =
         selectedCategory === "All" ||
         (product.category || "").trim() === selectedCategory;
@@ -474,7 +501,7 @@ function formatMoney(usdAmount: number) {
     }
 
     return sorted;
-  }, [products, selectedCategory, availabilityFilter, searchQuery, sortOption]);
+  }, [visibleProducts, selectedCategory, availabilityFilter, searchQuery, sortOption]);
 
   const totalPages = Math.max(
     1,
@@ -525,7 +552,7 @@ if (foundProduct) {
 
   return (
     <div className="relative min-h-screen bg-[#07111f] text-white">
-<div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(59,130,246,0.10),transparent_25%),radial-gradient(circle_at_bottom_right,rgba(14,165,233,0.08),transparent_30%)]" />
+<div className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(circle_at_top,rgba(59,130,246,0.10),transparent_25%),radial-gradient(circle_at_bottom_right,rgba(14,165,233,0.08),transparent_30%)]" />
 
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
         <div className="absolute -left-32 top-[12%] h-72 w-72 animate-[orbFloat_9s_ease-in-out_infinite] rounded-full bg-pink-500/10 blur-3xl" />
@@ -756,13 +783,13 @@ alt="Steal an Egg"
 
 <div className="grid w-full max-w-none lg:grid-cols-[320px_minmax(0,1fr)]">
           <ProductFilterSidebar
-            totalItems={products.length}
-            inStockItems={products.filter((product) => !isUnavailable(product)).length}
+            totalItems={visibleProducts.length}
+            inStockItems={visibleProducts.filter((product) => !isUnavailable(product)).length}
             categories={categories.map((category) => ({
               name: category,
               count: category === "All"
-                ? products.length
-                : products.filter((product) => (product.category || "").trim() === category).length,
+                ? visibleProducts.length
+                : visibleProducts.filter((product) => (product.category || "").trim() === category).length,
             }))}
             selectedCategory={selectedCategory}
             availabilityFilter={availabilityFilter}
@@ -783,6 +810,145 @@ alt="Steal an Egg"
                 </div>
               ) : (
                 <>
+                  {currentPage === 1 && selectedCategory === "All" && !searchQuery.trim() ? (
+                    <section className="relative mb-10 overflow-hidden border-4 border-black bg-[#031c52] shadow-[7px_7px_0_rgba(0,0,0,0.6)]">
+                      <div data-luminous-layer="background" className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(circle_at_45%_42%,rgba(34,211,238,0.72),transparent_28%),radial-gradient(circle_at_80%_10%,rgba(59,130,246,0.5),transparent_30%),linear-gradient(120deg,#064e8a_0%,#02a8c7_42%,#0753a1_68%,#03102f_100%)]" />
+                      <div className="pointer-events-none absolute inset-0 z-0 opacity-25 bg-[linear-gradient(135deg,transparent_0_45%,rgba(255,255,255,0.22)_50%,transparent_55%)]" />
+
+                      <div data-luminous-layer="characters" aria-hidden="true" className="pointer-events-none absolute inset-0 z-10 overflow-hidden">
+                        <img
+                          src="/lumigreen.png"
+                          alt=""
+                          className="luminous-character-green absolute bottom-12 left-[-2%] h-[76%] w-[40%] object-contain object-left-bottom"
+                        />
+                        <img
+                          src="/lumiblue.png"
+                          alt=""
+                          className="luminous-character-blue absolute bottom-12 left-[-2%] h-[76%] w-[40%] object-contain object-left-bottom"
+                        />
+                      </div>
+
+                      <div data-luminous-layer="foreground" className="relative z-20 p-2 sm:p-3">
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div className="flex items-start gap-3">
+                            <span className="border-2 border-white bg-red-600 px-4 py-1 text-xl font-black text-white shadow-[3px_3px_0_#000] sm:text-3xl">
+                              New!
+                            </span>
+                            <div>
+                              <h2 className="text-3xl font-black uppercase leading-none tracking-tight text-white drop-shadow-[3px_3px_0_#000] sm:text-5xl lg:text-6xl">
+                                Luminous Egg
+                              </h2>
+                              <p className="mt-1 text-lg font-black text-white drop-shadow-[2px_2px_0_#000] sm:text-3xl">
+                                Limited Time!
+                              </p>
+                            </div>
+                          </div>
+                          <span className="text-lg font-black uppercase text-red-500 drop-shadow-[2px_2px_0_#000] sm:text-3xl">
+                            {luminousCountdown}
+                          </span>
+                        </div>
+
+                        <div className="mt-5 overflow-x-auto pb-2">
+                          <div className="grid min-w-[760px] grid-cols-[72fr_80fr_88fr_98fr_108fr_122fr_142fr] items-end gap-3">
+                            {[
+                              { chance: "39%", image: "/39.png", images: null, accent: "border-black" },
+                              { chance: "24%", image: "/24.png", images: null, accent: "border-black" },
+                              { chance: "18%", image: "/18.png", images: null, accent: "border-black" },
+                              { chance: "11%", image: "/11.png", images: null, accent: "border-black" },
+                              { chance: "6.5%", image: "/6.5.png", images: null, accent: "border-black" },
+                              { chance: "0.5%", image: "/0.5.png", images: null, accent: "border-amber-300" },
+                              { chance: "1%", image: null, images: ["/1st-1-percent.png", "/2nd-1-percent.png", "/3rd-1-percent.png", "/4th-1-percent.png"], accent: "border-lime-300" },
+                            ].map((slot, slotIndex) => (
+                              <div
+                                key={slot.chance}
+                                className={`relative flex aspect-square items-center justify-center border-[3px] bg-[#04152d]/65 shadow-[3px_3px_0_rgba(0,0,0,0.75)] ${slot.accent}`}
+                              >
+                                <div className="absolute inset-1 border border-cyan-200/25" />
+                                {slot.images ? (
+                                  <div className="absolute inset-1 overflow-hidden">
+                                    {slot.images.map((image, imageIndex) => (
+                                      <img
+                                        key={image}
+                                        src={image}
+                                        alt={`${slot.chance} Luminous Egg reward ${imageIndex + 1}`}
+                                        loading="lazy"
+                                        decoding="async"
+                                        className="luminous-one-percent-frame absolute inset-0 h-full w-full object-contain"
+                                        style={{ animationDelay: `${imageIndex * 3}s` }}
+                                      />
+                                    ))}
+                                  </div>
+                                ) : slot.image ? (
+                                  <img
+                                    src={slot.image}
+                                    alt={`${slot.chance} Luminous Egg reward`}
+                                    loading="lazy"
+                                    decoding="async"
+                                    className="absolute inset-1 h-[calc(100%_-_0.5rem)] w-[calc(100%_-_0.5rem)] object-contain"
+                                  />
+                                ) : (
+                                  <div className="relative text-center">
+                                    <span className="mx-auto flex h-8 w-8 items-center justify-center rounded-full border-2 border-dashed border-cyan-100/70 text-sm font-black text-cyan-100 sm:h-11 sm:w-11">
+                                      {slotIndex + 1}
+                                    </span>
+                                    <p className="mt-1 text-[9px] font-black uppercase tracking-wide text-cyan-100/80 sm:text-xs">
+                                      Empty
+                                    </p>
+                                  </div>
+                                )}
+                                <span className="absolute bottom-1 right-1 z-10 text-sm font-black text-white drop-shadow-[2px_2px_0_#000] sm:text-lg">
+                                  {slot.chance}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
+                          {[
+                            { label: "50 Eggs", price: 13.99, comparePrice: 17.49 },
+                            { label: "10 Eggs", price: 3.19, comparePrice: 3.99 },
+                            { label: "3 Eggs", price: 0.99, comparePrice: 1.24 },
+                            { label: "1 Egg", price: 0.39, comparePrice: 0.49 },
+                          ].map((bundle) => {
+                            const bundleProduct = products.find(
+                              (product) => product.name.trim().toLowerCase() === bundle.label.toLowerCase()
+                            );
+                            const bundleUnavailable = !bundleProduct || isUnavailable(bundleProduct);
+
+                            return (
+                              <button
+                                key={bundle.label}
+                                type="button"
+                                disabled={bundleUnavailable}
+                                onClick={() => {
+                                  if (!bundleProduct || bundleUnavailable) return;
+                                  setAddingProductId(bundleProduct.id);
+                                  setTimeout(() => {
+                                    handleBuy(bundleProduct);
+                                    setAddingProductId(null);
+                                    setCartHit(true);
+                                    setTimeout(() => setCartHit(false), 500);
+                                  }, 500);
+                                }}
+                                className={`relative z-30 border-2 border-black px-3 py-2 text-center shadow-[3px_3px_0_#000] transition ${bundleUnavailable ? "cursor-not-allowed bg-lime-400/55 opacity-70" : "cursor-pointer bg-lime-400/90 hover:-translate-y-0.5 hover:bg-lime-300"}`}
+                              >
+                                <div className="flex items-baseline justify-center gap-1.5 text-black">
+                                  <span className="text-lg font-black">{formatMoney(bundle.price)}</span>
+                                  <span className="text-xs font-bold text-red-700 line-through">
+                                    {formatMoney(bundle.comparePrice)}
+                                  </span>
+                                </div>
+                                <p className="text-xs font-black text-black sm:text-sm">
+                                  {addingProductId === bundleProduct?.id ? "Adding..." : bundle.label}
+                                </p>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </section>
+                  ) : null}
                   <div className="grid auto-rows-fr grid-cols-2 gap-8 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6">
                     {paginatedProducts.map((product, productIndex) => {
                       const stockLabel = getStockLabel(product);
@@ -791,6 +957,78 @@ alt="Steal an Egg"
                       const discountPercent = getDiscountPercent(product);
                       const unavailableReason = getUnavailableReason(product);
 
+                      const usesStealAnEggCard = product.game === "steal-an-egg";
+
+                      if (usesStealAnEggCard) {
+                        return (
+                          <div
+                            id={(product.slug || product.name).toLowerCase().replace(/\s+/g, "-")}
+                            key={product.id}
+                            className="group relative flex w-full min-w-0 flex-col overflow-hidden border-4 border-black bg-white shadow-[7px_7px_0_rgba(0,0,0,0.55)] transition-transform duration-300 hover:-translate-y-1"
+                          >
+                            <PageTransitionLink
+                              href={`/products/${encodeURIComponent(product.slug || String(product.id))}`}
+                              ariaLabel={`View ${product.name}`}
+                              className="absolute inset-0 z-10"
+                            />
+
+                            <div className="relative aspect-square w-full shrink-0 overflow-hidden border-b-4 border-black bg-gradient-to-br from-cyan-300 via-sky-500 to-blue-800">
+                              <div className="pointer-events-none absolute inset-2 rounded-[18%] border-4 border-cyan-200/90" />
+                              <div className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(circle_at_50%_45%,rgba(255,255,255,0.5),transparent_38%)]" />
+                              {product.image_url ? (
+                                <img
+                                  src={product.image_url}
+                                  loading={productIndex < 12 ? "eager" : "lazy"}
+                                  decoding="async"
+                                  alt={product.name}
+                                  className="relative z-[1] h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                                />
+                              ) : (
+                                <div className="relative z-[1] h-28 w-28 rounded-full bg-gradient-to-br from-white via-cyan-200 to-blue-700 shadow-[0_0_45px_rgba(255,255,255,0.7)]" />
+                              )}
+                            </div>
+
+                            <div className="relative z-20 flex min-h-0 flex-1 flex-col items-center bg-white px-3 py-2 text-center text-black">
+                              <h3 className="w-full truncate font-serif text-base leading-tight text-black sm:text-lg">
+                                {product.name}
+                              </h3>
+
+                              <button
+                                onClick={() => {
+                                  if (outOfStock) return;
+                                  setAddingProductId(product.id);
+                                  setTimeout(() => {
+                                    handleBuy(product);
+                                    setAddingProductId(null);
+                                    setCartHit(true);
+                                    setTimeout(() => setCartHit(false), 500);
+                                  }, 500);
+                                }}
+                                disabled={outOfStock}
+                                className={`relative z-20 mt-auto flex h-10 w-[84%] items-center justify-center rounded-lg border-2 border-black bg-white px-3 font-serif text-base text-black transition [&_p]:!text-base [&_p]:!font-bold [&_p]:!text-black sm:text-lg sm:[&_p]:!text-lg ${outOfStock ? "cursor-not-allowed opacity-50" : addingProductId === product.id ? "cursor-wait bg-slate-200" : "cursor-pointer hover:bg-slate-100"}`}
+                              >
+                                {outOfStock ? (
+                                  "UNAVAILABLE"
+                                ) : addingProductId === product.id ? (
+                                  "ADDING..."
+                                ) : (
+                                  <span className="flex items-center justify-center gap-1.5 whitespace-nowrap font-bold">
+                                    <span>{formatMoney(Number(product.price))}</span>
+                                    {product.compare_at_price && Number(product.compare_at_price) > Number(product.price) ? (
+                                      <>
+                                        <span className="text-slate-500">/</span>
+                                        <span className="text-sm text-slate-500 line-through">
+                                          {formatMoney(Number(product.compare_at_price))}
+                                        </span>
+                                      </>
+                                    ) : null}
+                                  </span>
+                                )}
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      }
                       return (
                         <div
   id={(product.slug || product.name)

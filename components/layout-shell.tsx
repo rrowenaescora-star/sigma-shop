@@ -27,6 +27,7 @@ export default function LayoutShell({
     pathname.startsWith("/anime-defenders") ||
     pathname.startsWith("/manual-payment") ||
     pathname.startsWith("/grow-a-garden-2") ||
+    pathname.startsWith("/steal-an-egg") ||
     pathname.startsWith("/wallet") ||
     pathname.startsWith("/blade-ball") ||
     pathname.startsWith("/products") ||
@@ -35,6 +36,7 @@ export default function LayoutShell({
   const shops = [
     { href: "/home", img: "/games/bloxfruits.png", alt: "Blox Fruits", name: "Blox Fruits" },
     { href: "/grow-a-garden-2", img: "/games/grow-a-garden-2.png", alt: "Grow a Garden 2", name: "Grow a Garden 2" },
+    { href: "/steal-an-egg", img: "/steal-an-egg-icon.PNG", alt: "Steal an Egg", name: "Steal an Egg" },
   ];
 
   return (
@@ -145,7 +147,7 @@ export default function LayoutShell({
         </>
       )}
 
-      {hideGlobalLayout && !pathname.startsWith("/home") && !pathname.startsWith("/grow-a-garden-2") && !pathname.startsWith("/products") && !pathname.startsWith("/checkout") && !pathname.startsWith("/admin") && !pathname.startsWith("/terms") && !pathname.startsWith("/refund-policy") && !pathname.startsWith("/privacy-policy") && !pathname.startsWith("/delivery") && !pathname.startsWith("/contact") && <CustomerAvatarMenu className="fixed right-4 top-4" />}
+      {hideGlobalLayout && !pathname.startsWith("/home") && !pathname.startsWith("/grow-a-garden-2") && !pathname.startsWith("/steal-an-egg") && !pathname.startsWith("/products") && !pathname.startsWith("/checkout") && !pathname.startsWith("/admin") && !pathname.startsWith("/terms") && !pathname.startsWith("/refund-policy") && !pathname.startsWith("/privacy-policy") && !pathname.startsWith("/delivery") && !pathname.startsWith("/contact") && <CustomerAvatarMenu className="fixed right-4 top-4" />}
 
       <main className="flex-1">{children}</main>
 
@@ -153,3 +155,4 @@ export default function LayoutShell({
     </>
   );
 }
+

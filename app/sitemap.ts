@@ -31,6 +31,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: "https://bloxhop.com/anime-defenders",
       lastModified: new Date(),
     },
+    {
+      url: "https://bloxhop.com/steal-an-egg",
+      lastModified: new Date(),
+    },
 
     {
       url: "https://bloxhop.com/track-order",

@@ -127,7 +127,6 @@ export default function Storefront({ initialProducts, initialCapital, initialPhp
   const [mounted, setMounted] = useState(false);
 
   const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [cartPulse, setCartPulse] = useState(false);
   const [highlightedProductId, setHighlightedProductId] = useState<string | null>(null);
   const [popupProduct, setPopupProduct] = useState<Product | null>(null);
@@ -658,6 +657,7 @@ if (foundProduct) {
         { href: "/blade-ball", img: "/games/bladeball.png", alt: "Blade Ball", name: "Blade Ball" },
         { href: "/anime-defenders", img: "/games/animedefender.png", alt: "Anime Defender", name: "Anime Defender" },
 	{ href: "/grow-a-garden-2", img: "/games/grow-a-garden-2.png", alt: "Grow a Garden 2", name: "Grow a Garden 2" },
+    { href: "/steal-an-egg", img: "/steal-an-egg-icon.PNG", alt: "Steal an Egg", name: "Steal an Egg" },
       ].map((shop) => (
         <Link
           key={shop.name}
@@ -1033,135 +1033,10 @@ if (foundProduct) {
                     </button>
                   </div>
           </main>
-
-
-
-          <section className="mx-auto mt-20 max-w-5xl px-4 pb-24 text-center">
-            <p className="text-xs font-black uppercase tracking-[0.3em] text-blue-400">
-              Bloxhop Online Store
-            </p>
-
-            <h2 className="mt-4 text-4xl font-black leading-tight text-white md:text-5xl">
-              Fast, simple, and organized digital gaming services.
-            </h2>
-
-            <p className="mt-6 text-sm leading-8 text-slate-400 md:text-base">
-              Bloxhop is built to make digital product browsing easier with clear product cards,
-              category filters, order review, checkout flow, and customer support. Our goal is to
-              keep the shopping experience clean, transparent, and easy to understand before you
-              place an order.
-            </p>
-
-            <div className="mt-10 grid gap-4 md:grid-cols-3">
-              <div className="rounded-3xl bg-[#0f1b2d]/45 p-6 backdrop-blur-sm">
-                <h3 className="text-lg font-black text-white">Secure Flow</h3>
-                <p className="mt-3 text-sm leading-6 text-slate-400">
-                  Product details, order review, and checkout steps are organized clearly.
-                </p>
-              </div>
-
-              <div className="rounded-3xl bg-[#0f1b2d]/45 p-6 backdrop-blur-sm">
-                <h3 className="text-lg font-black text-white">Digital Fulfillment</h3>
-                <p className="mt-3 text-sm leading-6 text-slate-400">
-                  Orders are reviewed and fulfilled digitally after confirmation.
-                </p>
-              </div>
-
-              <div className="rounded-3xl bg-[#0f1b2d]/45 p-6 backdrop-blur-sm">
-                <h3 className="text-lg font-black text-white">Customer Support</h3>
-                <p className="mt-3 text-sm leading-6 text-slate-400">
-                  Support is available for order questions, delivery concerns, and updates.
-                </p>
-              </div>
-            </div>
-          </section>
         </div>
       </div>
-<section className="mx-auto mt-24 max-w-7xl px-4 pb-28">
-  <div className="mb-10 text-center">
-    <p className="text-sm font-black uppercase tracking-[0.3em] text-blue-400">
-      Help Center
-    </p>
-
-    <h2 className="mt-4 text-4xl font-black text-white">
-      Questions Before You Order?
-    </h2>
-
-    <p className="mt-4 text-slate-400">
-      Quick answers about checkout, delivery, support, and order safety.
-    </p>
-  </div>
-
-  <div className="mx-auto grid max-w-4xl gap-4">
-    {[
-      {
-        q: "How does Bloxhop's Blox Fruits delivery work?",
-        a: "Bloxhop's order process is designed to be simple and organized:\n\nSelect your preferred products from the store and review your cart before checkout.\n\nEnter and verify your Roblox username to help ensure accurate account details.\n\nComplete checkout using the available payment methods shown on the website.\n\nAfter payment confirmation, submitted order details are reviewed and prepared by our team.\n\nCustomers should follow any instructions or updates provided after checkout.\n\nProcessing times may vary depending on queue volume, product availability, and order status.",
-      },
-      {
-        q: "How long does delivery usually take?",
-        a: "Most orders are processed shortly after successful payment confirmation. Actual fulfillment time may vary depending on product availability, order volume, transaction verification, customer availability, platform limitations, and technical circumstances.",
-      },
-      {
-        q: "What should I do if I entered the wrong Roblox username?",
-        a: "Before checkout, customers can verify their Roblox username using our username verification system to help ensure the correct account details are submitted. Please carefully review all information before completing your order.",
-      },
-      {
-        q: "Can I cancel or refund an order?",
-     a: "Refund requests are reviewed based on order status and delivery progress. If an order cannot be completed or delivered, eligible customers may receive a full refund according to our support review process.",
-      },
-      {
-      q: "Does Bloxhop host community giveaways?",
-      a: "Yes. Bloxhop occasionally hosts limited-time giveaways and community events through our official channels. Follow our updates and Discord announcements for future giveaway opportunities and participation details.",
-      },
-      {
-        q: "Where can I ask for order help?",
-        a: "You can contact support through Discord or the support details shown on the website.",
-      },
-    ].map((item, index) => (
-      <div
-        key={item.q}
-       className="overflow-hidden rounded-2xl border border-white/10 bg-[#0b1628]/80 transition hover:border-blue-400/30"
-      >
-        <button
-          onClick={() => setOpenFaq(openFaq === index ? null : index)}
-          className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left"
-        >
-          <span className="text-base font-black text-white md:text-lg">
-            {item.q}
-          </span>
-
-          <svg
-  xmlns="http://www.w3.org/2000/svg"
-  className={`h-5 w-5 text-slate-400 transition-transform duration-300 ${
-    openFaq === index ? "rotate-180 text-blue-300" : ""
-  }`}
-  fill="none"
-  viewBox="0 0 24 24"
-  stroke="currentColor"
-  strokeWidth={2.5}
->
-  <path
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    d="M19 9l-7 7-7-7"
-  />
-</svg>
-        </button>
-
-        {openFaq === index && (
-          <div className="border-t border-white/5 px-6 pb-5 pt-1">
-            <p className="text-sm leading-7 text-slate-400">
-              {item.a}
-            </p>
-          </div>
-        )}
-      </div>
-    ))}
-  </div>
-</section>
       <>
-<section className="relative w-full overflow-hidden border-t border-white/10 bg-[#07111f]">
+<section className="relative mt-16 w-full overflow-hidden border-t border-white/10 bg-[#07111f] md:mt-24">
 
   <img
     src="/mm2-logo.webp"
@@ -1586,3 +1461,4 @@ if (foundProduct) {
     </div>
   );
 }
+

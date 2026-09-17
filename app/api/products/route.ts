@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
+import { localizeProductImage } from "@/lib/local-product-images";
 
 const PRODUCT_FIELDS = "id,name,slug,price,compare_at_price,cost_value,tag,stock,stock_quantity,category,description,image_url,is_active,game,display_order,mobile_display_order,grid_span";
 const LEGACY_PRODUCT_FIELDS = "id,name,slug,price,compare_at_price,cost_value,tag,stock,stock_quantity,category,description,image_url,is_active,game";
@@ -28,7 +29,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: result.error.message || "Failed to load products." }, { status: 500 });
     }
 
-    return NextResponse.json({ products: result.data || [], count: result.count ?? 0 });
+    return NextResponse.json({ products: (result.data || []).map(localizeProductImage), count: result.count ?? 0 });
   } catch (error) {
     console.error("GET /api/products server error:", error);
     return NextResponse.json({ error: "Failed to load products." }, { status: 500 });

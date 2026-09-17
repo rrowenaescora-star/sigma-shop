@@ -29,7 +29,16 @@ function isUnavailable(product: Product) {
 }
 
 function getShopPath(product: Product) {
-  return (product.game || "").toLowerCase().includes("grow") ? "/grow-a-garden-2" : "/home";
+  const game = (product.game || "").toLowerCase();
+  if (game === "steal-an-egg" || game.includes("steal an egg")) return "/steal-an-egg";
+  if (game.includes("grow")) return "/grow-a-garden-2";
+  return "/home";
+}
+
+function getShopIcon(shopPath: string) {
+  if (shopPath === "/steal-an-egg") return "/steal-an-egg-icon.PNG";
+  if (shopPath === "/grow-a-garden-2") return "/games/grow-a-garden-2.png";
+  return "/games/bloxfruits.png";
 }
 
 export default function ProductDetailsPage({ initialProduct }: { initialProduct: Product | null }) {
@@ -98,7 +107,7 @@ export default function ProductDetailsPage({ initialProduct }: { initialProduct:
             <div className="flex items-center gap-3"><BackTransitionButton fallbackHref={shopPath} className="rounded-lg border border-white/10 bg-[#0b1628]/80 px-3 py-2 text-xs font-bold text-white transition hover:bg-white/10">Back to shop</BackTransitionButton><CustomerAvatarMenu /></div>
           </div>
         </div>
-        <div className="border-t border-white/5 bg-[#081220]/80"><div className="mx-auto flex max-w-[1850px] items-center gap-3 px-5 py-2 md:px-8"><img src={shopPath === "/grow-a-garden-2" ? "/games/grow-a-garden-2.png" : "/games/bloxfruits.png"} alt="" className="h-8 w-8 rounded-lg object-cover" /><span className="text-base font-black text-white">{product.game || "Blox Fruit"}</span><span className="text-xs text-slate-400">/ Product details</span></div></div>
+        <div className="border-t border-white/5 bg-[#081220]/80"><div className="mx-auto flex max-w-[1850px] items-center gap-3 px-5 py-2 md:px-8"><img src={getShopIcon(shopPath)} alt="" className="h-8 w-8 rounded-lg object-cover" /><span className="text-base font-black text-white">{product.game || "Blox Fruit"}</span><span className="text-xs text-slate-400">/ Product details</span></div></div>
       </header>
       <main className="min-h-screen bg-[#07111f] px-4 pb-0 pt-[280px] text-white sm:px-6 lg:px-10">
       <div className="product-page-enter mx-auto max-w-6xl">

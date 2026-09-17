@@ -137,32 +137,7 @@ export default function LandingPage({ initialFeaturedImages }: { initialFeatured
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(6,16,29,0.98)_0%,rgba(6,16,29,0.88)_40%,rgba(6,16,29,0.52)_68%,rgba(6,16,29,0.72)_100%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_42%,rgba(37,99,235,0.24),transparent_28%),radial-gradient(circle_at_20%_45%,rgba(14,165,233,0.07),transparent_25%)]" />
 
-        <div className="pointer-events-none absolute right-[-120px] top-1/2 z-0 hidden h-[420px] w-[420px] -translate-y-1/2 opacity-30 sm:right-[-40px] sm:h-[520px] sm:w-[520px] lg:block lg:right-[50px] lg:h-[650px] lg:w-[700px] lg:max-w-[58vw] lg:opacity-100">
-          <img
-            src="/videos/layer1.webp"
-            alt=""
-            aria-hidden="true"
-            className="hero-layer1-pulse absolute inset-0 h-full w-full object-contain"
-          />
-          <img
-            src="/videos/layer2.webp"
-            alt="Bloxhop hero"
-            className="hero-layer2-drift absolute inset-0 h-full w-full object-contain drop-shadow-[0_0_90px_rgba(59,130,246,0.45)]"
-          />          <img
-            src="/videos/layer3.png"
-            alt=""
-            aria-hidden="true"
-            className="hero-layer3-float absolute inset-0 h-full w-full object-contain opacity-90"
-          />
-          <img
-            src="/videos/layer4.png"
-            alt=""
-            aria-hidden="true"
-            className="hero-layer4-float absolute inset-0 h-full w-full object-contain opacity-90"
-          />
-        </div>
-
-        <div className="relative z-10 mx-auto grid max-w-[1500px] items-center gap-10 px-4 py-12 sm:px-6 sm:py-16 lg:grid-cols-[0.9fr_1.1fr] lg:gap-12 lg:py-24">
+<div className="relative z-10 mx-auto grid max-w-[1500px] items-center gap-10 px-4 py-12 sm:px-6 sm:py-16 lg:grid-cols-[0.9fr_1.1fr] lg:gap-12 lg:py-24">
           <div>
             <h1 className="mt-5 max-w-3xl text-4xl font-black leading-[1.05] tracking-tight sm:text-5xl md:text-6xl">
               Level Up Your Game

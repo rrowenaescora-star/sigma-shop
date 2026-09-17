@@ -1,6 +1,7 @@
 import "server-only";
 
 import { supabase } from "@/lib/supabase";
+import { getLocalProductImage, localizeProductImage } from "@/lib/local-product-images";
 
 export type StorefrontProduct = {
   id: number;
@@ -38,7 +39,7 @@ export async function getStorefrontProducts(game: string): Promise<StorefrontPro
     return [];
   }
 
-  return rows || [];
+  return (rows || []).map(localizeProductImage);
 }
 export async function getStorefrontProduct(key: string): Promise<StorefrontProduct | null> {
   const base = () => supabase.from("products").select(PRODUCT_FIELDS).eq("is_active", true);
@@ -52,7 +53,7 @@ export async function getStorefrontProduct(key: string): Promise<StorefrontProdu
     return null;
   }
 
-  return result.data as StorefrontProduct | null;
+  return result.data ? localizeProductImage(result.data as StorefrontProduct) : null;
 }
 export type StorefrontBootstrap = {
   products: StorefrontProduct[];
@@ -87,10 +88,10 @@ export async function getStorefrontBootstrap(game: string): Promise<StorefrontBo
 }
 export async function getLandingFeaturedImages(): Promise<Record<string, string>> {
   const names = ["Black Dragon", "Ice Serpent", "Unicorn"];
-  const { data, error } = await supabase.from("products").select("name,image_url").in("name", names).eq("is_active", true);
+  const { data, error } = await supabase.from("products").select("id,name,image_url").in("name", names).eq("is_active", true);
   if (error) {
     console.error("Failed to load landing featured images:", error);
     return {};
   }
-  return Object.fromEntries((data || []).filter((product) => product.image_url).map((product) => [String(product.name).trim().toLowerCase(), String(product.image_url)]));
+  return Object.fromEntries((data || []).filter((product) => product.image_url).map((product) => [String(product.name).trim().toLowerCase(), String(getLocalProductImage(product.id, product.image_url))]));
 }

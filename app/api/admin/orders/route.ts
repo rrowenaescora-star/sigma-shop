@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
@@ -113,6 +113,7 @@ export async function PATCH(request: Request) {
     }
 
     if (data.delivery_status === "Delivered") {
+      after(async () => {
       try {
         await sendDiscordDeliveredNotification({
           orderId: data.id,
@@ -378,6 +379,7 @@ export async function PATCH(request: Request) {
       } else {
         console.log("No valid email found for this order.");
       }
+      });
     }
 
     return NextResponse.json({ success: true, order: data });

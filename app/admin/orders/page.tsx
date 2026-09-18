@@ -18,14 +18,33 @@ type Order = {
   payment_method?: string;
   payment_provider?: string | null;
   xendit_reference_id?: string | null;
+  notes?: string | null;
 
   items?: {
     name: string;
     quantity?: number;
     price?: number;
+    game?: string | null;
   }[];
 };
 
+function isStealAnEggOrder(order: Order) {
+  return Boolean(order.notes?.startsWith("STEAL_AN_EGG") || order.items?.some((item) => item.game === "steal-an-egg"));
+}
+
+function robloxProfileUrl(order: Order) {
+  const userId = order.notes?.match(/Roblox user id:\s*(\d+)/i)?.[1];
+  if (userId) return `https://www.roblox.com/users/${userId}/profile`;
+  return `https://www.roblox.com/search/users?keyword=${encodeURIComponent(order.roblox_username || "")}`;
+}
+function isValidRobloxInvitation(value: string | null | undefined) {
+  try {
+    const url = new URL(value || "");
+    return url.protocol === "https:" && (url.hostname === "roblox.com" || url.hostname.endsWith(".roblox.com"));
+  } catch {
+    return false;
+  }
+}
 export default function AdminOrdersPage() {
   const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
@@ -35,7 +54,7 @@ export default function AdminOrdersPage() {
   const [sendingEmailId, setSendingEmailId] = useState<string | null>(null);
   const [message, setMessage] = useState("");
 
-  async function fetchOrders() {
+  async function fetchOrders(silent = false) {
     try {
       const res = await fetch("/api/admin/orders");
 
@@ -47,7 +66,7 @@ export default function AdminOrdersPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        alert(data.error || "Failed to fetch orders");
+        if (!silent) alert(data.error || "Failed to fetch orders");
         return;
       }
 
@@ -72,7 +91,7 @@ export default function AdminOrdersPage() {
       setOrders(activeOrders);
     } catch (error) {
       console.error(error);
-      alert("Error fetching orders");
+      if (!silent) alert("Error fetching orders");
     } finally {
       setLoading(false);
     }
@@ -80,6 +99,11 @@ export default function AdminOrdersPage() {
 
   useEffect(() => {
     fetchOrders();
+    const timer = window.setInterval(() => {
+      const editing = document.activeElement?.matches("input, select, textarea");
+      if (document.visibilityState === "visible" && !editing) fetchOrders(true);
+    }, 5000);
+    return () => window.clearInterval(timer);
   }, []);
 
   const filteredOrders = useMemo(() => {
@@ -148,7 +172,7 @@ export default function AdminOrdersPage() {
       }
 
       setMessage(`Order #${id} saved successfully.`);
-      await fetchOrders();
+      void fetchOrders(true);
 
       setTimeout(() => {
         setMessage("");
@@ -326,6 +350,37 @@ export default function AdminOrdersPage() {
                 </div>
               </div>
 
+              {isStealAnEggOrder(order) && (
+                <div className="mt-5 rounded-2xl border border-cyan-400/20 bg-cyan-400/[.06] p-4">
+                  <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                    <div>
+                      <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-300">Steal an Egg fulfillment</p>
+                      <p className="mt-1 text-sm text-slate-300">This status refreshes every five seconds and updates the customer automatically.</p>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {order.roblox_username && order.roblox_username !== "Pending after payment" && (
+                        <a href={robloxProfileUrl(order)} target="_blank" rel="noreferrer" className="rounded-xl border border-white/15 bg-white/10 px-4 py-2 text-sm font-bold hover:bg-white/15">Open Roblox profile ↗</a>
+                      )}
+                      {order.delivery_status === "Friend request awaiting verification" && (
+                        <button onClick={() => updateOrder(order.id, { deliveryStatus: "Friend request verified" })} disabled={savingId === order.id} className="rounded-xl bg-emerald-500 px-4 py-2 text-sm font-black hover:bg-emerald-400 disabled:opacity-60">{savingId === order.id ? "Saving…" : "Verify Friend Request"}</button>
+                      )}
+                      {["Friend request verified", "Delivering"].includes(order.delivery_status) && (
+                        <button onClick={() => updateOrder(order.id, { deliveryStatus: "Delivering", deliveryNotes: order.delivery_notes })} disabled={savingId === order.id || !isValidRobloxInvitation(order.delivery_notes)} className="rounded-xl bg-violet-500 px-4 py-2 text-sm font-black hover:bg-violet-400 disabled:cursor-not-allowed disabled:opacity-50">{savingId === order.id ? "Sending…" : order.delivery_status === "Delivering" ? "Resend Server Invitation" : "Send Server Invitation"}</button>
+                      )}
+                      {order.delivery_status === "Delivering" && (
+                        <button onClick={() => updateOrder(order.id, { deliveryStatus: "Delivered", status: "Completed" })} disabled={savingId === order.id} className="rounded-xl bg-blue-500 px-4 py-2 text-sm font-black hover:bg-blue-400 disabled:opacity-60">{savingId === order.id ? "Saving…" : "Mark Delivered"}</button>
+                      )}
+                    </div>
+                  </div>
+                  {["Friend request verified", "Delivering"].includes(order.delivery_status) && (
+                    <div className="mt-4">
+                      <label className="text-xs font-bold uppercase tracking-[0.15em] text-slate-400">Roblox server invitation link</label>
+                      <input value={order.delivery_notes || ""} onChange={(event) => setOrders((previous) => previous.map((item) => item.id === order.id ? { ...item, delivery_notes: event.target.value } : item))} placeholder="https://www.roblox.com/share?..." className={`mt-2 w-full rounded-xl border bg-[#07111f] px-4 py-3 text-sm text-white outline-none ${order.delivery_notes && !isValidRobloxInvitation(order.delivery_notes) ? "border-red-400" : "border-white/10 focus:border-cyan-300"}`} />
+                      {order.delivery_notes && !isValidRobloxInvitation(order.delivery_notes) && <p className="mt-2 text-xs font-bold text-red-300">Paste a valid HTTPS roblox.com invitation link.</p>}
+                    </div>
+                  )}
+                </div>
+              )}
               <div className="mt-5 grid gap-3 md:grid-cols-6">
                 <select
                   className="rounded-2xl border border-white/10 bg-[#0b1220] px-4 py-3 text-white outline-none"
@@ -360,6 +415,11 @@ export default function AdminOrdersPage() {
                   }
                 >
                   <option className="bg-[#0b1220] text-white">Pending</option>
+                  <option className="bg-[#0b1220] text-white">Awaiting payment</option>
+                  <option className="bg-[#0b1220] text-white">Account selected</option>
+                  <option className="bg-[#0b1220] text-white">Friend request awaiting verification</option>
+                  <option className="bg-[#0b1220] text-white">Friend request verified</option>
+                  <option className="bg-[#0b1220] text-white">Delivering</option>
                   <option className="bg-[#0b1220] text-white">Delivered</option>
                 </select>
 

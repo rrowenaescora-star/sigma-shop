@@ -551,8 +551,8 @@ if (foundProduct) {
   }, [currentPage, totalPages]);
 
   return (
-    <div className="relative min-h-screen bg-[#07111f] text-white">
-<div className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(circle_at_top,rgba(59,130,246,0.10),transparent_25%),radial-gradient(circle_at_bottom_right,rgba(14,165,233,0.08),transparent_30%)]" />
+    <div className="relative min-h-screen bg-[#031827] text-white">
+<div className="pointer-events-none absolute inset-0 z-0 bg-[linear-gradient(135deg,rgba(0,181,216,.18),transparent_40%),radial-gradient(circle_at_bottom_right,rgba(126,235,0,.14),transparent_32%)]" />
 
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
         <div className="absolute -left-32 top-[12%] h-72 w-72 animate-[orbFloat_9s_ease-in-out_infinite] rounded-full bg-pink-500/10 blur-3xl" />
@@ -564,14 +564,14 @@ if (foundProduct) {
      <div className="relative w-full px-0 pt-[140px]">
     
 <div className="fixed inset-x-0 top-0 z-50">
-  <div className="overflow-visible border-b border-blue-500/10 bg-[#07111f]/95 shadow-[0_15px_50px_rgba(0,0,0,0.45)] backdrop-blur-xl">
+  <div className="overflow-visible border-b-4 border-black bg-gradient-to-r from-[#087397] via-[#09bcd4] to-[#1955b9] shadow-[0_6px_0_#000]">
     <div className="absolute inset-0 hidden md:block">
       <img
         src="/steal-an-egg-logo.png"
         alt="Background"
         className="h-full w-full object-cover opacity-70"
       />
-      <div className="absolute inset-0 bg-gradient-to-r from-[#07111f]/80 via-[#07111f]/45 to-[#07111f]/80" />
+      <div className="absolute inset-0 bg-gradient-to-r from-[#07345f]/90 via-[#09bcd4]/60 to-[#07345f]/90" />
     </div>
 
    <div className="relative mx-auto flex max-w-[1850px] flex-col gap-4 px-4 py-4 md:flex-row md:items-center md:justify-between md:px-8">
@@ -603,7 +603,7 @@ if (foundProduct) {
           <Image src="/discord2.webp" alt="Discord" width={50} height={25} />
         </Link>
 
-        <div className="flex max-w-full items-center overflow-x-auto rounded-2xl border border-white/10 bg-[#0b1628]/80 p-1 backdrop-blur-xl">
+        <div className="flex max-w-full items-center overflow-x-auto rounded-xl border-[3px] border-black bg-[#061b2f] p-1 shadow-[3px_3px_0_#000]">
           {[
   { label: "USD", flag: "https://flagcdn.com/w20/us.png" },
   { label: "PHP", flag: "https://flagcdn.com/w20/ph.png" },
@@ -616,7 +616,7 @@ if (foundProduct) {
     }
     className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition ${
       currencyView === currency.label
-        ? "bg-gradient-to-r from-blue-500 to-cyan-400 text-white shadow-[0_10px_35px_rgba(59,130,246,0.35)]"
+        ? "bg-[#7eeb00] text-black shadow-[2px_2px_0_#000]"
         : "text-slate-300 hover:bg-white/5"
     }`}
   >
@@ -635,14 +635,14 @@ if (foundProduct) {
     </div>
   </div>
 
-  <div className="border-b border-blue-500/10 bg-[#081220]/20 backdrop-blur-xl">
+  <div className="border-b-4 border-black bg-[#07345f]">
     <div className="relative flex flex-col gap-3 px-4 py-3 md:px-8 lg:h-[58px] lg:flex-row lg:items-center">
 <div className="group relative hidden lg:block">
   <button className="flex items-center gap-3 px-2  py-2 transition hover:bg-white/5">
     <img
   src="/steal-an-egg-icon.PNG"
 alt="Steal an Egg"
-  className="h-10 w-10 rounded-xl object-cover"
+  className="h-10 w-10 rounded-lg border-2 border-black bg-white object-cover"
 />
 
 <div className="flex items-center gap-2">
@@ -697,8 +697,8 @@ alt="Steal an Egg"
           <button
             key={category}
             onClick={() => setSelectedCategory(category)}
-            className={`transition duration-300 hover:text-white hover:drop-shadow-[0_0_10px_rgba(96,165,250,0.8)] ${
-              selectedCategory === category ? "underline text-white" : "text-slate-400"
+            className={`rounded-md border-2 border-transparent px-3 py-1 transition duration-300 hover:border-black hover:bg-[#7eeb00] hover:text-black ${
+              selectedCategory === category ? "border-black bg-[#7eeb00] text-black shadow-[2px_2px_0_#000]" : "text-cyan-50"
             }`}
           >
             {category}
@@ -718,13 +718,13 @@ alt="Steal an Egg"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search products..."
-                    className="w-full rounded-2xl border border-slate-700/60 bg-[#0b1628] px-4 py-3 outline-none placeholder:text-slate-500"
+                    className="w-full rounded-xl border-[3px] border-black bg-white px-4 py-3 font-bold text-[#061b2f] shadow-[3px_3px_0_#000] outline-none placeholder:text-slate-500"
                   />
 
                   <div className="relative w-full lg:w-[230px]">
                     <button
                       onClick={() => setSortDropdownOpen(!sortDropdownOpen)}
-                      className="flex w-full items-center justify-between rounded-2xl border border-white/5 bg-[#111827]/95 px-4 py-3 text-sm font-semibold text-white shadow-[0_6px_20px_rgba(0,0,0,0.35)] backdrop-blur-xl transition-all duration-300 hover:border-blue-400/20 hover:bg-[#172033]"
+                      className="flex w-full items-center justify-between rounded-xl border-[3px] border-black bg-[#7eeb00] px-4 py-3 text-sm font-black text-black shadow-[3px_3px_0_#000] transition-all duration-300 hover:bg-[#92ff14]"
                     >
                       <span>
                         {sortOption === "default" && "✨ Default"}
@@ -781,7 +781,7 @@ alt="Steal an Egg"
   </div>
 </div>
 
-<div className="grid w-full max-w-none lg:grid-cols-[320px_minmax(0,1fr)]">
+<div className="grid w-full max-w-none gap-2 lg:grid-cols-[320px_minmax(0,1fr)]">
           <ProductFilterSidebar
             totalItems={visibleProducts.length}
             inStockItems={visibleProducts.filter((product) => !isUnavailable(product)).length}
@@ -795,6 +795,7 @@ alt="Steal an Egg"
             availabilityFilter={availabilityFilter}
             onCategoryChange={setSelectedCategory}
             onAvailabilityChange={setAvailabilityFilter}
+            variant="steal-an-egg"
           />
           <main className="min-w-0 px-4 md:px-6 lg:px-8">
           <section className="p-2 md:p-4">
@@ -964,7 +965,7 @@ alt="Steal an Egg"
                           <div
                             id={(product.slug || product.name).toLowerCase().replace(/\s+/g, "-")}
                             key={product.id}
-                            className="group relative flex w-full min-w-0 flex-col overflow-hidden border-4 border-black bg-white shadow-[7px_7px_0_rgba(0,0,0,0.55)] transition-transform duration-300 hover:-translate-y-1"
+                            className="group relative flex w-full min-w-0 flex-col overflow-hidden rounded-xl border-4 border-black bg-[#7eeb00] shadow-[7px_7px_0_#000] transition-transform duration-300 hover:-translate-y-1"
                           >
                             <PageTransitionLink
                               href={`/products/${encodeURIComponent(product.slug || String(product.id))}`}
@@ -988,7 +989,7 @@ alt="Steal an Egg"
                               )}
                             </div>
 
-                            <div className="relative z-20 flex min-h-0 flex-1 flex-col items-center bg-white px-3 py-2 text-center text-black">
+                            <div className="relative z-20 flex min-h-0 flex-1 flex-col items-center border-t-0 bg-gradient-to-b from-[#eaffd0] to-[#7eeb00] px-3 py-2 text-center text-black">
                               <h3 className="w-full truncate font-serif text-base leading-tight text-black sm:text-lg">
                                 {product.name}
                               </h3>
@@ -1005,7 +1006,7 @@ alt="Steal an Egg"
                                   }, 500);
                                 }}
                                 disabled={outOfStock}
-                                className={`relative z-20 mt-auto flex h-10 w-[84%] items-center justify-center rounded-lg border-2 border-black bg-white px-3 font-serif text-base text-black transition [&_p]:!text-base [&_p]:!font-bold [&_p]:!text-black sm:text-lg sm:[&_p]:!text-lg ${outOfStock ? "cursor-not-allowed opacity-50" : addingProductId === product.id ? "cursor-wait bg-slate-200" : "cursor-pointer hover:bg-slate-100"}`}
+                                className={`relative z-20 mt-auto flex h-10 w-[84%] items-center justify-center rounded-lg border-[3px] border-black bg-white shadow-[3px_3px_0_#000] px-3 font-serif text-base text-black transition [&_p]:!text-base [&_p]:!font-bold [&_p]:!text-black sm:text-lg sm:[&_p]:!text-lg ${outOfStock ? "cursor-not-allowed opacity-50" : addingProductId === product.id ? "cursor-wait bg-slate-200" : "cursor-pointer hover:bg-slate-100"}`}
                               >
                                 {outOfStock ? (
                                   "UNAVAILABLE"
@@ -1139,7 +1140,7 @@ alt="Steal an Egg"
       ? "cursor-not-allowed bg-slate-700 text-slate-300"
       : addingProductId === product.id
 	? "cursor-wait bg-blue-400 text-white"
-	: "cursor-pointer bg-blue-500 text-white hover:bg-blue-400"
+	: "cursor-pointer border-2 border-black bg-[#7eeb00] text-black shadow-[2px_2px_0_#000] hover:bg-blue-400"
   }`}
   disabled={outOfStock}
 >
@@ -1183,7 +1184,7 @@ alt="Steal an Egg"
                 </>
               )}
             </section>
-	                  <div className="mt-6 flex flex-wrap items-center justify-center gap-1.5">
+	                  <div className="mt-8 flex flex-wrap items-center justify-center gap-2">
                     <button
                       onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                       disabled={currentPage === 1}
@@ -1203,8 +1204,8 @@ alt="Steal an Egg"
                           onClick={() => setCurrentPage(pageNumber)}
                           className={`flex h-8 w-8 items-center justify-center rounded-lg p-0 text-xs font-bold transition ${
                             currentPage === pageNumber
-                              ? "bg-blue-500 text-white"
-                              : "bg-[#142846]/80 text-white hover:bg-[#1b3558]/90"
+                              ? "border-2 border-black bg-[#7eeb00] text-black shadow-[2px_2px_0_#000]"
+                              : "border-2 border-black bg-white text-black hover:bg-[#dfffb8]"
                           }`}
                         >
                           {pageNumber}
@@ -1220,7 +1221,7 @@ alt="Steal an Egg"
                       className={`h-8 rounded-lg px-3 text-xs font-bold transition ${
                         currentPage === totalPages
                           ? "cursor-not-allowed bg-slate-700 text-slate-400"
-                          : "bg-[#142846]/80 text-white hover:bg-[#1b3558]/90"
+                          : "border-2 border-black bg-white text-black hover:bg-[#dfffb8]"
                       }`}
                     >
                       Next
@@ -1427,11 +1428,11 @@ alt="Steal an Egg"
            
             <div className="mt-4">
 <Link
-                href="/checkout"
+                href="/steal-an-egg/checkout"
                 className={`flex h-10 w-full items-center justify-center whitespace-nowrap rounded-xl px-3 text-sm font-bold transition ${
                   cartItems.length === 0
                     ? "pointer-events-none bg-slate-700 text-slate-300"
-                    : "bg-blue-500 text-white hover:bg-blue-400"
+                    : "border-2 border-black bg-[#7eeb00] text-black shadow-[2px_2px_0_#000] hover:bg-blue-400"
                 }`}
               >
                 Checkout
@@ -1461,7 +1462,7 @@ alt="Steal an Egg"
         >
           <div className={`flex h-12 w-12 items-center justify-center rounded-2xl border border-blue-400/30 bg-[#0b1628] text-blue-300 shadow-[0_0_20px_rgba(59,130,246,0.18)] transition-all duration-300 hover:scale-105 hover:border-blue-300 hover:text-white ${
   cartItems.length > 0 && !isCartOpen
-  ? "bg-blue-500 text-white shadow-[0_0_35px_rgba(59,130,246,0.55)]"
+  ? "border-2 border-black bg-[#7eeb00] text-black shadow-[2px_2px_0_#000] shadow-[0_0_35px_rgba(59,130,246,0.55)]"
   : ""
 }`}>
   <svg
@@ -1489,7 +1490,7 @@ alt="Steal an Egg"
 {cartItems.length > 0 && !isCartOpen && (
   <button
     onClick={() => setIsCartOpen(true)}
-    className="fixed bottom-8 left-1/2 z-50 flex -translate-x-1/2 animate-[premiumFloat_3.5s_ease-in-out_infinite] items-center gap-4 overflow-hidden rounded-[2rem] border border-pink-400/30 bg-gradient-to-br from-[#2b0f3f] via-[#1b1038] to-[#091224] px-7 py-4 shadow-[0_0_55px_rgba(236,72,153,0.55)] backdrop-blur-2xl transition-all duration-300 hover:scale-105 hover:shadow-[0_0_80px_rgba(168,85,247,0.75)]">
+    className="fixed bottom-8 left-1/2 z-50 flex -translate-x-1/2 animate-[premiumFloat_3.5s_ease-in-out_infinite] items-center gap-4 overflow-hidden rounded-2xl border-[4px] border-black bg-gradient-to-r from-[#7eeb00] to-[#09bcd4] px-7 py-4 text-black shadow-[7px_7px_0_#000] transition-all duration-300 hover:scale-105">
 	<div className="absolute inset-0 overflow-hidden rounded-[2rem]">
   <div className="absolute -left-[50%] top-0 h-full w-[500%] rotate-5 bg-gradient-to-r from-transparent via-pink-700/40 to-transparent blur-xl animate-[shine_5.5s_linear_infinite]" />
 </div>

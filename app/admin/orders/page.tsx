@@ -78,7 +78,7 @@ export default function AdminOrdersPage() {
         if (order.payment_method === "Shopify" && paymentStatus !== "paid") {
           return false;
         }
-        if ((order.payment_provider === "paypal" || order.payment_method === "PayPal") && paymentStatus !== "paid") {
+        if ((order.payment_provider === "paypal" || order.payment_provider === "paymongo" || order.payment_method === "PayPal" || order.payment_method === "PayMongo") && paymentStatus !== "paid") {
           return false;
         }
         return !(

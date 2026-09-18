@@ -7,7 +7,7 @@ const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env
 
 async function ownedPaidOrder(orderId: number) {
   const token = (await cookies()).get(PAYPAL_GUEST_COOKIE)?.value;
-  const { data } = await supabase.from("orders").select("id,roblox_username,items,payment_status,delivery_status,delivery_notes,notes,checkout_session_hash,payment_provider").eq("id", orderId).eq("payment_provider", "paypal").single();
+  const { data } = await supabase.from("orders").select("id,roblox_username,items,payment_status,delivery_status,delivery_notes,notes,checkout_session_hash,payment_provider").eq("id", orderId).in("payment_provider", ["paypal", "paymongo"]).single();
   if (!data || !guestSessionsMatch(token, data.checkout_session_hash) || !String(data.notes || "").startsWith("STEAL_AN_EGG")) return null;
   return data;
 }

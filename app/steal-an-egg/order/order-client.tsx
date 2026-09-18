@@ -10,6 +10,7 @@ type Fulfillment={paid:boolean;username:string|null;deliveryStatus:string;invita
 export default function StealAnEggOrderClient(){
   const search=useSearchParams();
   const orderId=Number(search.get("orderId"));
+  const paymentProvider=search.get("provider");
   const [paymentChecking,setPaymentChecking]=useState(true);
   const [paid,setPaid]=useState(false);
   const [query,setQuery]=useState("");
@@ -28,8 +29,16 @@ export default function StealAnEggOrderClient(){
 
   useEffect(()=>{
     if(!Number.isInteger(orderId)||orderId<1){setPaymentChecking(false);return;}
-    fetch(`/api/paypal/order-status?orderId=${orderId}`,{cache:"no-store"}).then(async response=>({ok:response.ok,data:await response.json()})).then(({ok,data})=>{const confirmed=ok&&data.paid===true;setPaid(confirmed);setPaymentChecking(false);if(confirmed){try{const cart=JSON.parse(localStorage.getItem("real-cart")||"[]");localStorage.setItem("real-cart",JSON.stringify(Array.isArray(cart)?cart.filter((item:any)=>item.game!=="steal-an-egg"):[]));window.dispatchEvent(new Event("bloxhop-cart-updated"));}catch{}refreshStatus();}}).catch(()=>setPaymentChecking(false));
-  },[orderId,refreshStatus]);
+    let stopped=false;let timer:number|undefined;
+    const clearPurchasedCart=()=>{try{const cart=JSON.parse(localStorage.getItem("real-cart")||"[]");localStorage.setItem("real-cart",JSON.stringify(Array.isArray(cart)?cart.filter((item:any)=>item.game!=="steal-an-egg"):[]));window.dispatchEvent(new Event("bloxhop-cart-updated"));}catch{}};
+    if(paymentProvider==="paymongo"){
+      let attempts=0;
+      const check=async()=>{try{const response=await fetch(`/api/steal-an-egg/fulfillment?orderId=${orderId}`,{cache:"no-store"});const data=await response.json();if(stopped)return;if(response.ok&&data.paid===true){setFulfillment(data);setPaid(true);setPaymentChecking(false);clearPurchasedCart();return;}}catch{}attempts+=1;if(attempts>=30){setPaymentChecking(false);return;}timer=window.setTimeout(check,2000);};
+      check();return()=>{stopped=true;if(timer)window.clearTimeout(timer);};
+    }
+    fetch(`/api/paypal/order-status?orderId=${orderId}`,{cache:"no-store"}).then(async response=>({ok:response.ok,data:await response.json()})).then(({ok,data})=>{if(stopped)return;const confirmed=ok&&data.paid===true;setPaid(confirmed);setPaymentChecking(false);if(confirmed){clearPurchasedCart();refreshStatus();}}).catch(()=>setPaymentChecking(false));
+    return()=>{stopped=true;};
+  },[orderId,paymentProvider,refreshStatus]);
 
   useEffect(()=>{if(!paid)return;const timer=window.setInterval(refreshStatus,5000);return()=>window.clearInterval(timer);},[paid,refreshStatus]);
 

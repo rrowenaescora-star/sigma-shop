@@ -9,6 +9,8 @@ type CartItem = { id:number; name:string; price:number; quantity:number; image_u
 export default function StealAnEggCheckoutClient() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const [paymongoLoading, setPaymongoLoading] = useState(false);
+  const [paymongoMessage, setPaymongoMessage] = useState("");
 
   useEffect(() => {
     try {
@@ -23,6 +25,17 @@ export default function StealAnEggCheckoutClient() {
   const total = items.reduce((sum, item) => sum + Number(item.price) * Number(item.quantity || 1), 0);
   const unavailable = items.some((item) => item.stock === "Out of Stock" || Number(item.stock_quantity ?? 1) <= 0);
 
+  async function startPayMongoCheckout() {
+    if (!items.length || unavailable || paymongoLoading) return;
+    setPaymongoLoading(true); setPaymongoMessage("");
+    try {
+      const response = await fetch("/api/steal-an-egg/paymongo/create-checkout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ items: items.map((item) => ({ id: item.id, quantity: item.quantity })), fulfillmentFlow: "steal-an-egg" }) });
+      const data = await response.json();
+      if (!response.ok || !data.checkoutUrl) { setPaymongoMessage(data.error || "PayMongo checkout could not be started."); return; }
+      window.location.assign(data.checkoutUrl);
+    } catch { setPaymongoMessage("PayMongo checkout could not be started."); }
+    finally { setPaymongoLoading(false); }
+  }
   if (!loaded) return <main className="min-h-screen bg-[#031827] p-8 text-white">Loading secure checkout…</main>;
 
   return (
@@ -52,7 +65,7 @@ export default function StealAnEggCheckoutClient() {
           <h2 className="text-3xl font-black [text-shadow:2px_2px_0_#000]">Order summary</h2>
           <div className="mt-5 flex items-center justify-between border-b-2 border-black/40 pb-5 text-sm font-bold"><span className="text-slate-400">Items</span><span className="font-bold">{items.reduce((sum,item)=>sum+item.quantity,0)}</span></div>
           <div className="mt-5 flex items-center justify-between"><span className="font-bold">Total</span><span className="rounded-lg border-2 border-black bg-[#7eeb00] px-3 py-1 text-3xl font-black text-black shadow-[3px_3px_0_#000]">${total.toFixed(2)}</span></div>
-          <div className="mt-6 rounded-xl border-2 border-black bg-[#07345f] p-4 text-xs font-semibold leading-5 text-cyan-50">Payment is verified on the server. Roblox instructions unlock only after PayPal reports the payment as completed.</div>
+          <div className="mt-6 rounded-xl border-2 border-black bg-[#07345f] p-4 text-xs font-semibold leading-5 text-cyan-50">Payment is verified on the server. Roblox instructions unlock only after the payment provider confirms the payment as completed.</div>
           <PaypalCheckout
             disabled={items.length === 0 || unavailable}
             createOrderEndpoint="/api/steal-an-egg/paypal/create-order"
@@ -60,6 +73,10 @@ export default function StealAnEggCheckoutClient() {
             successPath="/steal-an-egg/order"
             details={{ robloxUsername:"Pending after payment", robloxUserId:0, contactInfo:"Pending PayPal confirmation", notes:"STEAL_AN_EGG_POST_PAYMENT", items:items.map((item)=>({id:item.id,quantity:item.quantity})), fulfillmentFlow:"steal-an-egg" }}
           />
+          <div className="my-4 flex items-center gap-3"><span className="h-px flex-1 bg-black/30"/><span className="text-xs font-black uppercase tracking-[.2em] text-white">or</span><span className="h-px flex-1 bg-black/30"/></div>
+          <button onClick={startPayMongoCheckout} disabled={items.length === 0 || unavailable || paymongoLoading} className="flex min-h-14 w-full items-center justify-center rounded-lg border-[3px] border-black bg-[#7eeb00] px-5 py-3 text-base font-black text-black shadow-[4px_4px_0_#000] transition hover:bg-[#92ff14] disabled:cursor-not-allowed disabled:opacity-50">{paymongoLoading ? "Opening PayMongo…" : "Pay with PayMongo"}</button>
+          <p className="mt-2 text-center text-xs font-semibold text-cyan-50">Cards and available Philippine payment methods. Final amount is shown in PHP by PayMongo.</p>
+          {paymongoMessage && <p className="mt-3 rounded-lg border-2 border-black bg-red-100 p-3 text-sm font-bold text-red-700">{paymongoMessage}</p>}
           {unavailable && <p className="mt-3 text-sm font-bold text-red-300">One or more items are currently unavailable.</p>}
         </aside>
       </div>

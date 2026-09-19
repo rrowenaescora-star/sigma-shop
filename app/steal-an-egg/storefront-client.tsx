@@ -29,6 +29,8 @@ type Product = {
   game?: string | null;
 };
 
+const CLAIMED_ORDER_BROWSER_KEY = "bloxhop-steal-an-egg-active-order";
+
 type CartItem = Product & {
   quantity: number;
 };
@@ -163,11 +165,26 @@ const [isCartOpen, setIsCartOpen] = useState(false);
 
 useEffect(() => {
   setMounted(true);
+  const savedOrderUrl = localStorage.getItem(CLAIMED_ORDER_BROWSER_KEY);
+  if (savedOrderUrl) {
+    try {
+      const parsed = new URL(savedOrderUrl, window.location.origin);
+      if (parsed.origin === window.location.origin && parsed.pathname === "/steal-an-egg/order") {
+        setClaimedOrderUrl(parsed.pathname + parsed.search);
+        setClaimOpen(true);
+      } else {
+        localStorage.removeItem(CLAIMED_ORDER_BROWSER_KEY);
+      }
+    } catch {
+      localStorage.removeItem(CLAIMED_ORDER_BROWSER_KEY);
+    }
+  }
 }, []);
 
 useEffect(() => {
   function closeCompletedOrder(event: MessageEvent) {
     if (event.origin === window.location.origin && event.data?.type === "steal-an-egg-order-completed-close") {
+      localStorage.removeItem(CLAIMED_ORDER_BROWSER_KEY);
       setClaimedOrderUrl("");
       setClaimOpen(false);
     }
@@ -253,7 +270,9 @@ useEffect(() => {
         setClaimMessage(data.error || "We could not verify those order details.");
         return;
       }
-      setClaimedOrderUrl(`${data.redirectUrl}${data.redirectUrl.includes("?") ? "&" : "?"}embedded=1`);
+      const instructionUrl=data.redirectUrl+(data.redirectUrl.includes("?") ? "&" : "?")+"embedded=1";
+      localStorage.setItem(CLAIMED_ORDER_BROWSER_KEY,instructionUrl);
+      setClaimedOrderUrl(instructionUrl);
     } catch {
       setClaimMessage("Order access could not be restored. Please try again.");
     } finally {
@@ -638,7 +657,7 @@ if (foundProduct) {
           <Image src="/discord2.webp" alt="Discord" width={50} height={25} />
         </Link>
 
-        <button onClick={() => { setClaimOpen(true); setClaimedOrderUrl(""); setClaimMessage(""); }} className="flex h-10 items-center justify-center whitespace-nowrap rounded-lg border-[3px] border-black bg-[#7eeb00] px-3 text-xs font-black text-black shadow-[3px_3px_0_#000] transition hover:-translate-y-0.5 hover:bg-[#92ff14] sm:px-4 sm:text-sm">Claim Your Order</button>
+        <button onClick={() => { localStorage.removeItem(CLAIMED_ORDER_BROWSER_KEY); setClaimOpen(true); setClaimedOrderUrl(""); setClaimMessage(""); }} className="flex h-10 items-center justify-center whitespace-nowrap rounded-lg border-[3px] border-black bg-[#7eeb00] px-3 text-xs font-black text-black shadow-[3px_3px_0_#000] transition hover:-translate-y-0.5 hover:bg-[#92ff14] sm:px-4 sm:text-sm">Claim Your Order</button>
 
         <div className="flex max-w-full items-center overflow-x-auto rounded-xl border-[3px] border-black bg-[#061b2f] p-1 shadow-[3px_3px_0_#000]">
           {[
@@ -1684,7 +1703,7 @@ alt="Steal an Egg"
             <div className={`relative my-auto w-full overflow-hidden ${claimedOrderUrl ? "max-w-6xl bg-transparent" : "max-w-xl rounded-2xl border-[4px] border-black bg-gradient-to-b from-[#09bcd4] to-[#08699a] p-1 shadow-[10px_10px_0_#000]"}`}> 
               {!claimedOrderUrl && <button onClick={() => { setClaimOpen(false); setClaimedOrderUrl(""); }} aria-label="Close claim order" className="absolute right-3 top-3 z-30 flex h-10 w-10 items-center justify-center rounded-lg border-[3px] border-black bg-white text-lg font-black text-black shadow-[3px_3px_0_#000]">✕</button>}
               {claimedOrderUrl ? (
-                <iframe src={claimedOrderUrl} title="Steal an Egg delivery instructions" scrolling="no" style={{ height: `${claimFrameHeight}px` }} onLoad={(event) => { const frame=event.currentTarget; const card=frame.contentDocument?.querySelector("[data-embedded-order-card]") as HTMLElement|null; const resize=()=>setClaimFrameHeight(Math.max(320,card?.offsetHeight||320)); resize(); if(card){const observer=new ResizeObserver(resize);observer.observe(card);} }} className="block w-full bg-[#031827]" />
+                <iframe src={claimedOrderUrl} title="Steal an Egg delivery instructions" scrolling="no" style={{ height: claimFrameHeight }} onLoad={(event) => { const doc=event.currentTarget.contentDocument; if(!doc)return; let cardObserver:ResizeObserver|null=null; const measure=()=>{const card=doc.querySelector("[data-embedded-order-card]") as HTMLElement|null; if(!card)return; setClaimFrameHeight(Math.max(320,Math.ceil(card.getBoundingClientRect().height))); if(!cardObserver){cardObserver=new ResizeObserver(measure);cardObserver.observe(card);}}; measure(); const mutationObserver=new MutationObserver(measure); mutationObserver.observe(doc.documentElement,{childList:true,subtree:true}); window.setTimeout(measure,250); window.setTimeout(measure,1000); }} className="block w-full bg-transparent" />
               ) : (
                 <div className="rounded-xl border-2 border-black bg-[#061b2f]/95 p-6 sm:p-9">
                   <img src="/steal-an-egg-logo.png" alt="Steal an Egg" className="mx-auto h-20 w-auto max-w-full object-contain" />

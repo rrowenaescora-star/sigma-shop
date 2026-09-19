@@ -39,22 +39,21 @@ export async function POST(request: Request) {
   if (attributes?.type !== "checkout_session.payment.paid") return NextResponse.json({ received: true, ignored: attributes?.type || "unknown" });
 
   const eventId = String(event?.data?.id || "");
-  if (!eventId) return NextResponse.json({ error: "Missing event id." }, { status: 400 });
-  const { error: claimError } = await supabase.from("payment_webhook_events").insert({ provider: "paymongo-steal-an-egg", event_id: eventId, event_type: attributes.type, payload: event });
-  if (claimError) return NextResponse.json({ received: true, duplicate: true });
+  if (!eventId) return NextResponse.json({ received: true, ignored: "missing event id" });
 
   const orderId = Number(sessionAttributes?.metadata?.order_id);
   const expectedCentavos = Number(sessionAttributes?.metadata?.php_amount_centavos);
   const payment = Array.isArray(sessionAttributes?.payments) ? sessionAttributes.payments.find((entry: any) => entry?.attributes?.status === "paid") : null;
   const paidCentavos = Number(payment?.attributes?.amount);
-  if (!Number.isInteger(orderId) || orderId < 1 || !Number.isInteger(expectedCentavos) || expectedCentavos < 100 || paidCentavos !== expectedCentavos || String(payment?.attributes?.currency || "").toUpperCase() !== "PHP") return NextResponse.json({ error: "Payment verification failed." }, { status: 400 });
+  if (!Number.isInteger(orderId) || orderId < 1 || !Number.isInteger(expectedCentavos) || expectedCentavos < 100 || paidCentavos !== expectedCentavos || String(payment?.attributes?.currency || "").toUpperCase() !== "PHP") return NextResponse.json({ received: true, ignored: "payment verification failed" });
 
   const { data: order } = await supabase.from("orders").select("id,payment_status,notes,xendit_session_id").eq("id", orderId).eq("xendit_session_id", session.id).eq("payment_provider", "paymongo").single();
-  if (!order || !String(order.notes || "").startsWith("STEAL_AN_EGG")) return NextResponse.json({ error: "Order not found." }, { status: 404 });
+  if (!order || !String(order.notes || "").startsWith("STEAL_AN_EGG")) return NextResponse.json({ received: true, ignored: "order not found" });
   if (order.payment_status !== "Paid") {
     const { error } = await supabase.from("orders").update({ payment_status: "Paid", status: "Pending", paid_amount: paidCentavos / 100, paid_currency: "PHP", paid_at: new Date().toISOString(), payment_method: "PayMongo" }).eq("id", order.id).neq("payment_status", "Paid");
     if (error) return NextResponse.json({ error: "Could not finalize payment." }, { status: 500 });
     await deductCapitalForPaidOrder(Number(order.id));
   }
+  await supabase.from("payment_webhook_events").insert({ provider: "paymongo-steal-an-egg", event_id: eventId, event_type: attributes.type, payload: event });
   return NextResponse.json({ received: true });
 }

@@ -18,6 +18,8 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const items = Array.isArray(body.items) ? body.items : [];
+    const email = String(body.email || "").trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return NextResponse.json({ error: "A valid email is required before payment." }, { status: 400 });
     if (!items.length || body.fulfillmentFlow !== "steal-an-egg") return NextResponse.json({ error: "This checkout accepts Steal an Egg items only." }, { status: 400 });
     const quantities = new Map<number, number>();
     for (const item of items) {
@@ -46,12 +48,12 @@ export async function POST(request: Request) {
     const phpCentavos = phpItems.reduce((sum, item) => sum + item.centavos * item.quantity, 0);
     const session = createGuestCheckoutSession();
     const reference = `SAE-${Date.now()}`;
-    const { data: order, error: insertError } = await supabase.from("orders").insert({ roblox_username: "Pending after payment", contact_info: "Pending PayMongo confirmation", notes: "STEAL_AN_EGG_POST_PAYMENT", items: serverItems, total_price: usdTotal, original_total: usdTotal, coupon_discount: 0, payment_method: "PayMongo", payment_provider: "paymongo", payment_status: "Creating", status: "Pending", delivery_status: "Awaiting payment", checkout_session_hash: session.hash, xendit_reference_id: reference }).select("id").single();
+    const { data: order, error: insertError } = await supabase.from("orders").insert({ roblox_username: "Pending after payment", contact_info: email, payer_email: email, notes: "STEAL_AN_EGG_POST_PAYMENT", items: serverItems, total_price: usdTotal, original_total: usdTotal, coupon_discount: 0, payment_method: "PayMongo", payment_provider: "paymongo", payment_status: "Creating", status: "Pending", delivery_status: "Awaiting payment", checkout_session_hash: session.hash, xendit_reference_id: reference }).select("id").single();
     if (insertError || !order) return NextResponse.json({ error: "We could not create your secure order." }, { status: 500 });
 
     const baseUrl = "https://bloxhop.com";
     const auth = Buffer.from(`${process.env.PAYMONGO_SECRET_KEY}:`).toString("base64");
-    const paymongoResponse = await fetch("https://api.paymongo.com/v2/checkout_sessions", { method: "POST", headers: { Authorization: `Basic ${auth}`, "Content-Type": "application/json" }, body: JSON.stringify({ data: { attributes: { line_items: phpItems.map((item) => ({ name: item.name.slice(0, 100), amount: item.centavos, currency: "PHP", quantity: item.quantity, images: item.image_url ? [item.image_url] : [] })), payment_method_types: ["card", "gcash", "paymaya", "qrph", "dob"], success_url: `${baseUrl}/steal-an-egg/order?orderId=${order.id}&provider=paymongo`, cancel_url: `${baseUrl}/steal-an-egg/checkout`, reference_number: reference, description: `Steal an Egg order #${order.id}`, send_email_receipt: true, show_line_items: true, metadata: { order_id: String(order.id), fulfillment_flow: "steal-an-egg", php_amount_centavos: String(phpCentavos), usd_total: usdTotal.toFixed(2) } } } }) });
+    const paymongoResponse = await fetch("https://api.paymongo.com/v2/checkout_sessions", { method: "POST", headers: { Authorization: `Basic ${auth}`, "Content-Type": "application/json" }, body: JSON.stringify({ data: { attributes: { line_items: phpItems.map((item) => ({ name: item.name.slice(0, 100), amount: item.centavos, currency: "PHP", quantity: item.quantity, images: item.image_url ? [item.image_url] : [] })), payment_method_types: ["card", "gcash", "paymaya", "qrph", "dob"], customer_email: email, success_url: `${baseUrl}/steal-an-egg/order?orderId=${order.id}&provider=paymongo`, cancel_url: `${baseUrl}/steal-an-egg/checkout`, reference_number: reference, description: `Steal an Egg order #${order.id}`, send_email_receipt: true, show_line_items: true, metadata: { order_id: String(order.id), fulfillment_flow: "steal-an-egg", php_amount_centavos: String(phpCentavos), usd_total: usdTotal.toFixed(2) } } } }) });
     const paymongo = await paymongoResponse.json();
     if (!paymongoResponse.ok || !paymongo?.data?.id || !paymongo?.data?.attributes?.checkout_url) { await supabase.from("orders").update({ payment_status: "Failed" }).eq("id", order.id); return NextResponse.json({ error: paymongo?.errors?.[0]?.detail || "PayMongo checkout could not be created." }, { status: 502 }); }
     await supabase.from("orders").update({ xendit_session_id: paymongo.data.id, payment_status: "Pending" }).eq("id", order.id).eq("checkout_session_hash", session.hash);

@@ -152,6 +152,7 @@ export default function LayoutShell({
       <main className="flex-1">{children}</main>
 
       {!hideGlobalLayout && <SiteFooter />}
+      {!hideGlobalLayout && <footer className="border-t border-white/10 bg-[#111121] px-6 py-6 text-center text-sm leading-7 text-slate-500">© {new Date().getFullYear()} Bloxhop Online Store. Independent digital gaming marketplace.</footer>}
     </>
   );
 }

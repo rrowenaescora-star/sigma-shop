@@ -146,6 +146,13 @@ const [isCartOpen, setIsCartOpen] = useState(false);
   const [flyingCardProduct, setFlyingCardProduct] = useState<Product | null>(null);
   const [cartHit, setCartHit] = useState(false);
   const [addingProductId, setAddingProductId] = useState<number | null>(null);
+  const [claimOpen, setClaimOpen] = useState(false);
+  const [claimOrderId, setClaimOrderId] = useState("");
+  const [claimEmail, setClaimEmail] = useState("");
+  const [claimLoading, setClaimLoading] = useState(false);
+  const [claimMessage, setClaimMessage] = useState("");
+  const [claimedOrderUrl, setClaimedOrderUrl] = useState("");
+  const [claimFrameHeight, setClaimFrameHeight] = useState(560);
 
   // NEW: capital amount available for fulfilling orders.
   // Products still show, but if capital is lower than the product price, Add to Cart becomes unavailable.
@@ -156,6 +163,17 @@ const [isCartOpen, setIsCartOpen] = useState(false);
 
 useEffect(() => {
   setMounted(true);
+}, []);
+
+useEffect(() => {
+  function closeCompletedOrder(event: MessageEvent) {
+    if (event.origin === window.location.origin && event.data?.type === "steal-an-egg-order-completed-close") {
+      setClaimedOrderUrl("");
+      setClaimOpen(false);
+    }
+  }
+  window.addEventListener("message", closeCompletedOrder);
+  return () => window.removeEventListener("message", closeCompletedOrder);
 }, []);
 
 useEffect(() => {
@@ -225,6 +243,23 @@ useEffect(() => {
     setCurrentPage(1);
   }, [selectedCategory, availabilityFilter, searchQuery, sortOption]);
 
+  async function claimOrder() {
+    setClaimLoading(true);
+    setClaimMessage("");
+    try {
+      const response = await fetch("/api/steal-an-egg/recover-order", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ orderId: claimOrderId, email: claimEmail }) });
+      const data = await response.json();
+      if (!response.ok || !data.redirectUrl) {
+        setClaimMessage(data.error || "We could not verify those order details.");
+        return;
+      }
+      setClaimedOrderUrl(`${data.redirectUrl}${data.redirectUrl.includes("?") ? "&" : "?"}embedded=1`);
+    } catch {
+      setClaimMessage("Order access could not be restored. Please try again.");
+    } finally {
+      setClaimLoading(false);
+    }
+  }
   async function loadProducts() {
     try {
       setLoadingProducts(true);
@@ -602,6 +637,8 @@ if (foundProduct) {
         >
           <Image src="/discord2.webp" alt="Discord" width={50} height={25} />
         </Link>
+
+        <button onClick={() => { setClaimOpen(true); setClaimedOrderUrl(""); setClaimMessage(""); }} className="flex h-10 items-center justify-center whitespace-nowrap rounded-lg border-[3px] border-black bg-[#7eeb00] px-3 text-xs font-black text-black shadow-[3px_3px_0_#000] transition hover:-translate-y-0.5 hover:bg-[#92ff14] sm:px-4 sm:text-sm">Claim Your Order</button>
 
         <div className="flex max-w-full items-center overflow-x-auto rounded-xl border-[3px] border-black bg-[#061b2f] p-1 shadow-[3px_3px_0_#000]">
           {[
@@ -1642,7 +1679,29 @@ alt="Steal an Egg"
     </div>
   </div>
 )}
-        <DeferredProductRealtime onChange={loadProducts} />
+        {claimOpen && (
+          <div className="fixed inset-0 z-[220] flex items-start justify-center overflow-y-auto bg-black/80 px-3 py-4 backdrop-blur-md" role="dialog" aria-modal="true" aria-label="Claim your Steal an Egg order">
+            <div className={`relative my-auto w-full overflow-hidden ${claimedOrderUrl ? "max-w-6xl bg-transparent" : "max-w-xl rounded-2xl border-[4px] border-black bg-gradient-to-b from-[#09bcd4] to-[#08699a] p-1 shadow-[10px_10px_0_#000]"}`}> 
+              {!claimedOrderUrl && <button onClick={() => { setClaimOpen(false); setClaimedOrderUrl(""); }} aria-label="Close claim order" className="absolute right-3 top-3 z-30 flex h-10 w-10 items-center justify-center rounded-lg border-[3px] border-black bg-white text-lg font-black text-black shadow-[3px_3px_0_#000]">✕</button>}
+              {claimedOrderUrl ? (
+                <iframe src={claimedOrderUrl} title="Steal an Egg delivery instructions" scrolling="no" style={{ height: `${claimFrameHeight}px` }} onLoad={(event) => { const frame=event.currentTarget; const card=frame.contentDocument?.querySelector("[data-embedded-order-card]") as HTMLElement|null; const resize=()=>setClaimFrameHeight(Math.max(320,card?.offsetHeight||320)); resize(); if(card){const observer=new ResizeObserver(resize);observer.observe(card);} }} className="block w-full bg-[#031827]" />
+              ) : (
+                <div className="rounded-xl border-2 border-black bg-[#061b2f]/95 p-6 sm:p-9">
+                  <img src="/steal-an-egg-logo.png" alt="Steal an Egg" className="mx-auto h-20 w-auto max-w-full object-contain" />
+                  <p className="mt-5 text-center text-xs font-black uppercase tracking-[.22em] text-[#7eeb00]">Secure order access</p>
+                  <h2 className="mt-2 text-center text-3xl font-black text-white [text-shadow:2px_2px_0_#000]">Claim Your Order</h2>
+                  <p className="mx-auto mt-3 max-w-md text-center text-sm leading-6 text-cyan-50">Enter your order number. On the same browser used for payment, email is optional. Otherwise, enter the payment email for secure verification.</p>
+                  <form onSubmit={(event) => { event.preventDefault(); claimOrder(); }} className="mt-7 space-y-4">
+                    <label className="block"><span className="text-sm font-black text-white">Order number</span><input inputMode="numeric" autoComplete="off" value={claimOrderId} onChange={(event)=>setClaimOrderId(event.target.value.replace(/\D/g,""))} placeholder="Example: 306" required className="mt-2 w-full rounded-xl border-[3px] border-black bg-white px-4 py-3 font-bold text-[#07111f] outline-none focus:ring-4 focus:ring-cyan-300/30" /></label>
+                    <label className="block"><span className="text-sm font-black text-white">Payment email <span className="font-semibold text-cyan-200">(optional on the same browser)</span></span><input type="email" autoComplete="email" value={claimEmail} onChange={(event)=>setClaimEmail(event.target.value)} placeholder="Email used with PayMongo or PayPal" className="mt-2 w-full rounded-xl border-[3px] border-black bg-white px-4 py-3 font-bold text-[#07111f] outline-none focus:ring-4 focus:ring-cyan-300/30" /></label>
+                    <button disabled={claimLoading || !claimOrderId} className="flex min-h-14 w-full items-center justify-center rounded-xl border-[3px] border-black bg-[#7eeb00] px-5 py-3 text-lg font-black text-black shadow-[5px_5px_0_#000] transition hover:-translate-y-0.5 hover:bg-[#92ff14] disabled:cursor-not-allowed disabled:opacity-50">{claimLoading ? "Verifying order…" : "Open My Instructions"}</button>
+                  </form>
+                  {claimMessage && <p className="mt-5 rounded-xl border-2 border-red-500 bg-red-100 p-3 text-center text-sm font-bold text-red-700">{claimMessage}</p>}
+                </div>
+              )}
+            </div>
+          </div>
+        )}        <DeferredProductRealtime onChange={loadProducts} />
         <CheckoutPrefetch enabled={cartItems.length > 0} />
         {!isCartOpen && <LazySupportChat />}
       </>

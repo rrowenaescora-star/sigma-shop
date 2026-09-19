@@ -11,6 +11,7 @@ export default function StealAnEggCheckoutClient() {
   const [loaded, setLoaded] = useState(false);
   const [paymongoLoading, setPaymongoLoading] = useState(false);
   const [paymongoMessage, setPaymongoMessage] = useState("");
+  const [email, setEmail] = useState("");
 
   useEffect(() => {
     try {
@@ -24,12 +25,13 @@ export default function StealAnEggCheckoutClient() {
   const excluded = cart.length - items.length;
   const total = items.reduce((sum, item) => sum + Number(item.price) * Number(item.quantity || 1), 0);
   const unavailable = items.some((item) => item.stock === "Out of Stock" || Number(item.stock_quantity ?? 1) <= 0);
+  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 
   async function startPayMongoCheckout() {
-    if (!items.length || unavailable || paymongoLoading) return;
+    if (!items.length || unavailable || paymongoLoading || !emailValid) { setPaymongoMessage("Enter a valid email before payment."); return; }
     setPaymongoLoading(true); setPaymongoMessage("");
     try {
-      const response = await fetch("/api/steal-an-egg/paymongo/create-checkout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ items: items.map((item) => ({ id: item.id, quantity: item.quantity })), fulfillmentFlow: "steal-an-egg" }) });
+      const response = await fetch("/api/steal-an-egg/paymongo/create-checkout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ items: items.map((item) => ({ id: item.id, quantity: item.quantity })), fulfillmentFlow: "steal-an-egg", email: email.trim() }) });
       const data = await response.json();
       if (!response.ok || !data.checkoutUrl) { setPaymongoMessage(data.error || "PayMongo checkout could not be started."); return; }
       window.location.assign(data.checkoutUrl);
@@ -52,7 +54,7 @@ export default function StealAnEggCheckoutClient() {
         <section className="rounded-2xl border-[3px] border-black bg-gradient-to-br from-[#087397]/90 to-[#07345f]/95 p-5 shadow-[7px_7px_0_#000] sm:p-7">
           <p className="inline-flex rounded-md border-2 border-black bg-[#7eeb00] px-3 py-1 text-xs font-black uppercase tracking-[.2em] text-black">Secure order</p>
           <h1 className="mt-4 text-4xl font-black text-white [text-shadow:3px_3px_0_#000]">Review your items</h1>
-          <p className="mt-3 max-w-xl text-sm font-semibold leading-6 text-cyan-50">You will choose your Roblox account only after PayPal confirms that payment was received.</p>
+          <p className="mt-3 max-w-xl text-sm font-semibold leading-6 text-cyan-50">You will choose your Roblox account only after your payment provider confirms that payment was received.</p>
           {excluded > 0 && <div className="mt-5 rounded-xl border border-amber-400/30 bg-amber-400/10 p-4 text-sm text-amber-100">{excluded} non–Steal an Egg item{excluded === 1 ? "" : "s"} will stay in your cart and will not be charged here.</div>}
 
           <div className="mt-7 space-y-3">
@@ -66,15 +68,16 @@ export default function StealAnEggCheckoutClient() {
           <div className="mt-5 flex items-center justify-between border-b-2 border-black/40 pb-5 text-sm font-bold"><span className="text-slate-400">Items</span><span className="font-bold">{items.reduce((sum,item)=>sum+item.quantity,0)}</span></div>
           <div className="mt-5 flex items-center justify-between"><span className="font-bold">Total</span><span className="rounded-lg border-2 border-black bg-[#7eeb00] px-3 py-1 text-3xl font-black text-black shadow-[3px_3px_0_#000]">${total.toFixed(2)}</span></div>
           <div className="mt-6 rounded-xl border-2 border-black bg-[#07345f] p-4 text-xs font-semibold leading-5 text-cyan-50">Payment is verified on the server. Roblox instructions unlock only after the payment provider confirms the payment as completed.</div>
+          <label className="mt-5 block"><span className="text-sm font-black text-white">Email address <span className="text-[#7eeb00]">Required</span></span><p className="mt-1 text-xs font-semibold text-cyan-50">Used for your receipt and to reclaim your delivery instructions.</p><input type="email" autoComplete="email" value={email} onChange={(event)=>{setEmail(event.target.value);setPaymongoMessage("");}} placeholder="you@example.com" required className={`mt-2 w-full rounded-xl border-[3px] bg-white px-4 py-3 font-bold text-[#07111f] outline-none ${email&&!emailValid?"border-red-500":"border-black focus:ring-4 focus:ring-[#7eeb00]/30"}`} />{email&&!emailValid&&<p className="mt-2 text-xs font-black text-red-200">Enter a valid email address.</p>}</label>
           <PaypalCheckout
-            disabled={items.length === 0 || unavailable}
+            disabled={items.length === 0 || unavailable || !emailValid}
             createOrderEndpoint="/api/steal-an-egg/paypal/create-order"
             captureOrderEndpoint="/api/steal-an-egg/paypal/capture-order"
             successPath="/steal-an-egg/order"
-            details={{ robloxUsername:"Pending after payment", robloxUserId:0, contactInfo:"Pending PayPal confirmation", notes:"STEAL_AN_EGG_POST_PAYMENT", items:items.map((item)=>({id:item.id,quantity:item.quantity})), fulfillmentFlow:"steal-an-egg" }}
+            details={{ robloxUsername:"Pending after payment", robloxUserId:0, contactInfo:email.trim(), email:email.trim(), notes:"STEAL_AN_EGG_POST_PAYMENT", items:items.map((item)=>({id:item.id,quantity:item.quantity})), fulfillmentFlow:"steal-an-egg" }}
           />
           <div className="my-4 flex items-center gap-3"><span className="h-px flex-1 bg-black/30"/><span className="text-xs font-black uppercase tracking-[.2em] text-white">or</span><span className="h-px flex-1 bg-black/30"/></div>
-          <button onClick={startPayMongoCheckout} disabled={items.length === 0 || unavailable || paymongoLoading} className="flex min-h-14 w-full items-center justify-center rounded-lg border-[3px] border-black bg-[#7eeb00] px-5 py-3 text-base font-black text-black shadow-[4px_4px_0_#000] transition hover:bg-[#92ff14] disabled:cursor-not-allowed disabled:opacity-50">{paymongoLoading ? "Opening PayMongo…" : "Pay with PayMongo"}</button>
+          <button onClick={startPayMongoCheckout} disabled={items.length === 0 || unavailable || paymongoLoading || !emailValid} className="flex min-h-14 w-full items-center justify-center rounded-lg border-[3px] border-black bg-[#7eeb00] px-5 py-3 text-base font-black text-black shadow-[4px_4px_0_#000] transition hover:bg-[#92ff14] disabled:cursor-not-allowed disabled:opacity-50">{paymongoLoading ? "Opening PayMongo…" : "Pay with PayMongo"}</button>
           <p className="mt-2 text-center text-xs font-semibold text-cyan-50">Cards and available Philippine payment methods. Final amount is shown in PHP by PayMongo.</p>
           {paymongoMessage && <p className="mt-3 rounded-lg border-2 border-black bg-red-100 p-3 text-sm font-bold text-red-700">{paymongoMessage}</p>}
           {unavailable && <p className="mt-3 text-sm font-bold text-red-300">One or more items are currently unavailable.</p>}

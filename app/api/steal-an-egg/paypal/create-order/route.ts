@@ -13,6 +13,8 @@ export async function POST(request: Request) {
     const { user } = await getAuthenticatedUser();
     const guestSession = createGuestCheckoutSession();
     const body = await request.json();
+    const email = String(body.email || body.contactInfo || "").trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return NextResponse.json({ error: "A valid email is required before payment." }, { status: 400 });
     const items = Array.isArray(body.items) ? body.items : [];
     if (!items.length || body.fulfillmentFlow !== "steal-an-egg") {
       return NextResponse.json({ error: "This checkout accepts Steal an Egg items only." }, { status: 400 });
@@ -59,7 +61,7 @@ export async function POST(request: Request) {
 
     const { data: order, error: insertError } = await supabase.from("orders").insert({
       roblox_username: "Pending after payment",
-      contact_info: "Pending PayPal confirmation",
+      contact_info: email,
       notes: "STEAL_AN_EGG_POST_PAYMENT",
       items: serverItems,
       total_price: subtotal,
@@ -70,7 +72,7 @@ export async function POST(request: Request) {
       payment_status: "Creating",
       status: "Pending",
       delivery_status: "Awaiting payment",
-      payer_email: user?.email || null,
+      payer_email: email,
       user_id: user?.id || null,
       checkout_session_hash: guestSession.hash,
     }).select("id").single();

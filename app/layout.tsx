@@ -46,9 +46,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <RouteLoadingBar />
         <VisitorAnalyticsTracker />
         <LayoutShell>{children}</LayoutShell>
-        <footer className="border-t border-white/10 bg-[#111121] px-6 py-6 text-center text-sm leading-7 text-slate-500">
-          © {new Date().getFullYear()} Bloxhop Online Store. Independent digital gaming marketplace.
-        </footer>
+
         <CookieConsent />
       </body>
     </html>

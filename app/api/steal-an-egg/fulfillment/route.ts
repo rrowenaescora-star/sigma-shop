@@ -41,9 +41,10 @@ export async function GET(request: Request) {
   if (!Number.isInteger(orderId) || orderId < 1) return NextResponse.json({ error: "Order not found." }, { status: 400 });
   const order = await reconcilePayMongoPayment(await ownedPaidOrder(orderId));
   if (!order) return NextResponse.json({ error: "Order not found." }, { status: 404 });
+  const { data: settings } = await supabase.from("shop_settings").select("steal_an_egg_server_url").single();
   let invitationUrl: string | null = null;
   try {
-    const candidate = new URL(String(order.delivery_notes || ""));
+    const candidate = new URL(String(order.delivery_notes || settings?.steal_an_egg_server_url || ""));
     if (candidate.protocol === "https:" && (candidate.hostname === "roblox.com" || candidate.hostname.endsWith(".roblox.com"))) invitationUrl = candidate.toString();
   } catch {}
   return NextResponse.json({ orderId: order.id, paid: order.payment_status === "Paid", username: order.roblox_username === "Pending after payment" ? null : order.roblox_username, deliveryStatus: order.delivery_status || "Pending", invitationUrl });

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 
 type CookiePreferences = {
   necessary: true;
@@ -44,6 +45,7 @@ export default function CookieConsent() {
   const [analytics, setAnalytics] = useState(false);
   const [marketing, setMarketing] = useState(false);
   const [openDetail, setOpenDetail] = useState<string | null>(null);
+  const pathname = usePathname();
 
   useEffect(() => {
     const saved = window.localStorage.getItem(STORAGE_KEY);
@@ -64,6 +66,8 @@ export default function CookieConsent() {
 
     setReady(true);
   }, []);
+
+  if (pathname.startsWith("/steal-an-egg/order")) return null;
 
   function savePreferences(nextFunctionality: boolean, nextAnalytics: boolean, nextMarketing: boolean) {
     const preferences: CookiePreferences = {

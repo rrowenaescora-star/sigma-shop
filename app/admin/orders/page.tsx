@@ -53,7 +53,38 @@ export default function AdminOrdersPage() {
   const [savingId, setSavingId] = useState<string | null>(null);
   const [sendingEmailId, setSendingEmailId] = useState<string | null>(null);
   const [message, setMessage] = useState("");
+  const [globalServerLink, setGlobalServerLink] = useState("");
+  const [savingGlobalLink, setSavingGlobalLink] = useState(false);
 
+  async function fetchShopSettings() {
+    const res = await fetch("/api/admin/settings", { cache: "no-store" });
+    if (res.status === 401) {
+      router.replace("/admin/login");
+      return;
+    }
+    const data = await res.json();
+    if (res.ok) setGlobalServerLink(data.steal_an_egg_server_url || "");
+  }
+
+  async function saveGlobalServerLink() {
+    try {
+      setSavingGlobalLink(true);
+      const res = await fetch("/api/admin/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ steal_an_egg_server_url: globalServerLink }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error || "Could not save the server link.");
+        return;
+      }
+      setMessage("Default Steal an Egg server link saved for every customer.");
+      window.setTimeout(() => setMessage(""), 2500);
+    } finally {
+      setSavingGlobalLink(false);
+    }
+  }
   async function fetchOrders(silent = false) {
     try {
       const res = await fetch("/api/admin/orders");
@@ -99,6 +130,7 @@ export default function AdminOrdersPage() {
 
   useEffect(() => {
     fetchOrders();
+    fetchShopSettings();
     const timer = window.setInterval(() => {
       const editing = document.activeElement?.matches("input, select, textarea");
       if (document.visibilityState === "visible" && !editing) fetchOrders(true);
@@ -243,6 +275,16 @@ export default function AdminOrdersPage() {
           onRefresh={fetchOrders}
         />
 
+        <section className="mb-6 rounded-2xl border border-lime-400/30 bg-lime-400/[.07] p-5">
+          <p className="text-sm font-black uppercase tracking-[0.18em] text-lime-300">Steal an Egg default server</p>
+          <p className="mt-2 text-sm text-slate-300">Save this once. It automatically appears for every customer immediately after they select their Roblox account.</p>
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+            <input value={globalServerLink} onChange={(event) => setGlobalServerLink(event.target.value)} placeholder="https://www.roblox.com/share?..." className="min-w-0 flex-1 rounded-xl border border-white/10 bg-[#07111f] px-4 py-3 text-sm text-white outline-none focus:border-lime-300" />
+            <button onClick={saveGlobalServerLink} disabled={savingGlobalLink || !isValidRobloxInvitation(globalServerLink)} className="rounded-xl bg-[#7eeb00] px-6 py-3 text-sm font-black text-black hover:bg-[#92ff14] disabled:cursor-not-allowed disabled:opacity-50">{savingGlobalLink ? "Saving…" : "Save for All Customers"}</button>
+          </div>
+          {globalServerLink && !isValidRobloxInvitation(globalServerLink) && <p className="mt-2 text-xs font-bold text-red-300">Paste a valid HTTPS roblox.com invitation link.</p>}
+        </section>
+
         <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <div className="rounded-2xl border border-white/10 bg-[#101729] p-4">
             <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
@@ -345,7 +387,7 @@ export default function AdminOrdersPage() {
                     Delivery: {order.delivery_status || "Pending"}
                   </span>
                   <span className="rounded-full bg-yellow-400/10 px-3 py-1 text-xs text-yellow-300">
-                    Status: {order.status}
+                    Order: {order.status === "Pending" && order.payment_status === "Paid" ? "Pending fulfillment" : order.status}
                   </span>
                 </div>
               </div>
@@ -365,7 +407,7 @@ export default function AdminOrdersPage() {
                         <button onClick={() => updateOrder(order.id, { deliveryStatus: "Friend request verified" })} disabled={savingId === order.id} className="rounded-xl bg-emerald-500 px-4 py-2 text-sm font-black hover:bg-emerald-400 disabled:opacity-60">{savingId === order.id ? "Saving…" : "Verify Friend Request"}</button>
                       )}
                       {["Friend request verified", "Delivering"].includes(order.delivery_status) && (
-                        <button onClick={() => updateOrder(order.id, { deliveryStatus: "Delivering", deliveryNotes: order.delivery_notes })} disabled={savingId === order.id || !isValidRobloxInvitation(order.delivery_notes)} className="rounded-xl bg-violet-500 px-4 py-2 text-sm font-black hover:bg-violet-400 disabled:cursor-not-allowed disabled:opacity-50">{savingId === order.id ? "Sending…" : order.delivery_status === "Delivering" ? "Resend Server Invitation" : "Send Server Invitation"}</button>
+                        <button onClick={() => updateOrder(order.id, { deliveryStatus: "Delivering", deliveryNotes: order.delivery_notes || globalServerLink })} disabled={savingId === order.id || !isValidRobloxInvitation(order.delivery_notes || globalServerLink)} className="rounded-xl bg-violet-500 px-4 py-2 text-sm font-black hover:bg-violet-400 disabled:cursor-not-allowed disabled:opacity-50">{savingId === order.id ? "Sending…" : order.delivery_status === "Delivering" ? "Resend Server Invitation" : "Send Server Invitation"}</button>
                       )}
                       {order.delivery_status === "Delivering" && (
                         <button onClick={() => updateOrder(order.id, { deliveryStatus: "Delivered", status: "Completed" })} disabled={savingId === order.id} className="rounded-xl bg-blue-500 px-4 py-2 text-sm font-black hover:bg-blue-400 disabled:opacity-60">{savingId === order.id ? "Saving…" : "Mark Delivered"}</button>
@@ -374,9 +416,9 @@ export default function AdminOrdersPage() {
                   </div>
                   {["Friend request verified", "Delivering"].includes(order.delivery_status) && (
                     <div className="mt-4">
-                      <label className="text-xs font-bold uppercase tracking-[0.15em] text-slate-400">Roblox server invitation link</label>
-                      <input value={order.delivery_notes || ""} onChange={(event) => setOrders((previous) => previous.map((item) => item.id === order.id ? { ...item, delivery_notes: event.target.value } : item))} placeholder="https://www.roblox.com/share?..." className={`mt-2 w-full rounded-xl border bg-[#07111f] px-4 py-3 text-sm text-white outline-none ${order.delivery_notes && !isValidRobloxInvitation(order.delivery_notes) ? "border-red-400" : "border-white/10 focus:border-cyan-300"}`} />
-                      {order.delivery_notes && !isValidRobloxInvitation(order.delivery_notes) && <p className="mt-2 text-xs font-bold text-red-300">Paste a valid HTTPS roblox.com invitation link.</p>}
+                      <label className="text-xs font-bold uppercase tracking-[0.15em] text-slate-400">Optional link override for this order</label>
+                      <p className="mt-1 text-xs text-slate-400">Leave blank to use the default link above. Enter another Roblox link only if this customer needs a replacement.</p>
+                      <input value={order.delivery_notes || ""} onChange={(event) => setOrders((previous) => previous.map((item) => item.id === order.id ? { ...item, delivery_notes: event.target.value } : item))} placeholder="Uses the default link when empty" className="mt-2 w-full rounded-xl border border-white/10 bg-[#07111f] px-4 py-3 text-sm text-white outline-none focus:border-cyan-300" />
                     </div>
                   )}
                 </div>

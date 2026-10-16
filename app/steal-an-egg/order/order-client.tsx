@@ -10,7 +10,7 @@ type Fulfillment={paid:boolean;username:string|null;deliveryStatus:string;invita
 export default function StealAnEggOrderClient(){
   const search=useSearchParams();
   const orderId=Number(search.get("orderId"));
-  const paymentProvider=search.get("provider");
+
   const embedded=search.get("embedded")==="1";
   const [paymentChecking,setPaymentChecking]=useState(true);
   const [paid,setPaid]=useState(false);
@@ -30,17 +30,28 @@ export default function StealAnEggOrderClient(){
 
   useEffect(()=>{
     if(!Number.isInteger(orderId)||orderId<1){setPaymentChecking(false);return;}
-    let stopped=false;let timer:number|undefined;
-    const clearPurchasedCart=()=>{try{const cart=JSON.parse(localStorage.getItem("real-cart")||"[]");localStorage.setItem("real-cart",JSON.stringify(Array.isArray(cart)?cart.filter((item:any)=>item.game!=="steal-an-egg"):[]));window.dispatchEvent(new Event("bloxhop-cart-updated"));}catch{}};
-    if(paymentProvider==="paymongo"){
-      let attempts=0;
-      const check=async()=>{try{const response=await fetch(`/api/steal-an-egg/fulfillment?orderId=${orderId}`,{cache:"no-store"});const data=await response.json();if(stopped)return;if(response.ok&&data.paid===true){setFulfillment(data);setPaid(true);setPaymentChecking(false);clearPurchasedCart();return;}}catch{}attempts+=1;if(attempts>=30){setPaymentChecking(false);return;}timer=window.setTimeout(check,2000);};
-      check();return()=>{stopped=true;if(timer)window.clearTimeout(timer);};
-    }
-    fetch(`/api/paypal/order-status?orderId=${orderId}`,{cache:"no-store"}).then(async response=>({ok:response.ok,data:await response.json()})).then(({ok,data})=>{if(stopped)return;const confirmed=ok&&data.paid===true;setPaid(confirmed);setPaymentChecking(false);if(confirmed){clearPurchasedCart();refreshStatus();}}).catch(()=>setPaymentChecking(false));
-    return()=>{stopped=true;};
-  },[orderId,paymentProvider,refreshStatus]);
-
+    const controller=new AbortController();
+    let stopped=false;
+    const timeout=window.setTimeout(()=>{
+      controller.abort();
+      if(!stopped)setPaymentChecking(false);
+    },12000);
+    // Verify only the order the customer explicitly opened, using the fulfillment endpoint for either provider.
+    fetch(`/api/steal-an-egg/fulfillment?orderId=${orderId}`,{cache:"no-store",signal:controller.signal})
+      .then(async response=>({ok:response.ok,data:await response.json()}))
+      .then(({ok,data})=>{
+        if(stopped)return;
+        const confirmed=ok&&data.paid===true;
+        setPaid(confirmed);
+        if(confirmed){
+          setFulfillment(data);
+          try{const cart=JSON.parse(localStorage.getItem("real-cart")||"[]");localStorage.setItem("real-cart",JSON.stringify(Array.isArray(cart)?cart.filter((item:{game?:string})=>item.game!=="steal-an-egg"):[]));window.dispatchEvent(new Event("bloxhop-cart-updated"));}catch{}
+        }
+      })
+      .catch(()=>{})
+      .finally(()=>{window.clearTimeout(timeout);if(!stopped)setPaymentChecking(false);});
+    return()=>{stopped=true;window.clearTimeout(timeout);controller.abort();};
+  },[orderId]);
   useEffect(()=>{if(!paid)return;const timer=window.setInterval(refreshStatus,5000);return()=>window.clearInterval(timer);},[paid,refreshStatus]);
 
   async function searchUsers(){
@@ -63,7 +74,7 @@ export default function StealAnEggOrderClient(){
     window.location.assign("/steal-an-egg");
   }
   if(paymentChecking)return <main className="flex min-h-screen items-center justify-center bg-[#07111f] text-white"><p className="font-bold">Confirming your payment securely…</p></main>;
-  if(!paid)return <main className="flex min-h-screen items-center justify-center bg-[#07111f] px-5 text-white"><div className="max-w-lg rounded-3xl border border-red-400/20 bg-[#0b1628] p-8 text-center"><h1 className="text-3xl font-black">Instructions locked</h1><p className="mt-4 text-slate-300">We could not confirm a completed payment for this checkout session.</p><div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center"><Link href="/steal-an-egg" className="inline-flex justify-center rounded-xl bg-[#7eeb00] px-5 py-3 font-black text-black">Return to shop and claim order</Link><Link href="/steal-an-egg/checkout" className="inline-flex justify-center rounded-xl bg-cyan-500 px-5 py-3 font-bold">Return to checkout</Link></div></div></main>;
+  if(!paid)return <main className="flex min-h-screen items-center justify-center bg-[#07111f] px-5 text-white"><div className="max-w-lg rounded-3xl border border-red-400/20 bg-[#0b1628] p-8 text-center"><h1 className="text-3xl font-black">Check your order</h1><p className="mt-4 text-slate-300">Payment is not confirmed yet, or this browser session has expired. If you already paid, use Claim Your Order with your order number and payment email to reopen your instructions.</p><div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center"><button type="button" onClick={() => window.location.reload()} className="rounded-xl border border-white/20 px-5 py-3 font-bold">Check again</button><Link href="/steal-an-egg" className="inline-flex justify-center rounded-xl bg-[#7eeb00] px-5 py-3 font-black text-black">Return to shop and claim order</Link><Link href="/steal-an-egg/checkout" className="inline-flex justify-center rounded-xl bg-cyan-500 px-5 py-3 font-bold">Return to checkout</Link></div></div></main>;
 
   const accountSelected=Boolean(fulfillment.username);
   const waiting=fulfillment.deliveryStatus==="Friend request awaiting verification";

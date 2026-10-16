@@ -165,20 +165,6 @@ const [isCartOpen, setIsCartOpen] = useState(false);
 
 useEffect(() => {
   setMounted(true);
-  const savedOrderUrl = localStorage.getItem(CLAIMED_ORDER_BROWSER_KEY);
-  if (savedOrderUrl) {
-    try {
-      const parsed = new URL(savedOrderUrl, window.location.origin);
-      if (parsed.origin === window.location.origin && parsed.pathname === "/steal-an-egg/order") {
-        setClaimedOrderUrl(parsed.pathname + parsed.search);
-        setClaimOpen(true);
-      } else {
-        localStorage.removeItem(CLAIMED_ORDER_BROWSER_KEY);
-      }
-    } catch {
-      localStorage.removeItem(CLAIMED_ORDER_BROWSER_KEY);
-    }
-  }
 }, []);
 
 useEffect(() => {
@@ -1701,7 +1687,7 @@ alt="Steal an Egg"
         {claimOpen && (
           <div className="fixed inset-0 z-[220] flex items-start justify-center overflow-y-auto bg-black/80 px-3 py-4 backdrop-blur-md" role="dialog" aria-modal="true" aria-label="Claim your Steal an Egg order">
             <div className={`relative my-auto w-full overflow-hidden ${claimedOrderUrl ? "max-w-6xl bg-transparent" : "max-w-xl rounded-2xl border-[4px] border-black bg-gradient-to-b from-[#09bcd4] to-[#08699a] p-1 shadow-[10px_10px_0_#000]"}`}> 
-              {!claimedOrderUrl && <button onClick={() => { setClaimOpen(false); setClaimedOrderUrl(""); }} aria-label="Close claim order" className="absolute right-3 top-3 z-30 flex h-10 w-10 items-center justify-center rounded-lg border-[3px] border-black bg-white text-lg font-black text-black shadow-[3px_3px_0_#000]">✕</button>}
+              {<button onClick={() => { localStorage.removeItem(CLAIMED_ORDER_BROWSER_KEY); setClaimOpen(false); setClaimedOrderUrl(""); }} aria-label="Close claim order" className="absolute right-3 top-3 z-30 flex h-10 w-10 items-center justify-center rounded-lg border-[3px] border-black bg-white text-lg font-black text-black shadow-[3px_3px_0_#000]">✕</button>}
               {claimedOrderUrl ? (
                 <iframe src={claimedOrderUrl} title="Steal an Egg delivery instructions" scrolling="no" style={{ height: claimFrameHeight }} onLoad={(event) => { const doc=event.currentTarget.contentDocument; if(!doc)return; let cardObserver:ResizeObserver|null=null; const measure=()=>{const card=doc.querySelector("[data-embedded-order-card]") as HTMLElement|null; if(!card)return; setClaimFrameHeight(Math.max(320,Math.ceil(card.getBoundingClientRect().height))); if(!cardObserver){cardObserver=new ResizeObserver(measure);cardObserver.observe(card);}}; measure(); const mutationObserver=new MutationObserver(measure); mutationObserver.observe(doc.documentElement,{childList:true,subtree:true}); window.setTimeout(measure,250); window.setTimeout(measure,1000); }} className="block w-full bg-transparent" />
               ) : (
@@ -1727,5 +1713,3 @@ alt="Steal an Egg"
     </div>
   );
 }
-
-

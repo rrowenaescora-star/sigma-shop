@@ -585,7 +585,7 @@ function CheckoutPageContent() {
       localStorage.removeItem("real-cart");
       setCartItems([]);
 
-      window.location.href = `${redirectPath}?orderId=${orderResult.order.id}`;
+      window.location.href = `${redirectPath}${redirectPath.includes("?") ? "&" : "?"}orderId=${orderResult.order.id}`;
     } catch (error) {
       console.error(error);
       alert("Something went wrong while saving your order.");
@@ -595,7 +595,7 @@ function CheckoutPageContent() {
   }
 
   async function handleFreeCheckout() {
-    await saveOrder("Free");
+    await saveOrder("Free", "Free", "/payment-success?provider=free");
   }
 
  async function handleManualCheckout() {

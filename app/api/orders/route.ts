@@ -1,6 +1,17 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { getAuthenticatedUser } from "@/lib/supabase/auth";
+import { FREE_ORDER_COOKIE, freeOrderToken } from "@/lib/free-order-confirmation";
+
+function orderResponse(order: { id: number; payment_status: string; total_price: number }, deduped = false) {
+  const response = NextResponse.json({ success: true, order, ...(deduped ? { deduped: true } : {}) });
+  if (order.payment_status === "Free" && Number(order.total_price) === 0) {
+    response.cookies.set(FREE_ORDER_COOKIE, freeOrderToken(String(order.id)), {
+      httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: 3600,
+    });
+  }
+  return response;
+}
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -120,11 +131,7 @@ export async function POST(req: Request) {
     const existingOrder = recentOrders?.[0];
 
     if (existingOrder) {
-      return NextResponse.json({
-        success: true,
-        order: existingOrder,
-        deduped: true,
-      });
+      return orderResponse(existingOrder, true);
     }
 
     const { data: order, error } = await supabase
@@ -158,10 +165,7 @@ export async function POST(req: Request) {
       );
     }
 
-    return NextResponse.json({
-      success: true,
-      order,
-    });
+    return orderResponse(order);
   } catch (error) {
     console.error("Order route error:", error);
 

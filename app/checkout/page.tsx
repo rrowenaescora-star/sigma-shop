@@ -7,6 +7,7 @@ import { useSearchParams } from "next/navigation";
 import CustomerAvatarMenu from "@/components/customer-avatar-menu";
 import LazySupportChat from "@/components/lazy-support-chat";
 import PaypalCheckout from "@/components/paypal-checkout";
+import { isValidCheckoutEmail } from "@/lib/checkout-email";
 
 type Product = {
   id: number;
@@ -59,6 +60,8 @@ function CheckoutPageContent() {
   const [couponCode, setCouponCode] = useState("");
   const [discount, setDiscount] = useState(0);
   const [couponError, setCouponError] = useState("");
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [emailFeedback, setEmailFeedback] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState("");
 
   const [robloxUserId, setRobloxUserId] = useState<number | null>(null);
@@ -370,12 +373,13 @@ function CheckoutPageContent() {
   const isCheckoutDisabled =
     cartItems.length === 0 ||
     !robloxUsername.trim() ||
-    !contactInfo.trim() ||
+    !isValidCheckoutEmail(contactInfo) ||
     !isVerified ||
     isSubmitting ||
     hasUnavailableCartItems;
 
   async function applyCoupon() {
+    if (couponLoading) return;
     setCouponError("");
 
     if (!couponCode.trim()) {
@@ -385,6 +389,7 @@ function CheckoutPageContent() {
       return;
     }
 
+    setCouponLoading(true);
     try {
       await refreshProductsForValidation();
 
@@ -424,6 +429,8 @@ function CheckoutPageContent() {
       setCouponError("Something went wrong while applying coupon.");
       setDiscount(0);
       setAppliedCoupon("");
+    } finally {
+      setCouponLoading(false);
     }
   }
 
@@ -835,6 +842,13 @@ function CheckoutPageContent() {
                     <input
                       type="text"
                       value={robloxUsername}
+                      enterKeyHint="go"
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" && !event.nativeEvent.isComposing) {
+                          event.preventDefault();
+                          if (!event.repeat && !verifyLoading && robloxUsername.trim()) void verifyRobloxUser();
+                        }
+                      }}
                       onChange={(e) => {
                         setRobloxUsername(e.target.value);
                         setIsVerified(false);
@@ -867,6 +881,9 @@ function CheckoutPageContent() {
                       {verifyError}
                     </p>
                   )}
+                  <p role="status" aria-live="polite" className="mt-2 text-sm font-semibold text-emerald-300">
+                    {verifyLoading ? "Checking your username…" : isVerified ? "✓ Username verified. Continue with your email below." : !verifyError ? "Press Enter or click Verify to check your username." : ""}
+                  </p>
 
                   <div className="mt-4 grid items-center gap-5 rounded-lg border border-white/10 bg-[#1d1c31] p-4 sm:grid-cols-[120px_1fr]">
                     <div className="relative flex h-[120px] w-[120px] items-center justify-center overflow-hidden rounded-[24px] border border-white/10 bg-[#211f38]">
@@ -916,12 +933,34 @@ function CheckoutPageContent() {
 
                   <input
                     type="email"
+                    aria-invalid={Boolean(contactInfo) && !isValidCheckoutEmail(contactInfo)}
+                    aria-describedby="checkout-email-feedback"
                     value={contactInfo}
-                    onChange={(e) => setContactInfo(e.target.value)}
+                    enterKeyHint="next"
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" && !event.nativeEvent.isComposing) {
+                        event.preventDefault();
+                        if (!isValidCheckoutEmail(contactInfo)) {
+                          setEmailFeedback("Enter a valid email address, such as name@example.com.");
+                          return;
+                        }
+                        if (!event.currentTarget.reportValidity()) return;
+                        if (!event.repeat && finalPrice <= 0 && !isCheckoutDisabled && termsAccepted) {
+                          setEmailFeedback("Email confirmed. Processing your free claim…");
+                          void handleFreeCheckout();
+                        } else {
+                          setEmailFeedback(!isVerified ? "Email entered. Verify your username, then accept the policies to continue." : termsAccepted ? "Email entered. Choose your payment option below to continue." : "Email entered. Review and accept the policies below to continue.");
+                          document.getElementById("terms-acceptance")?.focus();
+                        }
+                      }
+                    }}
+                    onChange={(e) => { setContactInfo(e.target.value); setEmailFeedback(""); }}
                     className={fullInputClass}
                     placeholder="youremail@example.com"
                     required
-                  />                  <div className="mt-3">
+                  />
+                  <p id="checkout-email-feedback" role="status" aria-live="polite" className={`mt-2 text-sm font-semibold ${contactInfo && !isValidCheckoutEmail(contactInfo) ? "text-red-400" : "text-emerald-300"}`}>{contactInfo && !isValidCheckoutEmail(contactInfo) ? "Enter a valid email address, such as name@example.com." : emailFeedback}</p>
+                  <div className="mt-3">
                     <button
                       type="button"
                       onClick={() => setEmailWhyOpen((open) => !open)}
@@ -960,6 +999,12 @@ function CheckoutPageContent() {
                 <input
                   type="checkbox"
                   id="terms-acceptance"
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" && !event.repeat) {
+                      event.preventDefault();
+                      setTermsAccepted((accepted) => !accepted);
+                    }
+                  }}
                   checked={termsAccepted}
                   onChange={(e) => setTermsAccepted(e.target.checked)}
                   className="mt-1 h-5 w-5 shrink-0 accent-blue-500"
@@ -988,6 +1033,9 @@ function CheckoutPageContent() {
                   . I understand that my order is subject to these policies.
                 </label>
               </div>
+              <p role="status" aria-live="polite" className="mt-2 text-sm font-semibold text-emerald-300">
+                {termsAccepted ? "✓ Policies accepted. " + (finalPrice <= 0 ? "You can now claim your free order." : "Choose your payment option below to continue.") : ""}
+              </p>
 
               {finalPrice <= 0 ? (
                 <button
@@ -1004,18 +1052,7 @@ function CheckoutPageContent() {
                 </button>
               ) : (
                 <div className="mt-5 grid gap-3">
-                  <button
-                    type="button"
-                    onClick={handleSmartCheckout}
-                    disabled={!termsAccepted || isCheckoutDisabled}
-                   className={`w-full rounded-lg border py-4 text-lg font-black transition ${
-  !termsAccepted || isCheckoutDisabled
-    ? "cursor-not-allowed border-slate-700 bg-slate-800 text-slate-300"
-    : "cursor-pointer border-white/10 bg-[#10233c] text-white hover:bg-[#18345a]"
-}`}
-                  >
-                    {isSubmitting ? "Redirecting..." : "Proceed to Secure Checkout"}
-                  </button>
+                  {/* Secure checkout button temporarily hidden. */}
 
                   <p className="text-center text-xs font-semibold text-slate-400">
                     After payment approval, your order continues through our normal fulfillment flow.
@@ -1103,6 +1140,13 @@ function CheckoutPageContent() {
                   <div className="flex flex-col gap-3 sm:flex-row">
                     <input
                       value={couponCode}
+                      enterKeyHint="go"
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" && !event.nativeEvent.isComposing) {
+                          event.preventDefault();
+                          if (!event.repeat && !isSubmitting && !couponLoading) void applyCoupon();
+                        }
+                      }}
                       onChange={(e) => setCouponCode(e.target.value)}
                       className={inputClass}
                       placeholder="Discount code or gift card"
@@ -1111,12 +1155,14 @@ function CheckoutPageContent() {
                     <button
                       type="button"
                       onClick={applyCoupon}
+                      disabled={couponLoading || isSubmitting}
                       className="cursor-pointer rounded-lg bg-[#2a293e] px-7 py-4 text-sm font-black text-white hover:bg-[#37354f]"
                     >
-                      Apply
+                      {couponLoading ? "Applying…" : "Apply"}
                     </button>
                   </div>
 
+                  <p role="status" aria-live="polite" className="mt-2 text-sm font-semibold text-emerald-300">{couponLoading ? "Checking your coupon and updating the total…" : ""}</p>
                   {couponError && (
                     <p className="mt-2 text-sm text-red-400">{couponError}</p>
                   )}
@@ -1269,3 +1315,4 @@ export default function CheckoutPage() {
     </Suspense>
   );
 }
+

@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { getAuthenticatedUser } from "@/lib/supabase/auth";
 import { createGuestCheckoutSession, PAYPAL_GUEST_COOKIE } from "@/lib/paypal-guest-session";
 import { createPaypalOrder } from "@/lib/paypal";
+import { isValidCheckoutEmail } from "@/lib/checkout-email";
 export const runtime="nodejs";
 const supabase=createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.SUPABASE_SERVICE_ROLE_KEY!);
 const money=(v:number)=>Math.round((v+Number.EPSILON)*100)/100;
@@ -11,6 +12,7 @@ export async function POST(request:Request) {
   const {user}=await getAuthenticatedUser(); const guestSession=createGuestCheckoutSession();
   const b=await request.json(); const items=Array.isArray(b.items)?b.items:[]; const username=String(b.robloxUsername||"").trim(); const contact=String(b.contactInfo||"").trim();
   if(!items.length||!username||!Number.isFinite(Number(b.robloxUserId))||!contact)return NextResponse.json({error:"Please complete your delivery details first."},{status:400});
+  if(!isValidCheckoutEmail(contact))return NextResponse.json({error:"Enter a valid email address, such as name@example.com."},{status:400});
   const quantities=new Map<number,number>(); for(const item of items){const id=Number(item.id),q=Number(item.quantity);if(!Number.isInteger(id)||!Number.isInteger(q)||q<1||q>20)return NextResponse.json({error:"Your cart contains an invalid item."},{status:400});quantities.set(id,(quantities.get(id)||0)+q);}
   const {data:products,error:productError}=await supabase.from("products").select("id,name,price,cost_value,stock,stock_quantity,image_url,game,is_active").in("id",[...quantities.keys()]);
   if(productError||!products||products.length!==quantities.size)return NextResponse.json({error:"One or more products are no longer available."},{status:400});

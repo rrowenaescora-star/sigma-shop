@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { getAuthenticatedUser } from "@/lib/supabase/auth";
+import { isValidCheckoutEmail } from "@/lib/checkout-email";
 import { FREE_ORDER_COOKIE, freeOrderToken } from "@/lib/free-order-confirmation";
 
 function orderResponse(order: { id: number; payment_status: string; total_price: number }, deduped = false) {
@@ -46,6 +47,10 @@ export async function POST(req: Request) {
         { error: "Missing required order information." },
         { status: 400 }
       );
+    }
+
+    if (!isValidCheckoutEmail(contactInfo)) {
+      return NextResponse.json({ error: "Enter a valid email address, such as name@example.com." }, { status: 400 });
     }
 
     // LOAD SHOP CAPITAL

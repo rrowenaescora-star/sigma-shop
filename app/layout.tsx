@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
+import "./midnight.css";
 import LayoutShell from "@/components/layout-shell";
 import CookieConsent from "@/components/cookie-consent";
 import RouteLoadingBar from "@/components/route-loading-bar";

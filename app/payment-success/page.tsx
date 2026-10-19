@@ -41,7 +41,7 @@ export default function PaymentSuccessPage() {
   const discount = Number(receipt?.coupon_discount ?? 0);
 
   return (
-    <main className="min-h-screen bg-[#070b14] px-4 py-10 text-slate-900 sm:py-16">
+    <main className="midnight-success min-h-screen px-4 py-10 text-slate-900 sm:py-16">
       <style>{`@media print { body * { visibility: hidden !important; } #order-receipt, #order-receipt * { visibility: visible !important; } #order-receipt { position: absolute; inset: 0 auto auto 0; width: 100%; border-radius: 0; box-shadow: none; overflow: visible; } #order-receipt button { display: none !important; } #order-receipt tr { break-inside: avoid; } }`}</style>
       <section className="mx-auto max-w-3xl">
         <div className="mb-6 text-center text-white">

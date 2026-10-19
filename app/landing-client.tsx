@@ -132,31 +132,32 @@ export default function LandingPage({ initialFeaturedImages }: { initialFeatured
     <main className="min-h-screen overflow-hidden bg-[#06101d] text-white">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_72%_18%,rgba(37,99,235,0.16),transparent_30%),radial-gradient(circle_at_18%_85%,rgba(14,165,233,0.10),transparent_32%)]" />
 
-      <section className="group relative overflow-hidden border-b border-white/10 bg-[#06101d]">
+      <section className="midnight-hero group relative overflow-hidden border-b border-white/10 bg-[#06101d]">
         <img src="/bloxhop-header-background.webp" alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center opacity-80" />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(6,16,29,0.98)_0%,rgba(6,16,29,0.88)_40%,rgba(6,16,29,0.52)_68%,rgba(6,16,29,0.72)_100%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_42%,rgba(37,99,235,0.24),transparent_28%),radial-gradient(circle_at_20%_45%,rgba(14,165,233,0.07),transparent_25%)]" />
 
 <div className="relative z-10 mx-auto grid max-w-[1500px] items-center gap-10 px-4 py-12 sm:px-6 sm:py-16 lg:grid-cols-[0.9fr_1.1fr] lg:gap-12 lg:py-24">
           <div>
+            <div className="midnight-eyebrow">HALLOWEEN / MIDNIGHT EDITION</div>
             <h1 className="mt-5 max-w-3xl text-4xl font-black leading-[1.05] tracking-tight sm:text-5xl md:text-6xl">
-              Level Up Your Game
+              UNLOCK YOUR
               <span className="mt-2 block text-3xl bg-gradient-to-r from-blue-400 via-blue-300 to-white bg-clip-text text-transparent sm:text-4xl md:text-5xl">
-                Get What You Want, Fast.
+                DARK SIDE.
               </span>
             </h1>
 
             <p className="mt-5 max-w-2xl text-lg font-normal leading-8 text-slate-300 sm:text-xl">
-              Find what you need, check out in seconds, and get back in the game.
+              Legendary fruits. A whole new atmosphere. Find your next upgrade and get back in the game.
             </p>
 
             <div className="mt-7 flex flex-wrap gap-4">
               <Link
-                href="/request-item"
-                className="flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-[#3b82f6] px-7 text-base font-black text-white shadow-[0_6px_0_#1d4ed8] transition hover:translate-y-0.5 hover:bg-[#60a5fa] hover:shadow-[0_4px_0_#1d4ed8] active:translate-y-1 active:shadow-[0_2px_0_#1d4ed8] sm:w-auto"
+                href="/home"
+                className="midnight-primary flex h-14 w-full items-center justify-center gap-2 rounded-xl px-7 text-base font-black transition sm:w-auto"
               >
                 <Search className="h-5 w-5" />
-Request an Item
+Explore the Shop
               </Link>
 
               <a

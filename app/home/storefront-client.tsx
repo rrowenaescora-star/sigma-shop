@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import HalloweenHeaderDecor from "@/components/halloween-header-decor";
 import CustomerAvatarMenu from "@/components/customer-avatar-menu";
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
@@ -537,7 +538,7 @@ if (foundProduct) {
   }, [currentPage, totalPages]);
 
   return (
-    <div className="relative min-h-screen bg-[#07111f] bg-[url('/website-background.png')] bg-cover bg-center bg-fixed text-white">
+    <div className="midnight-store relative min-h-screen bg-[#07111f] text-white">
 <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(59,130,246,0.10),transparent_25%),radial-gradient(circle_at_bottom_right,rgba(14,165,233,0.08),transparent_30%)]" />
 
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
@@ -549,7 +550,8 @@ if (foundProduct) {
 
      <div className="relative w-full px-0">
     
-<div className="sticky inset-x-0 top-0 z-50">
+<div className="midnight-decor-header sticky inset-x-0 top-0 z-50">
+  <HalloweenHeaderDecor />
   <div className="overflow-visible border-b border-blue-500/10 bg-[#07111f]/95 shadow-[0_15px_50px_rgba(0,0,0,0.45)] backdrop-blur-xl">
     <div className="absolute inset-0 hidden md:block">
       <img
@@ -879,7 +881,7 @@ if (foundProduct) {
   style={{
     animationDelay: `${(product.id % 15) * 30}ms`,
   }}
-                         className={`scroll-mt-40 group relative flex w-full min-w-0 aspect-[3/4] animate-[productAppear_.45s_ease-out] flex-col overflow-hidden rounded-2xl border bg-[radial-gradient(circle_at_82%_22%,rgba(59,130,246,0.30),transparent_33%),linear-gradient(140deg,#071f25_0%,#10343a_55%,#1d2b4d_100%)] shadow-[0_18px_50px_rgba(0,0,0,0.45)] transition-all duration-500 ease-out hover:-translate-y-2 ${specialCardStyle} ${layoutSpan}`}
+                         className={`midnight-product-card scroll-mt-40 group relative flex w-full min-w-0 aspect-[3/4] animate-[productAppear_.45s_ease-out] flex-col overflow-hidden rounded-2xl border bg-[radial-gradient(circle_at_82%_22%,rgba(59,130,246,0.30),transparent_33%),linear-gradient(140deg,#071f25_0%,#10343a_55%,#1d2b4d_100%)] shadow-[0_18px_50px_rgba(0,0,0,0.45)] transition-all duration-500 ease-out hover:-translate-y-2 ${specialCardStyle} ${layoutSpan}`}
                         >
                           <PageTransitionLink
                             href={`/products/${encodeURIComponent(product.slug || String(product.id))}`}

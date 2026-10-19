@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import HalloweenHeaderDecor from "@/components/halloween-header-decor";
 import { useEffect, useState } from "react";
 import PageTransitionLink from "@/components/page-transition-link";
 import BackTransitionButton from "@/components/back-transition-button";
@@ -94,6 +95,7 @@ export default function ProductDetailsPage({ initialProduct }: { initialProduct:
   return (
     <>
       <header className="product-header-enter fixed inset-x-0 top-0 z-50 border-b border-blue-500/10 bg-[#07111f]/95 shadow-[0_15px_50px_rgba(0,0,0,0.45)] backdrop-blur-xl">
+        <HalloweenHeaderDecor />
         <div className="relative overflow-hidden">
           <div className="absolute inset-0 hidden md:block">
             <img src="/blof-fruit-logo.webp" alt="" className="h-full w-full object-cover opacity-45" />

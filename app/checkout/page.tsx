@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import HalloweenHeaderDecor from "@/components/halloween-header-decor";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useSearchParams } from "next/navigation";
@@ -758,7 +759,7 @@ function CheckoutPageContent() {
   }
 
   return (
-    <div className="relative min-h-screen overflow-x-clip bg-[#12111f] text-white">
+    <div className="midnight-checkout relative min-h-screen overflow-x-clip bg-[#12111f] text-white">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top,rgba(120,58,237,0.08),transparent_34%)]" />
 
       <div aria-hidden="true" className="hidden">
@@ -787,7 +788,8 @@ function CheckoutPageContent() {
         })}
       </div>
 
-      <div className="relative z-40 w-full overflow-hidden border-b border-white/10 bg-[#12111f]">
+      <div className="midnight-decor-header sticky top-0 z-40 w-full border-b border-white/10 bg-[#12111f]">
+        <HalloweenHeaderDecor />
         <img src="/header4.png" alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center opacity-60" />
         <div className="pointer-events-none absolute inset-0 bg-[#12111f]/75" />
         <div className="relative mx-auto flex max-w-[1064px] items-center justify-between px-4 py-4 sm:px-6">
@@ -807,6 +809,7 @@ function CheckoutPageContent() {
       </div>
 
       <div className="relative z-10 mx-auto max-w-[1064px] px-4 py-10 sm:px-6">
+        <div className="midnight-eyebrow mb-8">YOUR LOOT / SECURE CHECKOUT</div>
         <div aria-hidden="true" className="pointer-events-none absolute bottom-0 -top-10 left-[53%] hidden w-0.5 bg-white/20 lg:block" />
 
         <main className="grid items-start lg:grid-cols-[minmax(0,1.06fr)_minmax(360px,.94fr)]">

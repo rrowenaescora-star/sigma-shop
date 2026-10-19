@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import SiteFooter from "@/components/site-footer";
 import CustomerAvatarMenu from "@/components/customer-avatar-menu";
+import HalloweenHeaderDecor from "@/components/halloween-header-decor";
 
 export default function LayoutShell({
   children,
@@ -28,7 +29,7 @@ export default function LayoutShell({
     pathname.startsWith("/manual-payment") ||
     pathname.startsWith("/grow-a-garden-2") ||
     pathname.startsWith("/steal-an-egg") ||
-    pathname.startsWith("/wallet") ||
+    (pathname.startsWith("/wallet") && pathname !== "/wallet/payment-success") ||
     pathname.startsWith("/blade-ball") ||
     pathname.startsWith("/products") ||
     pathname.startsWith("/admin");
@@ -39,11 +40,25 @@ export default function LayoutShell({
     { href: "/steal-an-egg", img: "/steal-an-egg-icon.PNG", alt: "Steal an Egg", name: "Steal an Egg" },
   ];
 
+  const midnightTheme = pathname === "/" || pathname === "/home" || pathname === "/checkout" || pathname.startsWith("/products/") || pathname === "/payment-success" || pathname === "/wallet/payment-success";
+
   return (
-    <>
+    <div className={midnightTheme ? "midnight-theme flex min-h-screen flex-col" : "flex min-h-screen flex-col"}>
+      {midnightTheme && (
+        <div className="midnight-ghost-stage" aria-hidden="true">
+          {[0, 1, 2, 3].map((ghost) => (
+            <div className="midnight-ghost-flight" key={ghost}>
+              <div className="midnight-ghost">
+                <span className="midnight-ghost-eyes" />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
       {!hideGlobalLayout && (
         <>
           <header className="sticky top-0 z-[9999] w-full overflow-visible border-b border-white/10 bg-[#07111f]/95 backdrop-blur-xl">
+            {midnightTheme && <HalloweenHeaderDecor />}
             <img src="/header4.png" alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center opacity-45" />
             <div className="pointer-events-none absolute inset-0 bg-[#07111f]/65" />
             <div className="relative mx-auto flex max-w-[1500px] items-center justify-between px-4 py-4 md:px-6 lg:px-8">
@@ -153,7 +168,7 @@ export default function LayoutShell({
 
       {!hideGlobalLayout && <SiteFooter />}
       {!hideGlobalLayout && <footer className="border-t border-white/10 bg-[#111121] px-6 py-6 text-center text-sm leading-7 text-slate-500">© {new Date().getFullYear()} Bloxhop Online Store. Independent digital gaming marketplace.</footer>}
-    </>
+    </div>
   );
 }
 

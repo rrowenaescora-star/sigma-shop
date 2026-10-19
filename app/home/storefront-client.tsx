@@ -836,7 +836,7 @@ if (foundProduct) {
           <main className="min-w-0 px-4 md:px-6 lg:px-8">
           <section className="p-2 md:p-4">
               {loadingProducts ? (
-               <div className="grid auto-rows-fr grid-cols-1 gap-5 min-[480px]:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6">
+               <div className="grid auto-rows-fr grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4 2xl:grid-cols-6">
                   {Array.from({ length: PRODUCTS_PER_PAGE }).map((_, index) => (
                     <ProductSkeletonCard key={index} />
                   ))}
@@ -847,7 +847,7 @@ if (foundProduct) {
                 </div>
               ) : (
                 <>
-                  <div className="grid auto-rows-fr grid-cols-1 gap-5 min-[480px]:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6">
+                  <div className="grid auto-rows-fr grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4 2xl:grid-cols-6">
                     {paginatedProducts.map((product, productIndex) => {
                       const stockLabel = getStockLabel(product);
                       const outOfStock = isUnavailable(product);
@@ -1091,7 +1091,9 @@ if (foundProduct) {
         />
 
         <div
-         className={`fixed right-4 top-[165px] z-[80] flex h-[calc(100vh-185px)] w-[390px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-3xl border border-white/10 bg-[#0b1020]/95 shadow-[0_25px_90px_rgba(0,0,0,0.65)] backdrop-blur-xl transition-all duration-500 ease-in-out ${
+         inert={!isCartOpen}
+         aria-label="Shopping cart"
+         className={`midnight-cart fixed right-4 top-[165px] z-[80] flex h-[calc(100vh-185px)] w-[390px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-3xl border border-white/10 bg-[#0b1020]/95 shadow-[0_25px_90px_rgba(0,0,0,0.65)] backdrop-blur-xl transition-all duration-500 ease-in-out ${
 
 	
            isCartOpen ? "translate-x-0 opacity-100" : "translate-x-[120%] opacity-0"
@@ -1100,6 +1102,7 @@ if (foundProduct) {
           <div className="border-b border-slate-700/60 p-6">
             <div className="flex items-center justify-between gap-4">
               <div>
+                <p className="midnight-eyebrow mb-2">YOUR MIDNIGHT LOOT</p>
                 <h3 className="text-3xl font-black">Your Cart</h3>
                 <p className="text-sm text-slate-400">Review your items before checkout</p>
               </div>
@@ -1151,7 +1154,7 @@ if (foundProduct) {
                 {cartItems.map((item) => (
                   <div
   key={item.id}
-  className="rounded-2xl bg-[#17172f]/95 p-3"
+  className="midnight-cart-item rounded-2xl bg-[#17172f]/95 p-3"
 >
   <div className="flex items-center gap-3">
     <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/5 bg-[#0b1628]/80">
@@ -1191,6 +1194,7 @@ if (foundProduct) {
 
     <div className="flex items-center gap-2">
       <button
+        aria-label={`Decrease quantity of ${item.name}`}
         onClick={() => decreaseQuantity(item.id)}
         className="flex h-7 w-7 items-center justify-center rounded-full bg-[#252545] text-sm font-black text-slate-300 hover:bg-[#30305a]"
       >
@@ -1202,6 +1206,7 @@ if (foundProduct) {
       </span>
 
       <button
+        aria-label={`Increase quantity of ${item.name}`}
         onClick={() => increaseQuantity(item.id)}
         className="flex h-7 w-7 items-center justify-center rounded-full bg-[#252545] text-sm font-black text-slate-300 hover:bg-[#30305a]"
       >

@@ -131,6 +131,36 @@
 }
 .midnight-theme .midnight-product-card:hover { border-color: var(--midnight-lime); box-shadow: 0 0 25px #a76bfa24; }
 .midnight-theme .midnight-product-card img { filter: drop-shadow(0 0 14px #ae79ff38); }
+@media (max-width: 639px) {
+  .midnight-theme .midnight-product-card { aspect-ratio: auto; min-height: 255px; }
+  .midnight-product-card > div.relative { height: 108px; min-height: 108px; }
+  .midnight-product-card > div.relative > div:last-child { padding: 12px; }
+  .midnight-product-card h3 { font-size: 12px; }
+  .midnight-product-card > div:last-child { padding: 10px; }
+  .midnight-product-card button { min-height: 40px; padding-inline: 4px; }
+}
+.midnight-theme .midnight-cart {
+  background: linear-gradient(155deg, #211a36, #101626 48%);
+  border: 1px solid #715392;
+  border-radius: 14px;
+  box-shadow: 0 0 35px #9862d52b, 0 25px 70px #0009;
+  backdrop-filter: none;
+}
+.midnight-cart > div:first-child { background: linear-gradient(110deg, #38224b, #161b2f); border-color: #53406e; }
+.midnight-cart > div:last-child { background: #101525; border-color: #53406e; }
+.midnight-theme .midnight-cart-item { background: #1b2035; border: 1px solid #403855; border-radius: 10px; }
+.midnight-cart .text-sky-300 { color: #b7f568; }
+.midnight-cart button { border: 1px solid #59456e; background: #2b2440; border-radius: 8px; }
+.midnight-cart button:hover { background: #44315e; }
+.midnight-cart-item button { min-width: 32px; min-height: 32px; flex-shrink: 0; }
+.midnight-cart a[href="/checkout"]:not(.pointer-events-none) { background: #b7f568; color: #101609; border-radius: 8px; min-height: 46px; box-shadow: 0 0 20px #b7f5681a; }
+.midnight-cart a[href="/checkout"]:not(.pointer-events-none):hover { background: #d0ff96; }
+@media (max-width: 640px) {
+  .midnight-theme .midnight-cart { top: 88px; height: calc(100dvh - 104px); }
+  .midnight-cart > div { padding: 16px; }
+  .midnight-cart-item > div:first-child { flex-wrap: wrap; }
+  .midnight-cart-item button { min-width: 44px; min-height: 44px; }
+}
 .midnight-checkout { background-image: radial-gradient(ellipse at 80% 0, #7b3caa20, transparent 45%); }
 .midnight-checkout .accent-blue-500 { accent-color: var(--midnight-lime); }
 .midnight-success { background: radial-gradient(ellipse at 75% 0, #7537b52e, transparent 55%), var(--midnight-bg); }

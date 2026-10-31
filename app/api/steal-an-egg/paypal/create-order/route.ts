@@ -4,6 +4,7 @@ import { getAuthenticatedUser } from "@/lib/supabase/auth";
 import { createGuestCheckoutSession, PAYPAL_GUEST_COOKIE } from "@/lib/paypal-guest-session";
 import { createPaypalOrder } from "@/lib/paypal";
 import { sendDiscordOrderNotification } from "@/lib/discord";
+import { sendOrderEmailNotification } from "@/lib/order-email-notification";
 
 export const runtime = "nodejs";
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
@@ -98,6 +99,7 @@ export async function POST(request: Request) {
       } catch (discordError) {
         console.error("Discord order notification failed:", discordError);
       }
+      await sendOrderEmailNotification({ orderId: order.id, robloxUsername: "Pending after payment", contactInfo: email, totalPrice: subtotal, paymentMethod: "PayPal", paymentStatus: "Pending", items: serverItems });
 
       const response = NextResponse.json({ orderID: paypalOrder.id });
       response.cookies.set(PAYPAL_GUEST_COOKIE, guestSession.token, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "strict", path: "/", maxAge: 60 * 60 * 24 * 14 });

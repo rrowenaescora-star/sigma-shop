@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { createGuestCheckoutSession, PAYPAL_GUEST_COOKIE } from "@/lib/paypal-guest-session";
 import { sendDiscordOrderNotification } from "@/lib/discord";
+import { sendOrderEmailNotification } from "@/lib/order-email-notification";
 
 export const runtime = "nodejs";
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
@@ -63,6 +64,7 @@ export async function POST(request: Request) {
     } catch (discordError) {
       console.error("Discord order notification failed:", discordError);
     }
+    await sendOrderEmailNotification({ orderId: order.id, robloxUsername: "Pending after payment", contactInfo: email, totalPrice: usdTotal, paymentMethod: "PayMongo", paymentStatus: "Pending", items: serverItems });
     const response = NextResponse.json({ checkoutUrl: paymongo.data.attributes.checkout_url, orderId: order.id, phpTotal: phpCentavos / 100 });
     response.cookies.set(PAYPAL_GUEST_COOKIE, session.token, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: 60 * 60 * 24 * 14 });
     return response;

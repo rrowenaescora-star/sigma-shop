@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import { getAuthenticatedUser } from "@/lib/supabase/auth";
 import { sendDiscordOrderNotification } from "@/lib/discord";
+import { sendOrderEmailNotification } from "@/lib/order-email-notification";
 
 type CartItem = {
   id: number;
@@ -167,6 +168,15 @@ success_url: `${process.env.NEXT_PUBLIC_APP_URL}/payment-success?reference=${ref
     } catch (discordError) {
       console.error("Discord order notification failed:", discordError);
     }
+    await sendOrderEmailNotification({
+      orderId: order.id,
+      robloxUsername: order.roblox_username || robloxUsername,
+      contactInfo: order.contact_info || contactInfo,
+      totalPrice: Number(order.total_price) || 0,
+      paymentMethod: order.payment_method,
+      paymentStatus: order.payment_status,
+      items: order.items,
+    });
 
     return NextResponse.json({
       success: true,

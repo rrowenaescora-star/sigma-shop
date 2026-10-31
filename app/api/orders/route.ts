@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { getAuthenticatedUser } from "@/lib/supabase/auth";
 import { isValidCheckoutEmail } from "@/lib/checkout-email";
 import { FREE_ORDER_COOKIE, freeOrderToken } from "@/lib/free-order-confirmation";
+import { sendDiscordOrderNotification } from "@/lib/discord";
 
 function orderResponse(order: { id: number; payment_status: string; total_price: number }, deduped = false) {
   const response = NextResponse.json({ success: true, order, ...(deduped ? { deduped: true } : {}) });
@@ -168,6 +169,19 @@ export async function POST(req: Request) {
         { error: error.message || "Order save failed." },
         { status: 500 }
       );
+    }
+
+    try {
+      await sendDiscordOrderNotification({
+        orderId: order.id,
+        robloxUsername: order.roblox_username || robloxUsername,
+        contactInfo: order.contact_info || contactInfo,
+        totalPrice: Number(order.total_price) || 0,
+        paymentStatus: order.payment_status || "Pending",
+        deliveryStatus: order.delivery_status || "Pending",
+      });
+    } catch (discordError) {
+      console.error("Discord order notification failed:", discordError);
     }
 
     return orderResponse(order);

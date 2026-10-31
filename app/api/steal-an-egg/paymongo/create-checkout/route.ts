@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { createGuestCheckoutSession, PAYPAL_GUEST_COOKIE } from "@/lib/paypal-guest-session";
+import { sendDiscordOrderNotification } from "@/lib/discord";
 
 export const runtime = "nodejs";
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
@@ -57,6 +58,11 @@ export async function POST(request: Request) {
     const paymongo = await paymongoResponse.json();
     if (!paymongoResponse.ok || !paymongo?.data?.id || !paymongo?.data?.attributes?.checkout_url) { await supabase.from("orders").update({ payment_status: "Failed" }).eq("id", order.id); return NextResponse.json({ error: paymongo?.errors?.[0]?.detail || "PayMongo checkout could not be created." }, { status: 502 }); }
     await supabase.from("orders").update({ xendit_session_id: paymongo.data.id, payment_status: "Pending" }).eq("id", order.id).eq("checkout_session_hash", session.hash);
+    try {
+      await sendDiscordOrderNotification({ orderId: order.id, robloxUsername: "Pending after payment", contactInfo: email, totalPrice: usdTotal, paymentStatus: "Pending", deliveryStatus: "Awaiting payment" });
+    } catch (discordError) {
+      console.error("Discord order notification failed:", discordError);
+    }
     const response = NextResponse.json({ checkoutUrl: paymongo.data.attributes.checkout_url, orderId: order.id, phpTotal: phpCentavos / 100 });
     response.cookies.set(PAYPAL_GUEST_COOKIE, session.token, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: 60 * 60 * 24 * 14 });
     return response;

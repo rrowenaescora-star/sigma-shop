@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { getAuthenticatedUser } from "@/lib/supabase/auth";
 import { createGuestCheckoutSession, PAYPAL_GUEST_COOKIE } from "@/lib/paypal-guest-session";
 import { createPaypalOrder } from "@/lib/paypal";
+import { sendDiscordOrderNotification } from "@/lib/discord";
 
 export const runtime = "nodejs";
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
@@ -91,6 +92,12 @@ export async function POST(request: Request) {
       if (!paypalOrder.id) throw new Error("Missing PayPal order ID");
       const { error: updateError } = await supabase.from("orders").update({ paypal_order_id: paypalOrder.id, payment_status: "Pending" }).eq("id", order.id).eq("checkout_session_hash", guestSession.hash);
       if (updateError) throw updateError;
+
+      try {
+        await sendDiscordOrderNotification({ orderId: order.id, robloxUsername: "Pending after payment", contactInfo: email, totalPrice: subtotal, paymentStatus: "Pending", deliveryStatus: "Awaiting payment", paypalOrderId: paypalOrder.id });
+      } catch (discordError) {
+        console.error("Discord order notification failed:", discordError);
+      }
 
       const response = NextResponse.json({ orderID: paypalOrder.id });
       response.cookies.set(PAYPAL_GUEST_COOKIE, guestSession.token, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "strict", path: "/", maxAge: 60 * 60 * 24 * 14 });

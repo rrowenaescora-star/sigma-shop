@@ -509,26 +509,20 @@ useEffect(() => {
 
   const id = hash.replace("#", "");
 
-  setTimeout(() => {
-    const element = document.getElementById(id);
+  const timer = window.setTimeout(() => {
+    const slugify = (value: string) => value.trim().toLowerCase().replace(/\s+/g, "-");
+    const foundProduct = products.find((product) =>
+      slugify(product.slug || "") === id ||
+      slugify(product.name) === id ||
+      (id === "hellfire-mutation" && /hell\s*fire|fire\s*mutat(?:ion|t?ion)/i.test(product.name))
+    );
 
-    if (element) {
-      element.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
-      });
+    if (foundProduct) setPopupProduct(foundProduct);
 
- const foundProduct = products.find(
-  (product) =>
-    (product.slug || product.name).trim().toLowerCase().replace(/\s+/g, "-") === id
-);
-
-if (foundProduct) {
-  setPopupProduct(foundProduct);
-}
-    }
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "center" });
   }, 300);
-}, [loadingProducts, paginatedProducts]);
+  return () => window.clearTimeout(timer);
+}, [loadingProducts, products]);
 
 
   useEffect(() => {
@@ -874,7 +868,7 @@ if (foundProduct) {
 
                       return (
                         <div
-  id={(product.slug || product.name)
+  id={/hell\s*fire|fire\s*mutat(?:ion|t?ion)/i.test(product.name) ? "hellfire-mutation" : (product.slug || product.name)
     .trim().toLowerCase()
     .replace(/\s+/g, "-")}
   key={product.id}
@@ -910,11 +904,11 @@ if (foundProduct) {
 <div className="relative z-10 flex h-full items-center justify-center p-5">
                               {product.image_url ? (
                                 <img
-                                  src={product.image_url}
+                                  src={/hell\s*fire|fire\s*mutat(?:ion|t?ion)/i.test(product.name) ? "/hellfiremutation.png" : product.image_url}
                                   loading={productIndex < 12 ? "eager" : "lazy"}
                                   decoding="async"
                                   alt={product.name}
-                                  className="h-[78%] w-[78%] max-h-[170px] max-w-[170px] object-contain transition-transform duration-500 ease-out group-hover:scale-110"
+                                  className={/hell\s*fire|fire\s*mutat(?:ion|t?ion)/i.test(product.name) ? "h-[140%] w-[140%] max-h-[280px] max-w-[280px] shrink-0 object-contain transition-transform duration-500 ease-out group-hover:scale-110" : "h-[78%] w-[78%] max-h-[170px] max-w-[170px] object-contain transition-transform duration-500 ease-out group-hover:scale-110"}
                                 />
                               ) : (
                                 <div className="h-28 w-28 rounded-[2rem] bg-gradient-to-br from-blue-400 to-sky-300 shadow-[0_0_60px_rgba(59,130,246,0.20)]" />

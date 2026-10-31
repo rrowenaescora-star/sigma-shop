@@ -172,7 +172,7 @@ Explore the Shop
             </div>
 
             <Link
-              href="/home#permanent-magnet"
+              href="/home#hellfire-mutation"
               className="group/new-fruit relative isolate mt-8 flex max-w-xl flex-col items-start gap-5 overflow-hidden rounded-2xl border border-emerald-300/40 bg-[#ffffff] px-5 py-8 shadow-[0_0_34px_rgba(16,185,129,0.16)] transition hover:-translate-y-0.5 hover:border-emerald-200/70 hover:shadow-[0_0_42px_rgba(16,185,129,0.28)] sm:flex-row sm:items-center sm:py-10"
             >
               <span className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(2,24,20,0.96)_0%,rgba(4,37,30,0.78)_48%,rgba(2,24,20,0.3)_100%)]" />
@@ -185,7 +185,7 @@ Explore the Shop
                   <span className="block text-sm text-slate-200">View the newest Blox Fruit and add it to your cart.</span>
                 </span>
               </div>
-              <span className="relative z-10 w-full rounded-lg bg-blue-400/80 px-5 py-4 text-center text-xs font-black text-[#05231d] transition group-hover/new-fruit:bg-white sm:w-auto sm:shrink-0 sm:py-5">View Magnet →</span>
+              <span className="relative z-10 w-full rounded-lg bg-blue-400/80 px-5 py-4 text-center text-xs font-black text-[#05231d] transition group-hover/new-fruit:bg-white sm:w-auto sm:shrink-0 sm:py-5">View Hellfire Mutation →</span>
             </Link>
             <div className="mt-7 flex items-center gap-4">
               

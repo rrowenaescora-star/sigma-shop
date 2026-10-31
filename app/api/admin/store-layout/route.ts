@@ -4,6 +4,7 @@ import { requireAdmin } from "@/lib/admin-auth";
 
 const KEYS = ["catalog", "store_info", "faq"] as const;
 const SPANS = ["normal", "wide", "large"] as const;
+const GAMES = ["blox-fruits", "grow-a-garden-2", "adopt-me", "anime-defenders", "blade-ball", "mm2", "pet-simulator", "steal-an-egg"] as const;
 type Key = (typeof KEYS)[number];
 type Span = (typeof SPANS)[number];
 
@@ -15,16 +16,23 @@ function isSpan(value: unknown): value is Span {
   return typeof value === "string" && SPANS.includes(value as Span);
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   if (!(await requireAdmin())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const game = new URL(request.url).searchParams.get("game") || "blox-fruits";
+  return loadLayout(game);
+}
+
+async function loadLayout(game: string) {
+  if (!(GAMES as readonly string[]).includes(game)) return NextResponse.json({ error: "Choose a valid shop." }, { status: 400 });
   const [sections, products] = await Promise.all([
     adminSupabase.from("store_sections").select("*").order("display_order"),
     adminSupabase
       .from("products")
       .select("id,name,image_url,category,is_active,display_order,mobile_display_order,grid_span")
+      .eq("game", game)
       .order("display_order", { ascending: true, nullsFirst: false })
       .order("id"),
   ]);
@@ -46,6 +54,8 @@ export async function PUT(request: Request) {
 
   try {
     const body = await request.json();
+    const game = typeof body.game === "string" ? body.game : "";
+    if (!(GAMES as readonly string[]).includes(game)) return NextResponse.json({ error: "Choose a valid shop." }, { status: 400 });
     const sections: any[] = Array.isArray(body.sections) ? body.sections : [];
     const products: any[] = Array.isArray(body.products) ? body.products : [];
 
@@ -88,7 +98,8 @@ export async function PUT(request: Request) {
           mobile_display_order: Number.isInteger(product.mobile_display_order) ? product.mobile_display_order : product.display_order,
           grid_span: product.grid_span,
         })
-        .eq("id", product.id);
+        .eq("id", product.id)
+        .eq("game", game);
 
       if (update.error) throw update.error;
     }

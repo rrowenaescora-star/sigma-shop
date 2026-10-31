@@ -22,6 +22,7 @@ import { Eye, EyeOff, GripVertical, Monitor, Redo2, RotateCcw, Smartphone, Table
 import AdminHeader from "../admin-header";
 
 type Viewport = "desktop" | "tablet" | "mobile";
+type Shop = "blox-fruits" | "grow-a-garden-2" | "adopt-me" | "anime-defenders" | "blade-ball" | "mm2" | "pet-simulator" | "steal-an-egg";
 type Span = "normal" | "wide" | "large";
 type SectionKey = "catalog" | "store_info" | "faq";
 type Section = { section_key: SectionKey; display_order: number; mobile_display_order?: number | null; enabled: boolean; settings?: Record<string, unknown> };
@@ -29,6 +30,7 @@ type Product = { id: number; name: string; image_url?: string | null; is_active:
 type Snapshot = { sections: Section[]; products: Product[] };
 
 const labels: Record<SectionKey, string> = { catalog: "Product Catalog", store_info: "Store Information", faq: "Help Center" };
+const shops: { id: Shop; label: string }[] = [{ id: "blox-fruits", label: "Blox Fruits" }, { id: "grow-a-garden-2", label: "Grow a Garden 2" }, { id: "adopt-me", label: "Adopt Me" }, { id: "anime-defenders", label: "Anime Defenders" }, { id: "blade-ball", label: "Blade Ball" }, { id: "mm2", label: "MM2" }, { id: "pet-simulator", label: "Pet Simulator" }, { id: "steal-an-egg", label: "Steal an Egg" }];
 const clone = (value: Snapshot): Snapshot => JSON.parse(JSON.stringify(value));
 const order = <T extends { display_order?: number | null }>(rows: T[]) => [...rows].sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
 const normalise = (sections: Section[], products: Product[]): Snapshot => ({
@@ -51,6 +53,7 @@ export default function StoreLayoutEditorPage() {
   const [viewport, setViewport] = useState<Viewport>("desktop");
   const [message, setMessage] = useState("Loading layout…");
   const [saving, setSaving] = useState(false);
+  const [shop, setShop] = useState<Shop>("blox-fruits");
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }), useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }));
 
   const sections = useMemo(() => draft ? order(draft.sections) : [], [draft]);
@@ -58,13 +61,19 @@ export default function StoreLayoutEditorPage() {
   const changed = !!saved && !!draft && JSON.stringify(saved) !== JSON.stringify(draft);
 
   useEffect(() => {
-    fetch("/api/admin/store-layout", { cache: "no-store" }).then(async (response) => {
+    fetch(`/api/admin/store-layout?game=${shop}`, { cache: "no-store" }).then(async (response) => {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Could not load the layout.");
       const snapshot = normalise(order(data.sections || []), order(data.products || []));
       setSaved(clone(snapshot)); setDraft(clone(snapshot)); setMessage("Drag a grip handle or use the Move buttons, then press Save layout.");
     }).catch((error) => setMessage(error instanceof Error ? error.message : "Could not load the layout."));
-  }, []);
+  }, [shop]);
+
+  function changeShop(next: Shop) {
+    if (next === shop) return;
+    if (changed && !window.confirm("Discard unsaved changes for this shop and switch shops?")) return;
+    setSaved(null); setDraft(null); setHistory([]); setFuture([]); setMessage("Loading layout…"); setShop(next);
+  }
 
   function commit(next: Snapshot) {
     if (!draft) return;
@@ -136,7 +145,7 @@ export default function StoreLayoutEditorPage() {
     if (!draft) return;
     setSaving(true); setMessage("Saving layout…");
     try {
-      const response = await fetch("/api/admin/store-layout", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(draft) });
+      const response = await fetch("/api/admin/store-layout", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...draft, game: shop }) });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error);
       setSaved(clone(draft)); setHistory([]); setFuture([]); setMessage("Layout saved successfully.");
@@ -149,6 +158,7 @@ export default function StoreLayoutEditorPage() {
 
   return <main className="min-h-screen bg-[#06101d] px-4 py-6 text-white sm:px-6">
     <AdminHeader title="Store Layout Editor" subtitle="Use a drag handle or the clear Move buttons. Nothing saves until you press Save layout." active="layout" />
+    <div className="mb-4 flex flex-wrap items-center gap-3 rounded-2xl border border-cyan-300/15 bg-[#0b1728] p-4"><label htmlFor="layout-shop" className="text-sm font-bold">Edit shop</label><select id="layout-shop" value={shop} onChange={(event) => changeShop(event.target.value as Shop)} className="rounded-xl border border-white/10 bg-[#07111f] px-3 py-2 text-sm font-bold text-white">{shops.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</select><span className="text-xs text-slate-400">Product order and card sizes save only for the selected shop.</span></div>
     <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-cyan-300/15 bg-[#0b1728] p-4">
       <div className="flex flex-wrap gap-2">{(["desktop", "tablet", "mobile"] as Viewport[]).map((item) => {
         const Icon = item === "desktop" ? Monitor : item === "tablet" ? Tablet : Smartphone;

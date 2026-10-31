@@ -175,17 +175,17 @@ Explore the Shop
               href="/home#permanent-magnet"
               className="group/new-fruit relative isolate mt-8 flex max-w-xl flex-col items-start gap-5 overflow-hidden rounded-2xl border border-emerald-300/40 bg-[#ffffff] px-5 py-8 shadow-[0_0_34px_rgba(16,185,129,0.16)] transition hover:-translate-y-0.5 hover:border-emerald-200/70 hover:shadow-[0_0_42px_rgba(16,185,129,0.28)] sm:flex-row sm:items-center sm:py-10"
             >
-              <img src="/magnetfruit.webp" alt="" aria-hidden="true" className="absolute inset-0 -z-10 h-full w-full object-cover object-right opacity-75 transition duration-500 group-hover/new-fruit:scale-105" />
               <span className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(2,24,20,0.96)_0%,rgba(4,37,30,0.78)_48%,rgba(2,24,20,0.3)_100%)]" />
-              <div className="flex items-center gap-3">
+              <img src="/gasmutation-transparent.png" alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center opacity-40 transition duration-500" />
+              <div className="relative z-10 flex items-center gap-3">
                 
                 <span>
                   <span className="block text-[11px] font-black uppercase tracking-[0.2em] text-red-500">HAS ARRIVED</span>
-                  <span className="mt-2 block text-lg font-black text-white">Permanent Magnet Has Arrived!</span>
+                  <span className="mt-2 block text-lg font-black text-white">Hellfire Mutation Has Arrived!</span>
                   <span className="block text-sm text-slate-200">View the newest Blox Fruit and add it to your cart.</span>
                 </span>
               </div>
-              <span className="w-full rounded-lg bg-blue-400/80 px-5 py-4 text-center text-xs font-black text-[#05231d] transition group-hover/new-fruit:bg-white sm:w-auto sm:shrink-0 sm:py-5">View Magnet →</span>
+              <span className="relative z-10 w-full rounded-lg bg-blue-400/80 px-5 py-4 text-center text-xs font-black text-[#05231d] transition group-hover/new-fruit:bg-white sm:w-auto sm:shrink-0 sm:py-5">View Magnet →</span>
             </Link>
             <div className="mt-7 flex items-center gap-4">
               
